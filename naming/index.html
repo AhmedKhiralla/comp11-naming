@@ -422,7 +422,7 @@
 
         try {
             // Updated to use your live deployed Firebase Cloud Function URL
-            const response = await fetch('https://us-central1-pharmanamingvault.cloudfunctions.net/generateIndication', {
+            const response = await fetch('https://generateindication-c4fuosb5eq-uc.a.run.app', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ category, api, dosageForm })
