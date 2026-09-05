@@ -20,7 +20,7 @@
             --primary-hover: #40115A;
             --secondary-orange: #D35400; /* Textured Orange/Gold from Logo numbers */
             
-            /* Muters & Bases */
+            /* Muted & Bases */
             --text-main: #e6edf3;        /* Off-white for readability */
             --text-muted: #8b949e;       /* Soft gray for subtitles */
             --border: #30363d;           /* Subtle borders */
@@ -34,7 +34,6 @@
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            /* Update gradient glow to match new purple accent */
             background-image: radial-gradient(circle at top center, rgba(92, 23, 129, 0.08) 0%, transparent 50%);
         }
         .container {
@@ -54,7 +53,6 @@
         .logo-container img {
             max-width: 180px; 
             height: auto;
-            /* Optional: Add a subtle glow behind the logo if it's a dark PNG */
             filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); 
         }
         h1 {
@@ -67,7 +65,7 @@
             letter-spacing: -0.5px;
         }
         h1 span {
-            color: var(--primary); /* Highlight a word in the title */
+            color: var(--primary);
         }
         p.subtitle {
             text-align: center;
@@ -89,7 +87,30 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        input, select {
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 11px;
+            width: auto;
+            margin-top: 0;
+            background: rgba(92, 23, 129, 0.2);
+            border: 1px solid var(--primary);
+            color: #d8b4fe;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+        .btn-sm:hover {
+            background: var(--primary);
+            color: white;
+            transform: none;
+            box-shadow: none;
+        }
+        input, select, textarea {
             width: 100%;
             padding: 14px;
             background-color: var(--bg-input);
@@ -99,13 +120,14 @@
             box-sizing: border-box;
             font-size: 15px;
             transition: all 0.3s ease;
+            font-family: inherit;
         }
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(92, 23, 129, 0.15);
         }
-        input::placeholder {
+        input::placeholder, textarea::placeholder {
             color: #4b5563;
         }
         small {
@@ -114,7 +136,7 @@
             color: var(--text-muted);
             font-size: 12px;
         }
-        button {
+        button[type="submit"], #submit-receipt-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
             color: white;
@@ -128,7 +150,7 @@
             margin-top: 15px;
             box-shadow: 0 4px 15px rgba(92, 23, 129, 0.3);
         }
-        button:hover {
+        button[type="submit"]:hover, #submit-receipt-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(92, 23, 129, 0.4);
         }
@@ -167,7 +189,7 @@
             margin-bottom: 20px; 
             border-radius: 6px; 
             font-size: 13px; 
-            color: #fca876; /* Rich orange/gold highlight from logo numbers */
+            color: #fca876;
         }
         .instapay-box {
             background: rgba(92, 23, 129, 0.05);
@@ -243,12 +265,15 @@
                 <input type="text" id="dosage_form" required placeholder="Tablet">
             </div>
         </div>
+
+        <!-- Therapeutic Indication with Optional Groq AI Generation Button -->
         <div class="form-group">
-          <label for="therapeuticIndication">
-            Therapeutic Indication 
-            <button type="button" id="aiGenBtn" class="btn-sm ai-btn" title="Generate using Groq">✨ AI Generate</button>
-          </label>
-          <textarea id="therapeuticIndication" rows="3" class="form-control"></textarea>
+            <div class="label-row">
+                <label for="indication" style="margin-bottom:0;">Therapeutic Indication</label>
+                <button type="button" id="aiGenBtn" class="btn-sm" title="Optionally generate indication using Groq AI">✨ AI Generate (Optional)</button>
+            </div>
+            <textarea id="indication" rows="3" placeholder="Type manually or click AI Generate if you prefer..."></textarea>
+            <small>Completely optional: fill manually or use AI based on category, API, & dosage form.</small>
         </div>
         
         <div class="advanced-box">
@@ -311,7 +336,7 @@
                 Accepted formats: JPG, PNG. Maximum size: 5MB.
             </div>
             <input type="file" id="receipt-upload" accept="image/png, image/jpeg, image/jpg">
-            <button type="button" id="submit-receipt-btn" style="width: 100%; margin-top: 15px;">Submit Evidence</button>
+            <button type="button" id="submit-receipt-btn">Submit Evidence</button>
         </div>
         <p id="upload-status" style="text-align: center; font-weight: bold; color: var(--primary); margin-top: 15px; display: none;"></p>
     </div>
@@ -351,6 +376,7 @@
     const successBox = document.getElementById('success-msg');
     const submitBtn = document.getElementById('submit-btn');
     const receiptBtn = document.getElementById('submit-receipt-btn');
+    const aiGenBtn = document.getElementById('aiGenBtn');
     
     let currentOrderId = null; 
 
@@ -377,6 +403,44 @@
         } else {
             affixValueGroup.style.display = 'none';
             affixValueInput.value = ''; 
+        }
+    });
+
+    // Optional AI Generation Handler via Serverless Function
+    aiGenBtn.addEventListener('click', async () => {
+        const category = document.getElementById('category').value;
+        const api = document.getElementById('api_name').value.trim();
+        const dosageForm = document.getElementById('dosage_form').value.trim();
+
+        if (!api) {
+            alert("Please fill in the Active Ingredient (API) field first before running AI Generation.");
+            document.getElementById('api_name').focus();
+            return;
+        }
+
+        aiGenBtn.disabled = true;
+        aiGenBtn.innerText = "Generating...";
+
+        try {
+            const response = await fetch('/api/generate-indication', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category, api, dosageForm })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.indication) {
+                document.getElementById('indication').value = data.indication;
+            } else {
+                throw new Error(data.error || 'Failed to generate indication.');
+            }
+        } catch (error) {
+            console.error("AI Generation Error:", error);
+            alert("Could not generate indication automatically. You can type it manually.");
+        } finally {
+            aiGenBtn.disabled = false;
+            aiGenBtn.innerText = "✨ AI Generate (Optional)";
         }
     });
 
