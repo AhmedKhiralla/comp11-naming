@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharma Naming Vault | EDA-Verified Brand Generation</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Premium Dark Theme Variables - Logo Colors Integrated */
+            --bg-body: #0d1117;          /* Deep sleek background */
+            --bg-surface: #161b22;       /* Elevated card background */
+            --bg-input: #010409;         /* Very dark input background */
+            
+            /* Logo Colors */
+            --primary: #5C1781;          /* Rich Vibrant Purple from Logo */
+            --primary-hover: #40115A;
+            --secondary-orange: #D35400; /* Textured Orange/Gold from Logo numbers */
+            
+            /* Muters & Bases */
+            --text-main: #e6edf3;        /* Off-white for readability */
+            --text-muted: #8b949e;       /* Soft gray for subtitles */
+            --border: #30363d;           /* Subtle borders */
+        }
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            /* Update gradient glow to match new purple accent */
+            background-image: radial-gradient(circle at top center, rgba(92, 23, 129, 0.08) 0%, transparent 50%);
+        }
+        .container {
+            background: var(--bg-surface);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            max-width: 550px;
+            width: 100%;
+        }
+        /* LOGO STYLING */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .logo-container img {
+            max-width: 180px; 
+            height: auto;
+            /* Optional: Add a subtle glow behind the logo if it's a dark PNG */
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); 
+        }
+        h1 {
+            color: var(--text-main);
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 26px;
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        h1 span {
+            color: var(--primary); /* Highlight a word in the title */
+        }
+        p.subtitle {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 35px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-weight: 300;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(92, 23, 129, 0.15);
+        }
+        input::placeholder {
+            color: #4b5563;
+        }
+        small {
+            display: block;
+            margin-top: 5px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(92, 23, 129, 0.3);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(92, 23, 129, 0.4);
+        }
+        button:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        /* Advanced Preferences Box */
+        .advanced-box {
+            margin-top: 25px; 
+            margin-bottom: 25px; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary); 
+            border-radius: 8px;
+        }
+        .advanced-box h3 {
+            margin-top: 0; 
+            margin-bottom: 15px; 
+            font-size: 14px; 
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Warnings & Payments */
+        .warning-box {
+            background: rgba(211, 84, 0, 0.1); 
+            border-left: 4px solid var(--secondary-orange); 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            border-radius: 6px; 
+            font-size: 13px; 
+            color: #fca876; /* Rich orange/gold highlight from logo numbers */
+        }
+        .instapay-box {
+            background: rgba(92, 23, 129, 0.05);
+            border: 1px dashed var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .success-msg {
+            display: none;
+            text-align: center;
+        }
+        .success-msg h2 { color: var(--primary); }
+        .success-msg p { color: var(--text-muted); line-height: 1.6; }
+        
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <div class="logo-container">
+        <img src="Comp11Labs Logo.png" alt="Comp11 Labs Logo">
+    </div>
+
+    <h1>Comp11 <span>Naming Engine</span></h1>
+    <p class="subtitle">Regulatory-Grade Brand Generation <br> for the Egyptian Pharma Market</p>
+
+    <form id="naming-form">
+        <div class="form-group">
+            <label>Email Address (For Report Delivery)</label>
+            <input type="email" id="email" required placeholder="manager@pharma.com">
+        </div>
+        
+        <div class="form-group">
+            <label>Product Category</label>
+            <select id="category" required>
+                <option value="Human Pharmaceutical">Human Pharmaceutical</option>
+                <option value="Biological">Biological</option>
+                <option value="Herbal Medicine">Herbal Medicine</option>
+                <option value="Complementary">Complementary</option>
+                <option value="Veterinary">Veterinary</option>
+                <option value="Cosmetics">Cosmetics</option>
+                <option value="Biocides">Biocides</option>
+            </select>
+        </div>
+
+        <div id="cosmetics-warning" class="warning-box" style="display: none;">
+            <strong>Note:</strong> The EDA database does not support Generic Name searches for Cosmetics. Your report will include the Naming Similarity Check (Part 1), but Market Intelligence (Part 2) will be skipped.
+        </div>
+
+        <div class="form-group">
+            <label>Active Ingredient (API)</label>
+            <input type="text" id="api_name" required placeholder="e.g., Paracetamol, Caffeine">
+            <small>Separate multiple ingredients with commas</small>
+        </div>
+        <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="company_name" required placeholder="e.g., ABC Pharma">
+        </div>
+        <div class="row" style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Strength</label>
+                <input type="text" id="strength" required placeholder="e.g., 500, 65">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Dosage Form</label>
+                <input type="text" id="dosage_form" required placeholder="Tablet">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Therapeutic Indication</label>
+            <input type="text" id="indication" required placeholder="e.g., Enhances pain relief and alertness">
+        </div>
+        
+        <div class="advanced-box">
+            <h3>Advanced AI Parameters</h3>
+            
+            <div class="form-group">
+                <label>Naming Strategy</label>
+                <select id="strategy">
+                    <option value="mixed">Mixed / Totally Creative (Recommended)</option>
+                    <option value="api">Rooted in Active Ingredient</option>
+                    <option value="company">Rooted in Company Name</option>
+                    <option value="indication">Rooted in Indication</option>
+                </select>
+            </div>
+
+            <div class="row" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Word Count</label>
+                    <select id="word_count">
+                        <option value="mixed">1 or 2 words (Let AI decide)</option>
+                        <option value="1-word">Strictly 1-word names</option>
+                        <option value="2-words">Strictly 2-word names</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="flex: 1;">
+                    <label>Required Affix</label>
+                    <select id="affix_type">
+                        <option value="">None (No restrictions)</option>
+                        <option value="prefix">Must Start With (Prefix)</option>
+                        <option value="suffix">Must End With (Suffix)</option>
+                        <option value="contains">Must Contain</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="affix_value_group" style="display: none;">
+                <label>Affix Value</label>
+                <input type="text" id="affix_value" placeholder="e.g., Ner, Cef, Mab">
+            </div>
+        </div>
+        
+        <button type="submit" id="submit-btn">Initialize AI Engine</button>
+    </form>
+
+    <div id="payment-step" class="instapay-box">
+        <h3 style="color: var(--primary); margin-top: 0;">Step 2: Payment Verification</h3>
+        <p style="color: var(--text-main);">Please scan the QR code below to transfer the service fee via <strong>InstaPay</strong>:</p>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="qr.png" alt="InstaPay QR Code" style="max-width: 180px; height: auto; border-radius: 12px; border: 2px solid var(--border);">
+            <p style="font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 15px; letter-spacing: 1px;">
+                ahmedkhiralla11@instapay
+            </p>
+        </div>
+        
+        <div style="margin-top: 20px; background: var(--bg-surface); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+            <label style="font-size: 13px; color: var(--text-main);">Upload Screenshot of InstaPay Transfer:</label>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; margin-top: 4px;">
+                Accepted formats: JPG, PNG. Maximum size: 5MB.
+            </div>
+            <input type="file" id="receipt-upload" accept="image/png, image/jpeg, image/jpg">
+            <button type="button" id="submit-receipt-btn" style="width: 100%; margin-top: 15px;">Submit Evidence</button>
+        </div>
+        <p id="upload-status" style="text-align: center; font-weight: bold; color: var(--primary); margin-top: 15px; display: none;"></p>
+    </div>
+
+    <div id="success-msg" class="success-msg">
+        <h2>Order Received!</h2>
+        <p>Our AI Engine is currently processing your request. Your 20 names will be emailed to your inbox shortly.</p>
+        <hr>
+        <p style="font-size: 13px;">
+            For technical support or corporate inquiries, please contact our regulatory team at <br>
+            <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
+        </p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref as dbRef, push, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
+        authDomain: "pharmanamingvault.firebaseapp.com",
+        databaseURL: "https://pharmanamingvault-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "pharmanamingvault",
+        storageBucket: "pharmanamingvault.firebasestorage.app", 
+        messagingSenderId: "301633731884",
+        appId: "1:301633731884:web:b303f30dab1e0d116f4089"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app); 
+
+    const form = document.getElementById('naming-form');
+    const paymentBox = document.getElementById('payment-step');
+    const successBox = document.getElementById('success-msg');
+    const submitBtn = document.getElementById('submit-btn');
+    const receiptBtn = document.getElementById('submit-receipt-btn');
+    
+    let currentOrderId = null; 
+
+    // Category Warning Toggle
+    const categorySelect = document.getElementById('category');
+    const cosmeticsWarning = document.getElementById('cosmetics-warning');
+
+    categorySelect.addEventListener('change', (e) => {
+        if (e.target.value === 'Cosmetics') {
+            cosmeticsWarning.style.display = 'block';
+        } else {
+            cosmeticsWarning.style.display = 'none';
+        }
+    });
+
+    // Affix Toggle
+    const affixTypeSelect = document.getElementById('affix_type');
+    const affixValueGroup = document.getElementById('affix_value_group');
+    const affixValueInput = document.getElementById('affix_value');
+
+    affixTypeSelect.addEventListener('change', (e) => {
+        if (e.target.value !== "") {
+            affixValueGroup.style.display = 'block';
+        } else {
+            affixValueGroup.style.display = 'none';
+            affixValueInput.value = ''; 
+        }
+    });
+
+    // 1. Handle Initial Form Submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Initializing Engine...";
+
+        try {
+            const settingsRef = dbRef(db, 'settings/is_paid_mode');
+            const snapshot = await get(settingsRef);
+            const isPaidMode = snapshot.exists() ? snapshot.val() : false;
+
+            const orderData = {
+                email: document.getElementById('email').value,
+                category: document.getElementById('category').value,
+                api_name: document.getElementById('api_name').value,
+                company_name: document.getElementById('company_name').value,
+                strength: document.getElementById('strength').value,
+                dosage_form: document.getElementById('dosage_form').value,
+                indication: document.getElementById('indication').value,
+                
+                // Advanced Options Payload
+                strategy: document.getElementById('strategy').value,
+                word_count: document.getElementById('word_count').value,
+                affix_type: document.getElementById('affix_type').value,
+                affix_value: document.getElementById('affix_value').value,
+                
+                status: isPaidMode ? "pending_payment" : "approved", 
+                confirmation_sent: false, 
+                timestamp: new Date().toISOString()
+            };
+
+            const ordersRef = dbRef(db, 'orders');
+            const newOrderRef = push(ordersRef);
+            currentOrderId = newOrderRef.key; 
+            
+            await set(newOrderRef, orderData);
+
+            form.style.display = 'none';
+
+            if (isPaidMode) {
+                paymentBox.style.display = 'block';
+            } else {
+                successBox.style.display = 'block';
+                successBox.innerHTML = `
+                    <h2>Order Received & Approved!</h2>
+                    <p>Our AI Engine is currently processing your request. Your 20 names will be emailed to <b>${orderData.email}</b> shortly.</p>
+                    <hr>
+                    <p style="font-size: 13px; color: var(--text-muted);">
+                        For technical support or corporate inquiries, please contact our regulatory team at <br>
+                        <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
+                    </p>
+                `;
+            }
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error submitting order: " + error.message);
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Initialize AI Engine";
+        }
+    });
+
+    // 2. Handle Receipt Upload
+    receiptBtn.addEventListener('click', async () => {
+        const fileInput = document.getElementById('receipt-upload');
+        const statusText = document.getElementById('upload-status');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select a screenshot file first.");
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            alert("Invalid file type. Please upload an image file (JPG or PNG).");
+            fileInput.value = ""; 
+            return;
+        }
+
+        if (file.size > 5242880) {
+            alert("This image is too large. Please upload a file smaller than 5MB.");
+            fileInput.value = ""; 
+            return;
+        }
+
+        receiptBtn.disabled = true;
+        receiptBtn.innerText = "Uploading Evidence...";
+        statusText.style.display = 'block';
+        statusText.innerText = "Uploading securely to Firebase...";
+
+        try {
+            const fileRef = storageRef(storage, `receipts/${currentOrderId}_${file.name}`);
+            await uploadBytes(fileRef, file);
+            const downloadUrl = await getDownloadURL(fileRef);
+
+            const orderRef = dbRef(db, `orders/${currentOrderId}`);
+            await update(orderRef, {
+                receipt_url: downloadUrl,
+                status: 'pending_verification' 
+            });
+
+            paymentBox.innerHTML = `
+                <h3 style="color: var(--primary); text-align: center;">Evidence Submitted Successfully!</h3>
+                <p style="text-align: center; color: var(--text-main); line-height: 1.5;">We will review your InstaPay transfer. Once verified, your report will be generated and emailed within a few hours.</p>
+                <hr>
+                <p style="font-size: 13px; color: var(--text-muted); text-align: center;">
+                    For any inquiries or technical assistance, please contact our team at <br>
+                    <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
+                </p>
+            `;
+
+        } catch (error) {
+            console.error("Upload failed:", error);
+            statusText.innerText = "Upload failed. Please try again.";
+            statusText.style.color = "#ef4444";
+            receiptBtn.disabled = false;
+            receiptBtn.innerText = "Submit Evidence";
+        }
+    });
+</script>
+
+</body>
+</html>

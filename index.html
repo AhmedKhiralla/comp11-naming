@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comp11 Labs | Pharmaceutical Software & Technical Operations Intelligence</title>
+    <!-- Tailwind CSS CDN for rapid, modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#5C1781',
+                            dark: '#3D0F55',
+                            light: '#7A22A8',
+                            accent: '#F39C12'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand selection:text-white">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Static Fallback Logo -->
+                <img src="Comp11Labs Logo.jpg" alt="Comp11 Labs Logo" class="h-10 w-auto rounded">
+                <span class="text-xl font-bold tracking-tight text-brand">Comp11 <span class="text-slate-700">Labs</span></span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                <a href="#story" class="hover:text-brand transition">Our Story</a>
+                <a href="#solutions" class="hover:text-brand transition">Solutions</a>
+                <a href="#naming-pipeline" class="hover:text-brand transition">Naming Engine</a>
+                <a href="#iot-systems" class="hover:text-brand transition">IoT & Cleanrooms</a>
+                <a href="naming/" class="bg-brand text-white px-4 py-2 rounded-lg shadow hover:bg-brand-light transition">Launch Naming App</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION WITH ANIMATED LOGO -->
+    <section class="pt-32 pb-20 lg:pt-40 lg:pb-32 bg-gradient-to-b from-purple-50/50 to-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center space-x-2 bg-purple-100 text-brand px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-shield-halved"></i> <span>21 CFR Part 11 Compliant Architecture</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                        Engineering Precision for the <span class="text-brand">Pharmaceutical Industry</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0">
+                        Rooted in over 20 years of technical operations and pharmaceutical leadership, Comp11 Labs delivers mission-critical software, automated regulatory intelligence, and real-time industrial monitoring systems.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-4">
+                        <a href="naming/" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand hover:bg-brand-light shadow-lg transition">
+                            Explore Naming Pipeline <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="#solutions" class="inline-flex items-center justify-center px-6 py-3 border border-slate-300 text-base font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition">
+                            View Enterprise Systems
+                        </a>
+                    </div>
+                </div>
+                <!-- Animated Logo Video Display -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-full max-w-md bg-white p-4 rounded-2xl shadow-2xl border border-slate-100">
+                        <video autoplay loop muted playsinline class="w-full h-auto rounded-xl shadow-inner">
+                            <source src="Logo Animated.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="absolute -bottom-4 -right-4 bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-mono shadow-md">
+                            <i class="fa-solid fa-circle text-emerald-400 text-[8px] mr-1.5 animate-pulse"></i> Systems Active v3.0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- OUR STORY SECTION -->
+    <section id="story" class="py-20 bg-white border-y border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center space-y-4">
+                <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Built on Decades of Technical Operations Rigor</h2>
+                <p class="text-slate-600 text-lg">
+                    Comp11 Labs was established with a singular objective: to bridge the gap between complex pharmaceutical manufacturing operations and robust, fully compliant digital software solutions.
+                </p>
+            </div>
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80">
+                    <div class="w-12 h-12 bg-purple-100 text-brand rounded-xl flex items-center justify-center text-xl font-bold mb-6">01</div>
+                    <h3 class="text-xl font-semibold text-slate-900 mb-3">cGMP & 21 CFR Part 11</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Every system we architect is built from the ground up to satisfy stringent electronic record integrity, immutable audit trails, and strict validation requirements.
+                    </p>
+                </div>
+                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80">
+                    <div class="w-12 h-12 bg-purple-100 text-brand rounded-xl flex items-center justify-center text-xl font-bold mb-6">02</div>
+                    <h3 class="text-xl font-semibold text-slate-900 mb-3">Industry-Grade Execution</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Founded by industry veterans with over 20 years of technical operations leadership in pharma and fast-moving consumer goods, we solve real shop-floor challenges.
+                    </p>
+                </div>
+                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80">
+                    <div class="w-12 h-12 bg-purple-100 text-brand rounded-xl flex items-center justify-center text-xl font-bold mb-6">03</div>
+                    <h3 class="text-xl font-semibold text-slate-900 mb-3">Dual-Engine Automation</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Combining high-speed AI generation models with automated Selenium and Playwright scrapers to deliver real-time regulatory intelligence and validation reporting.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CORE SOLUTIONS SUITE -->
+    <section id="solutions" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <h2 class="text-3xl font-bold text-slate-900">Comprehensive Software & Operations Suite</h2>
+                <p class="mt-4 text-slate-600">Enterprise platforms engineered for quality assurance, packaging efficiency, and environmental control.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- QMS Solution -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="p-8 flex-1 space-y-4">
+                        <div class="text-brand text-2xl"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <h3 class="text-2xl font-bold text-slate-900">Regulatory QMS</h3>
+                        <p class="text-slate-600 text-sm">
+                            Quality Management System modules designed to streamline deviations, CAPAs, and change controls while maintaining uncompromised audit compliance.
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 px-8 py-4 border-t border-purple-100 text-xs font-semibold text-brand uppercase">
+                        Part 10/11 Audit Ready
+                    </div>
+                </div>
+
+                <!-- BMS Solution -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="p-8 flex-1 space-y-4">
+                        <div class="text-brand text-2xl"><i class="fa-solid fa-building-shield"></i></div>
+                        <h3 class="text-2xl font-bold text-slate-900">BMS Solution</h3>
+                        <p class="text-slate-600 text-sm">
+                            Building Management Systems configured for controlled environments, providing supervisory control and historical trending for critical utilities.
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 px-8 py-4 border-t border-purple-100 text-xs font-semibold text-brand uppercase">
+                        Facility Automation
+                    </div>
+                </div>
+
+                <!-- OEE Live Calculator -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="p-8 flex-1 space-y-4">
+                        <div class="text-brand text-2xl"><i class="fa-solid fa-gauge-high"></i></div>
+                        <h3 class="text-2xl font-bold text-slate-900">OEE Live Calculator</h3>
+                        <p class="text-slate-600 text-sm">
+                            Real-time Overall Equipment Effectiveness tracking bridging machine mechanics (such as continuous rotary sealing upgrades) with live operational dashboards.
+                        </p>
+                    </div>
+                    <div class="bg-purple-50 px-8 py-4 border-t border-purple-100 text-xs font-semibold text-brand uppercase">
+                        Shop Floor Analytics
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NAMING PIPELINE HIGHLIGHT -->
+    <section id="naming-pipeline" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-bolt"></i> <span>Version 3.0 Dual Engines Active</span>
+                    </div>
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                        Comp11-Naming Engine & Market Intelligence
+                    </h2>
+                    <p class="text-slate-600 leading-relaxed">
+                        An automated pharmaceutical trade name generation and screening pipeline. It queries the Egyptian Drug Authority (EDA) portals using advanced Selenium automation, verifies name availability, calculates similarity percentages, checks developmental files (Under Registration), and compiles publication-ready audit reports via ReportLab.
+                    </p>
+                    <ul class="space-y-3 text-sm text-slate-700 font-medium">
+                        <li class="flex items-center"><i class="fa-solid fa-check text-emerald-500 mr-3"></i> Automated EDA Naming Checker Portal Interaction</li>
+                        <li class="flex items-center"><i class="fa-solid fa-check text-emerald-500 mr-3"></i> AI-Powered Linguistic Failure Analysis & Prompt Pivoting</li>
+                        <li class="flex items-center"><i class="fa-solid fa-check text-emerald-500 mr-3"></i> Comprehensive Competitor Market Saturation & Dosage Analysis</li>
+                    </ul>
+                    <div class="pt-4">
+                        <a href="naming/" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-brand hover:bg-brand-light shadow transition">
+                            Access Naming Portal <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-slate-900 rounded-2xl p-6 shadow-xl text-slate-300 font-mono text-xs space-y-3 border border-slate-800">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-emerald-400 font-bold">● WORKER_DAEMON_V3.0</span>
+                        <span class="text-slate-500">Firebase Realtime Sync</span>
+                    </div>
+                    <p class="text-slate-400">🔄 Boot Sequence: Checking orphaned 'processing' orders...</p>
+                    <p class="text-emerald-400">✅ No stuck orders found. System clean.</p>
+                    <p class="text-purple-300">🚀 VERSION 3.0 STARTING - DUAL ENGINES ACTIVE</p>
+                    <p class="text-slate-300">🧹 Cleaning raw API input via Groq reasoning models...</p>
+                    <p class="text-amber-300">🧪 Requesting Batch from AI (Progress: 20/20 target met)</p>
+                    <p class="text-emerald-400">📄 Generating Final Combined PDF Audit Report...</p>
+                    <p class="text-white font-bold">✅ Order Completed & Dispatched via Secure SSL Relay.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- IOT & CLEANROOMS (COMANORAMA) -->
+    <section id="iot-systems" class="py-20 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl space-y-6">
+            <div class="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                <i class="fa-solid fa-microchip"></i> <span>Embedded Industrial IoT</span>
+            </div>
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Companorama: Cleanroom Climate Monitoring</h2>
+            <p class="text-slate-600 text-lg leading-relaxed">
+                Engineered for pharmaceutical cleanrooms and sensitive industrial facilities. Incorporating ESP32, Arduino, and Raspberry Pi hardware paired with industrial analog-to-digital converters (ADS1115), 4–20mA sensor interfaces, and secure cloud logging for continuous environmental compliance.
+            </p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <img src="Comp11Labs Logo.jpg" alt="Comp11 Labs Logo" class="h-8 w-auto rounded">
+                <span class="text-white font-bold tracking-tight">Comp11 Labs</span>
+            </div>
+            <p class="text-xs text-slate-500 text-center sm:text-left">
+                &copy; 2026 Comp11 Labs. All rights reserved. 6th of October City, Giza Governorate, Egypt.
+            </p>
+            <div class="flex space-x-4 text-sm">
+                <a href="naming/" class="hover:text-white transition">Naming Engine</a>
+                <a href="mailto:comp11labs@gmail.com" class="hover:text-white transition">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

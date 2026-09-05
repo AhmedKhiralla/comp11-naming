@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comp11 - Admin Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #1E8449; border-bottom: 2px solid #1E8449; padding-bottom: 10px; }
+        .card { background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-left: 5px solid #f39c12; border-radius: 4px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-approve { background-color: #27ae60; }
+        .btn-toggle { background-color: #2980b9; margin-bottom: 20px; }
+        .mode-status { font-size: 1.2em; font-weight: bold; margin-bottom: 20px; }
+        .free-mode { color: #c0392b; }
+        .paid-mode { color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="adminPanel" style="display: none;">
+    <div id="systemAlert" style="display: none; background: #c0392b; color: white; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; text-align: center;">
+    🚨 ATTENTION: The Selenium Worker has crashed or the EDA website structure has changed! 
+    <br><span id="errorDetails" style="font-size: 12px; font-weight: normal;"></span>
+    </div>
+    <h1>Comp11 Labs Admin</h1>
+    
+    <div>
+        <div class="mode-status" id="modeDisplay">Current Mode: Loading...</div>
+        <button class="btn btn-toggle" onclick="toggleMode()">Switch Paid/Free Mode</button>
+    </div>
+
+    <h2>Pending InstaPay Orders</h2>
+    <div id="pendingOrders">Loading orders...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+<script>
+    // 🛑 SIMPLE PASSWORD PROTECTION 
+    const pass = prompt("Enter Admin Password:");
+    if (pass !== "kM8$vP3!zQ9#xL2@") { // Change this password!
+        document.body.innerHTML = "<h2>Access Denied</h2>";
+        throw new Error("Wrong password");
+    } else {
+        document.getElementById('adminPanel').style.display = 'block';
+    }
+
+    // 🟢 YOUR ACTUAL FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
+        authDomain: "pharmanamingvault.firebaseapp.com",
+        databaseURL: "https://pharmanamingvault-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "pharmanamingvault",
+        storageBucket: "pharmanamingvault.firebasestorage.app",
+        messagingSenderId: "301633731884",
+        appId: "1:301633731884:web:b303f30dab1e0d116f4089"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    let currentMode = false;
+
+    // 1. Listen for Mode Changes
+    db.ref('settings/is_paid_mode').on('value', (snapshot) => {
+        currentMode = snapshot.val();
+        const display = document.getElementById('modeDisplay');
+        if (currentMode) {
+            display.innerHTML = 'Current Mode: <span class="paid-mode">PAID (InstaPay Required)</span>';
+        } else {
+            display.innerHTML = 'Current Mode: <span class="free-mode">FREE (Auto-Approves)</span>';
+        }
+    });
+
+    // 2. Toggle Mode Function
+    function toggleMode() {
+        const newMode = !currentMode;
+        if(confirm(`Are you sure you want to switch to ${newMode ? 'PAID' : 'FREE'} mode?`)) {
+            db.ref('settings/is_paid_mode').set(newMode);
+        }
+    }
+
+    // 3. Listen for Pending Orders (Catches both waiting for payment AND uploaded receipts)
+    db.ref('orders').on('value', (snapshot) => {
+        const container = document.getElementById('pendingOrders');
+        container.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            container.innerHTML = '<p>No pending orders at this time.</p>';
+            return;
+        }
+
+        let hasPending = false;
+
+        snapshot.forEach((childSnapshot) => {
+            const orderId = childSnapshot.key;
+            const data = childSnapshot.val();
+            
+            // Only show orders that need admin attention
+            if (data.status === 'pending_payment' || data.status === 'pending_verification') {
+                hasPending = true;
+                
+                // --- NEW RECEIPT BUTTON LOGIC ---
+                let receiptButtonHTML = "";
+                if (data.receipt_url) {
+                    receiptButtonHTML = `
+                        <div style="display: inline-flex; gap: 10px; margin-right: 15px;">
+                            <a href="${data.receipt_url}" target="_blank" rel="noopener noreferrer" 
+                               style="background-color: #f39c12; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                               📄 View Evidence
+                            </a>
+                            <button onclick="deleteReceipt('${orderId}', '${data.receipt_url}')" 
+                               style="background-color: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">
+                               🗑️ Delete File
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    receiptButtonHTML = `<span style="color: #c0392b; font-size: 13px; margin-right: 15px; font-style: italic;">No receipt uploaded yet</span>`;
+                }
+                // --------------------------------
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>Company: ${data.company_name}</h3>
+                    <p><b>API:</b> ${data.api_name}</p>
+                    <p><b>Email:</b> ${data.email}</p>
+                    <p><b>Date:</b> ${new Date(data.timestamp).toLocaleString()}</p>
+                    <div style="margin-top: 15px; display: flex; align-items: center;">
+                        ${receiptButtonHTML}
+                        <button class="btn btn-approve" onclick="approveOrder('${orderId}')">Verify Payment & Approve</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        });
+
+        if (!hasPending) {
+            container.innerHTML = '<p>No pending orders at this time.</p>';
+        }
+    });
+
+    // 4. Approve Order Function
+    function approveOrder(orderId) {
+        if(confirm("Have you verified the InstaPay transfer? Clicking OK will start the AI Engine.")) {
+            db.ref(`orders/${orderId}`).update({ status: 'approved' })
+            .then(() => alert("Order approved! The Railway engine will start in a few seconds."));
+        }
+    }
+
+    // 5. Delete Receipt Function (Saves Storage Space)
+    async function deleteReceipt(orderId, receiptUrl) {
+        if(confirm("Are you sure you want to permanently delete this receipt? This will free up storage space.")) {
+            try {
+                // 1. Point to the exact file in the Storage Bucket using its URL
+                const fileRef = storage.refFromURL(receiptUrl);
+                
+                // 2. Delete it from Google Storage
+                await fileRef.delete();
+                
+                // 3. Remove the URL from the Realtime Database so the button disappears
+                await db.ref(`orders/${orderId}`).update({ receipt_url: null });
+                
+                alert("Receipt permanently deleted from storage.");
+            } catch (error) {
+                console.error("Deletion Error:", error);
+                alert("Failed to delete the file. It may have already been removed.");
+            }
+        }
+    }
+
+    // Listen for System Health Alerts
+    db.ref('system_health').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const alertBox = document.getElementById('systemAlert');
+        const details = document.getElementById('errorDetails');
+        
+        // If data exists and status is CRASHED, show the banner
+        if (data && data.status === 'CRASHED') {
+            alertBox.style.display = 'block';
+            details.innerText = `Error: ${data.error} at ${data.timestamp}`;
+        } else {
+            // Otherwise, hide the banner
+            alertBox.style.display = 'none';
+        }
+    });
+    
+</script>
+
+</body>
+</html>
