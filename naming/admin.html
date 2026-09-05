@@ -87,7 +87,7 @@
     }
 
     // 3. Listen for Pending Orders (Catches both waiting for payment AND uploaded receipts)
-    db.ref('orders').on('value', (snapshot) => {
+    db.ref('orders').orderByChild('status').on('value', (snapshot) => {
         const container = document.getElementById('pendingOrders');
         container.innerHTML = '';
         
