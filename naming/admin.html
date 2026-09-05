@@ -102,8 +102,11 @@
             const orderId = childSnapshot.key;
             const data = childSnapshot.val();
             
-            // Only show orders that need admin attention
-            if (data.status === 'pending_payment' || data.status === 'pending_verification') {
+            // Normalize status to lowercase to avoid minor casing mismatches
+            const status = (data.status || '').toLowerCase();
+            
+            // Show pending payments, pending verifications, or approved orders
+            if (status === 'pending_payment' || status === 'pending_verification' || status === 'approved') {
                 hasPending = true;
                 
                 // --- NEW RECEIPT BUTTON LOGIC ---
