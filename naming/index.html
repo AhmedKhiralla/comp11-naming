@@ -244,8 +244,11 @@
             </div>
         </div>
         <div class="form-group">
-            <label>Therapeutic Indication</label>
-            <input type="text" id="indication" required placeholder="e.g., Enhances pain relief and alertness">
+          <label for="therapeuticIndication">
+            Therapeutic Indication 
+            <button type="button" id="aiGenBtn" class="btn-sm ai-btn" title="Generate using Groq">✨ AI Generate</button>
+          </label>
+          <textarea id="therapeuticIndication" rows="3" class="form-control"></textarea>
         </div>
         
         <div class="advanced-box">
