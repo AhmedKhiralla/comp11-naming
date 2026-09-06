@@ -361,8 +361,24 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref as dbRef, push, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    import {
+        getAuth,
+        signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import {
+        getDatabase,
+        ref as dbRef,
+        push,
+        set,
+        get,
+        update
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import {
+        getStorage,
+        ref as storageRef,
+        uploadBytes,
+        getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
@@ -375,9 +391,30 @@
     };
 
     const app = initializeApp(firebaseConfig);
+
+    const auth = getAuth(app);
     const db = getDatabase(app);
     const storage = getStorage(app); 
 
+    let currentUser = null;
+
+    try {
+        const userCredential = await signInAnonymously(auth);
+        currentUser = userCredential.user;
+    
+        console.log("Anonymous authentication successful.");
+        console.log("Customer UID:", currentUser.uid);
+    
+    } catch (error) {
+        console.error("Anonymous authentication failed:", error);
+    
+        alert(
+            "Unable to initialize the service. Please refresh the page."
+        );
+    
+        throw error;
+    }
+    
     const form = document.getElementById('naming-form');
     const paymentBox = document.getElementById('payment-step');
     const successBox = document.getElementById('success-msg');
@@ -461,8 +498,10 @@
             const settingsRef = dbRef(db, 'settings/is_paid_mode');
             const snapshot = await get(settingsRef);
             const isPaidMode = snapshot.exists() ? snapshot.val() : false;
-
+            
             const orderData = {
+                uid: currentUser.uid,
+            
                 email: document.getElementById('email').value,
                 category: document.getElementById('category').value,
                 api_name: document.getElementById('api_name').value,
@@ -470,15 +509,14 @@
                 strength: document.getElementById('strength').value,
                 dosage_form: document.getElementById('dosage_form').value,
                 indication: document.getElementById('indication').value,
-                
-                // Advanced Options Payload
+            
                 strategy: document.getElementById('strategy').value,
                 word_count: document.getElementById('word_count').value,
                 affix_type: document.getElementById('affix_type').value,
                 affix_value: document.getElementById('affix_value').value,
-                
-                status: isPaidMode ? "pending_payment" : "approved", 
-                confirmation_sent: false, 
+            
+                status: isPaidMode ? "pending_payment" : "approved",
+                confirmation_sent: false,
                 timestamp: new Date().toISOString()
             };
 
@@ -542,7 +580,10 @@
         statusText.innerText = "Uploading securely to Firebase...";
 
         try {
-            const fileRef = storageRef(storage, `receipts/${currentOrderId}_${file.name}`);
+            const fileRef = storageRef(
+                storage,
+                `receipts/${currentUser.uid}/${currentOrderId}_${file.name}`
+            );
             await uploadBytes(fileRef, file);
             const downloadUrl = await getDownloadURL(fileRef);
 
