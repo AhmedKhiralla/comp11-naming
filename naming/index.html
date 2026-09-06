@@ -212,14 +212,6 @@
             margin: 20px 0;
         }
     </style>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script type="text/javascript">
-       (function(){
-          emailjs.init({
-            publicKey: "WS8JG-zgJv6owJ6PF", // Replace with your EmailJS Public Key
-          });
-       })();
-    </script>
 </head>
 <body>
 
@@ -598,18 +590,22 @@
             const apiName = document.getElementById('api_name').value;
             const customerEmail = document.getElementById('email').value;
 
+            // --- CALL SECURE BACKEND FUNCTION TO SEND EMAIL ---
             try {
-                await emailjs.send("service_abihyng", "template_1puim9n", {
-                    company_name: companyName,
-                    api_name: apiName,
-                    customer_email: customerEmail,
-                    receipt_url: downloadUrl
+                await fetch('https://us-central1-pharmanamingvault.cloudfunctions.net/sendAdminNotification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        company_name: document.getElementById('company_name').value,
+                        api_name: document.getElementById('api_name').value,
+                        customer_email: document.getElementById('email').value,
+                        receipt_url: downloadUrl
+                    })
                 });
-                console.log("Admin notification email sent successfully.");
+                console.log("Admin notification email dispatched securely.");
             } catch (emailError) {
-                console.error("Failed to send admin email notification:", emailError);
+                console.error("Failed to trigger admin email:", emailError);
             }
-            // ----------------------------------------
 
             paymentBox.innerHTML = `
                 <h3 style="color: var(--primary); text-align: center;">Evidence Submitted Successfully!</h3>
