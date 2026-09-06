@@ -1,213 +1,381 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
-<title>Comp11 - Admin Dashboard</title>
+    <title>Comp11 - Admin Dashboard</title>
 
-<style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f7f6;
-        padding: 20px;
-    }
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            padding: 20px;
+            margin: 0;
+        }
 
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
 
-    h1 {
-        color: #1E8449;
-        border-bottom: 2px solid #1E8449;
-        padding-bottom: 10px;
-    }
+        h1 {
+            color: #1E8449;
+            border-bottom: 2px solid #1E8449;
+            padding-bottom: 10px;
+        }
 
-    .card {
-        background: #f9f9f9;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 5px solid #f39c12;
-        border-radius: 4px;
-    }
+        h2 {
+            margin-top: 30px;
+        }
 
-    .btn {
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        color: white;
-    }
+        .card {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid #f39c12;
+            border-radius: 4px;
+        }
 
-    .btn-approve {
-        background-color: #27ae60;
-    }
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
 
-    .btn-toggle {
-        background-color: #2980b9;
-        margin-bottom: 20px;
-    }
+        .btn-approve {
+            background-color: #27ae60;
+        }
 
-    .mode-status {
-        font-size: 1.2em;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
+        .btn-toggle {
+            background-color: #2980b9;
+            margin-bottom: 20px;
+        }
 
-    .free-mode {
-        color: #c0392b;
-    }
+        .btn-logout {
+            background-color: #7f8c8d;
+            float: right;
+        }
 
-    .paid-mode {
-        color: #27ae60;
-    }
+        .mode-status {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
 
-    .error-box {
-        background: #c0392b;
-        color: white;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-        display: none;
-    }
+        .free-mode {
+            color: #c0392b;
+        }
 
-    .receipt-btn {
-        background-color: #f39c12;
-        color: white;
-        padding: 8px 12px;
-        text-decoration: none;
-        border-radius: 4px;
-        font-weight: bold;
-        font-size: 13px;
-    }
+        .paid-mode {
+            color: #27ae60;
+        }
 
-    .delete-btn {
-        background-color: #c0392b;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 13px;
-    }
+        .error-box {
+            background: #c0392b;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
 
-    .order-actions {
-        margin-top: 15px;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-</style>
-```
+        .success-box {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
 
+        .receipt-btn {
+            background-color: #f39c12;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        .delete-btn {
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .order-actions {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* ========================= */
+        /* LOGIN */
+        /* ========================= */
+
+        #loginPanel {
+            max-width: 420px;
+            margin: 80px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+        #loginPanel h1 {
+            margin-top: 0;
+        }
+
+        .login-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1E8449;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+        }
+
+        #loginError {
+            display: none;
+            background: #c0392b;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        #loginLoading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: #555;
+        }
+
+        .admin-user {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container" id="adminPanel" style="display: none;">
-
-```
-<!-- SYSTEM ALERT -->
-<div id="systemAlert"
-     style="display:none; background:#c0392b; color:white; padding:15px;
-            border-radius:6px; margin-bottom:20px; font-weight:bold;
-            text-align:center;">
-
-    🚨 ATTENTION: The Selenium Worker has crashed or the EDA website structure has changed!
-
-    <br>
-
-    <span id="errorDetails"
-          style="font-size:12px; font-weight:normal;">
-    </span>
-</div>
-
-<!-- FIREBASE ERROR -->
-<div id="firebaseError" class="error-box">
-    <strong>Firebase Error</strong>
-    <br>
-    <span id="firebaseErrorDetails"></span>
-</div>
-
-<h1>Comp11 Labs Admin</h1>
-
-<!-- MODE -->
-<div>
-    <div class="mode-status" id="modeDisplay">
-        Current Mode: Loading...
-    </div>
-
-    <button class="btn btn-toggle" onclick="toggleMode()">
-        Switch Paid/Free Mode
-    </button>
-</div>
-
-<!-- ORDERS -->
-<h2>Pending InstaPay Orders</h2>
-
-<div id="pendingOrders">
-    Loading orders...
-</div>
-```
-
-</div>
-
+<!-- ========================================================= -->
+<!-- LOGIN PANEL -->
 <!-- ========================================================= -->
 
-<!-- FIREBASE -->
+<div id="loginPanel">
 
+    <h1>Comp11 Labs</h1>
+
+    <h2>Admin Login</h2>
+
+    <div id="loginError"></div>
+
+    <input
+        type="email"
+        id="adminEmail"
+        class="login-input"
+        placeholder="Admin email"
+        autocomplete="username"
+    >
+
+    <input
+        type="password"
+        id="adminPassword"
+        class="login-input"
+        placeholder="Password"
+        autocomplete="current-password"
+    >
+
+    <button
+        id="loginButton"
+        class="login-btn"
+        onclick="adminLogin()"
+    >
+        Login
+    </button>
+
+    <div id="loginLoading">
+        Authenticating...
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ADMIN PANEL -->
+<!-- ========================================================= -->
+
+<div class="container" id="adminPanel" style="display: none;">
+
+    <!-- SYSTEM ALERT -->
+
+    <div
+        id="systemAlert"
+        style="
+            display:none;
+            background:#c0392b;
+            color:white;
+            padding:15px;
+            border-radius:6px;
+            margin-bottom:20px;
+            font-weight:bold;
+            text-align:center;
+        "
+    >
+
+        🚨 ATTENTION: The Selenium Worker has crashed or the EDA website structure has changed!
+
+        <br>
+
+        <span
+            id="errorDetails"
+            style="font-size:12px; font-weight:normal;"
+        >
+        </span>
+
+    </div>
+
+
+    <!-- FIREBASE ERROR -->
+
+    <div id="firebaseError" class="error-box">
+
+        <strong>Firebase Error</strong>
+
+        <br>
+
+        <span id="firebaseErrorDetails"></span>
+
+    </div>
+
+
+    <!-- SUCCESS -->
+
+    <div id="successMessage" class="success-box"></div>
+
+
+    <!-- HEADER -->
+
+    <div class="clearfix">
+
+        <h1 style="margin-bottom: 10px;">
+            Comp11 Labs Admin
+        </h1>
+
+        <button
+            class="btn btn-logout"
+            onclick="adminLogout()"
+        >
+            Logout
+        </button>
+
+    </div>
+
+    <div class="admin-user">
+        Authenticated administrator
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- MODE -->
+    <!-- ========================================================= -->
+
+    <div>
+
+        <div
+            class="mode-status"
+            id="modeDisplay"
+        >
+            Current Mode: Loading...
+        </div>
+
+        <button
+            class="btn btn-toggle"
+            onclick="toggleMode()"
+        >
+            Switch Paid/Free Mode
+        </button>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- ORDERS -->
+    <!-- ========================================================= -->
+
+    <h2>Pending InstaPay Orders</h2>
+
+    <div id="pendingOrders">
+        Loading orders...
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- FIREBASE -->
 <!-- ========================================================= -->
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
+
 <script>
 
     // =========================================================
-    // GLOBAL ERROR HANDLER
+    // ADMIN UID
     // =========================================================
 
-    window.addEventListener("error", function(event) {
-
-        console.error("JavaScript Error:", event.error || event.message);
-
-        showFirebaseError(
-            "JavaScript error: " +
-            (event.error?.message || event.message)
-        );
-    });
-
-
-    // =========================================================
-    // ADMIN PASSWORD
-    // =========================================================
-
-    const pass = prompt("Enter Admin Password:");
-
-    if (pass !== "kM8$vP3!zQ9#xL2@") {
-
-        document.body.innerHTML =
-            "<h2 style='font-family:Arial;padding:30px;'>Access Denied</h2>";
-
-        throw new Error("Wrong password");
-
-    } else {
-
-        document.getElementById("adminPanel").style.display = "block";
-    }
+    const ADMIN_UID =
+        "U3Kr4CtGk6NJTDtG6HhSm4qmsrJ3";
 
 
     // =========================================================
@@ -216,7 +384,8 @@
 
     const firebaseConfig = {
 
-        apiKey: "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
+        apiKey:
+            "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
 
         authDomain:
             "pharmanamingvault.firebaseapp.com",
@@ -246,36 +415,441 @@
 
         firebase.initializeApp(firebaseConfig);
 
-        console.log("Firebase initialized successfully.");
+        console.log(
+            "Firebase initialized successfully."
+        );
 
     } catch (error) {
 
-        console.error("Firebase initialization error:", error);
+        console.error(
+            "Firebase initialization error:",
+            error
+        );
 
-        showFirebaseError(
-            "Firebase initialization failed: " + error.message
+        showLoginError(
+            "Firebase initialization failed: " +
+            error.message
         );
     }
 
 
-    const db = firebase.database();
+    const auth =
+        firebase.auth();
 
-    const storage = firebase.storage();
+    const db =
+        firebase.database();
+
+    const storage =
+        firebase.storage();
+
 
     let currentMode = false;
 
 
     // =========================================================
-    // SHOW FIREBASE ERROR
+    // GLOBAL ERROR HANDLER
+    // =========================================================
+
+    window.addEventListener(
+        "error",
+        function(event) {
+
+            console.error(
+                "JavaScript Error:",
+                event.error || event.message
+            );
+
+            if (
+                typeof showFirebaseError === "function"
+            ) {
+
+                showFirebaseError(
+                    "JavaScript error: " +
+                    (
+                        event.error?.message ||
+                        event.message
+                    )
+                );
+            }
+        }
+    );
+
+
+    // =========================================================
+    // LOGIN ERROR
+    // =========================================================
+
+    function showLoginError(message) {
+
+        const box =
+            document.getElementById("loginError");
+
+        if (!box) return;
+
+        box.style.display = "block";
+
+        box.innerText = message;
+    }
+
+
+    function clearLoginError() {
+
+        const box =
+            document.getElementById("loginError");
+
+        if (!box) return;
+
+        box.style.display = "none";
+
+        box.innerText = "";
+    }
+
+
+    // =========================================================
+    // ADMIN LOGIN
+    // =========================================================
+
+    async function adminLogin() {
+
+        clearLoginError();
+
+        const email =
+            document
+                .getElementById("adminEmail")
+                .value
+                .trim();
+
+        const password =
+            document
+                .getElementById("adminPassword")
+                .value;
+
+        if (!email) {
+
+            showLoginError(
+                "Please enter your admin email."
+            );
+
+            return;
+        }
+
+        if (!password) {
+
+            showLoginError(
+                "Please enter your password."
+            );
+
+            return;
+        }
+
+
+        const button =
+            document.getElementById(
+                "loginButton"
+            );
+
+        const loading =
+            document.getElementById(
+                "loginLoading"
+            );
+
+
+        button.disabled = true;
+
+        loading.style.display = "block";
+
+
+        try {
+
+            console.log(
+                "Attempting Firebase admin login..."
+            );
+
+
+            const userCredential =
+                await auth.signInWithEmailAndPassword(
+                    email,
+                    password
+                );
+
+
+            const user =
+                userCredential.user;
+
+
+            console.log(
+                "Firebase authentication successful."
+            );
+
+            console.log(
+                "Authenticated UID:",
+                user.uid
+            );
+
+
+            // =================================================
+            // CRITICAL ADMIN UID CHECK
+            // =================================================
+
+            if (user.uid !== ADMIN_UID) {
+
+                console.error(
+                    "Unauthorized Firebase user:",
+                    user.uid
+                );
+
+
+                await auth.signOut();
+
+
+                showLoginError(
+                    "Access denied. This Firebase account is not authorized as an administrator."
+                );
+
+
+                return;
+            }
+
+
+            console.log(
+                "Admin UID verified successfully."
+            );
+
+
+            showAdminPanel();
+
+        } catch (error) {
+
+            console.error(
+                "Admin login error:",
+                error
+            );
+
+
+            let message =
+                "Login failed.";
+
+
+            if (
+                error.code ===
+                "auth/invalid-login-credentials"
+            ) {
+
+                message =
+                    "Invalid email or password.";
+
+            } else if (
+                error.code ===
+                "auth/wrong-password"
+            ) {
+
+                message =
+                    "Invalid email or password.";
+
+            } else if (
+                error.code ===
+                "auth/user-not-found"
+            ) {
+
+                message =
+                    "No Firebase user exists with this email.";
+
+            } else if (
+                error.code ===
+                "auth/too-many-requests"
+            ) {
+
+                message =
+                    "Too many failed login attempts. Please try again later.";
+
+            } else if (
+                error.code ===
+                "auth/network-request-failed"
+            ) {
+
+                message =
+                    "Network error. Please check your internet connection.";
+
+            } else {
+
+                message =
+                    error.message ||
+                    "Unknown authentication error.";
+            }
+
+
+            showLoginError(message);
+
+        } finally {
+
+            button.disabled = false;
+
+            loading.style.display = "none";
+        }
+    }
+
+
+    // =========================================================
+    // ENTER KEY LOGIN
+    // =========================================================
+
+    document
+        .getElementById("adminPassword")
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+
+                    adminLogin();
+                }
+            }
+        );
+
+
+    // =========================================================
+    // SHOW ADMIN PANEL
+    // =========================================================
+
+    function showAdminPanel() {
+
+        document
+            .getElementById("loginPanel")
+            .style.display = "none";
+
+
+        document
+            .getElementById("adminPanel")
+            .style.display = "block";
+
+
+        console.log(
+            "Admin panel displayed."
+        );
+
+
+        startAdminListeners();
+    }
+
+
+    // =========================================================
+    // HIDE ADMIN PANEL
+    // =========================================================
+
+    function hideAdminPanel() {
+
+        document
+            .getElementById("adminPanel")
+            .style.display = "none";
+
+
+        document
+            .getElementById("loginPanel")
+            .style.display = "block";
+
+
+        document
+            .getElementById("adminPassword")
+            .value = "";
+    }
+
+
+    // =========================================================
+    // AUTH STATE LISTENER
+    // =========================================================
+
+    auth.onAuthStateChanged(
+        function(user) {
+
+            console.log(
+                "Auth state changed:",
+                user ? user.uid : "No user"
+            );
+
+
+            if (!user) {
+
+                hideAdminPanel();
+
+                return;
+            }
+
+
+            // =================================================
+            // VERIFY ADMIN UID AGAIN
+            // =================================================
+
+            if (user.uid !== ADMIN_UID) {
+
+                console.error(
+                    "Authenticated user is not admin:",
+                    user.uid
+                );
+
+
+                auth.signOut();
+
+                return;
+            }
+
+
+            console.log(
+                "Existing admin session detected."
+            );
+
+
+            showAdminPanel();
+        }
+    );
+
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    async function adminLogout() {
+
+        try {
+
+            await auth.signOut();
+
+            console.log(
+                "Admin logged out."
+            );
+
+            hideAdminPanel();
+
+        } catch (error) {
+
+            console.error(
+                "Logout error:",
+                error
+            );
+
+            alert(
+                "Logout failed:\n" +
+                error.message
+            );
+        }
+    }
+
+
+    // =========================================================
+    // FIREBASE ERROR
     // =========================================================
 
     function showFirebaseError(message) {
 
         const box =
-            document.getElementById("firebaseError");
+            document.getElementById(
+                "firebaseError"
+            );
 
         const details =
-            document.getElementById("firebaseErrorDetails");
+            document.getElementById(
+                "firebaseErrorDetails"
+            );
+
 
         if (box && details) {
 
@@ -287,95 +861,183 @@
 
 
     // =========================================================
+    // SUCCESS MESSAGE
+    // =========================================================
+
+    function showSuccess(message) {
+
+        const box =
+            document.getElementById(
+                "successMessage"
+            );
+
+
+        if (!box) return;
+
+
+        box.innerText = message;
+
+        box.style.display = "block";
+
+
+        setTimeout(
+            function() {
+
+                box.style.display = "none";
+
+            },
+            5000
+        );
+    }
+
+
+    // =========================================================
+    // START ADMIN LISTENERS
+    // =========================================================
+
+    let listenersStarted = false;
+
+
+    function startAdminListeners() {
+
+        if (listenersStarted) {
+
+            console.log(
+                "Admin listeners already running."
+            );
+
+            return;
+        }
+
+
+        listenersStarted = true;
+
+
+        startModeListener();
+
+        startOrdersListener();
+
+        startSystemHealthListener();
+    }
+
+
+    // =========================================================
     // MODE LISTENER
     // =========================================================
 
-    db.ref("settings/is_paid_mode").on(
-        "value",
+    function startModeListener() {
 
-        function(snapshot) {
+        db.ref(
+            "settings/is_paid_mode"
+        ).on(
 
-            console.log(
-                "Mode received:",
-                snapshot.val()
-            );
+            "value",
 
-            currentMode = snapshot.val() === true;
+            function(snapshot) {
 
-            const display =
-                document.getElementById("modeDisplay");
+                console.log(
+                    "Mode received:",
+                    snapshot.val()
+                );
 
-            if (currentMode) {
 
-                display.innerHTML =
-                    'Current Mode: <span class="paid-mode">' +
-                    'PAID (InstaPay Required)' +
-                    '</span>';
+                currentMode =
+                    snapshot.val() === true;
 
-            } else {
 
-                display.innerHTML =
-                    'Current Mode: <span class="free-mode">' +
-                    'FREE (Auto-Approves)' +
-                    '</span>';
+                const display =
+                    document.getElementById(
+                        "modeDisplay"
+                    );
+
+
+                if (currentMode) {
+
+                    display.innerHTML =
+                        'Current Mode: <span class="paid-mode">' +
+                        'PAID (InstaPay Required)' +
+                        '</span>';
+
+                } else {
+
+                    display.innerHTML =
+                        'Current Mode: <span class="free-mode">' +
+                        'FREE (Auto-Approves)' +
+                        '</span>';
+                }
+
+            },
+
+            function(error) {
+
+                console.error(
+                    "Mode listener error:",
+                    error
+                );
+
+
+                showFirebaseError(
+                    "Cannot read settings/is_paid_mode: " +
+                    error.message
+                );
             }
-        },
-
-        function(error) {
-
-            console.error(
-                "Mode listener error:",
-                error
-            );
-
-            showFirebaseError(
-                "Cannot read settings/is_paid_mode: " +
-                error.message
-            );
-        }
-    );
+        );
+    }
 
 
     // =========================================================
     // TOGGLE MODE
     // =========================================================
 
-    function toggleMode() {
+    async function toggleMode() {
 
-        const newMode = !currentMode;
+        const newMode =
+            !currentMode;
+
 
         if (
-            confirm(
+            !confirm(
                 "Are you sure you want to switch to " +
                 (newMode ? "PAID" : "FREE") +
                 " mode?"
             )
         ) {
 
-            db.ref("settings/is_paid_mode")
-                .set(newMode)
+            return;
+        }
 
-                .then(function() {
 
-                    console.log(
-                        "Mode changed to:",
-                        newMode
-                    );
+        try {
 
-                })
+            await db
+                .ref("settings/is_paid_mode")
+                .set(newMode);
 
-                .catch(function(error) {
 
-                    console.error(
-                        "Mode update error:",
-                        error
-                    );
+            console.log(
+                "Mode changed to:",
+                newMode
+            );
 
-                    alert(
-                        "Failed to change mode:\n" +
-                        error.message
-                    );
-                });
+
+            showSuccess(
+                "Mode successfully changed to " +
+                (newMode ? "PAID" : "FREE") +
+                "."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Mode update error:",
+                error
+            );
+
+
+            alert(
+                "Failed to change mode:\n" +
+                error.message
+            );
         }
     }
 
@@ -384,333 +1046,419 @@
     // ORDERS LISTENER
     // =========================================================
 
-    console.log("Starting orders listener...");
+    function startOrdersListener() {
+
+        console.log(
+            "Starting orders listener..."
+        );
 
 
-    db.ref("orders").on(
+        db.ref("orders").on(
 
-        "value",
+            "value",
 
-        function(snapshot) {
+            function(snapshot) {
 
-            console.log(
-                "Orders snapshot received."
-            );
-
-            console.log(
-                "Orders exist:",
-                snapshot.exists()
-            );
-
-            const container =
-                document.getElementById(
-                    "pendingOrders"
+                console.log(
+                    "Orders snapshot received."
                 );
 
-            container.innerHTML = "";
 
-            if (!snapshot.exists()) {
-
-                container.innerHTML =
-                    "<p>No orders found in database.</p>";
-
-                return;
-            }
+                console.log(
+                    "Orders exist:",
+                    snapshot.exists()
+                );
 
 
-            let hasPending = false;
-
-            snapshot.forEach(
-                function(childSnapshot) {
-
-                    const orderId =
-                        childSnapshot.key;
-
-                    const data =
-                        childSnapshot.val();
-
-
-                    console.log(
-                        "Order:",
-                        orderId,
-                        data
+                const container =
+                    document.getElementById(
+                        "pendingOrders"
                     );
 
 
-                    const status =
-                        String(
-                            data.status || ""
-                        ).toLowerCase();
+                container.innerHTML = "";
 
 
-                    // ONLY SHOW THESE STATUSES
-                    if (
-                        status !== "pending_payment" &&
-                        status !== "pending_verification"
-                    ) {
-                        return;
-                    }
+                if (!snapshot.exists()) {
+
+                    container.innerHTML =
+                        "<p>No orders found in database.</p>";
+
+                    return;
+                }
 
 
-                    hasPending = true;
+                let hasPending = false;
 
 
-                    // =================================================
-                    // RECEIPT
-                    // =================================================
+                snapshot.forEach(
+                    function(childSnapshot) {
 
-                    let receiptButtonHTML = "";
-
-
-                    if (data.receipt_url) {
-
-                        const safeReceiptUrl =
-                            String(data.receipt_url)
-                                .replace(/"/g, "&quot;");
+                        const orderId =
+                            childSnapshot.key;
 
 
-                        receiptButtonHTML = `
-
-                            <a
-                                href="${safeReceiptUrl}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="receipt-btn">
-
-                                📄 View Evidence
-
-                            </a>
-
-                            <button
-                                class="delete-btn"
-                                onclick="deleteReceipt(
-                                    '${orderId}',
-                                    '${safeReceiptUrl}'
-                                )">
-
-                                🗑️ Delete File
-
-                            </button>
-                        `;
-
-                    } else {
-
-                        receiptButtonHTML = `
-
-                            <span
-                                style="
-                                    color:#c0392b;
-                                    font-size:13px;
-                                    font-style:italic;
-                                ">
-
-                                No receipt uploaded yet
-
-                            </span>
-                        `;
-                    }
+                        const data =
+                            childSnapshot.val();
 
 
-                    // =================================================
-                    // DATE
-                    // =================================================
+                        console.log(
+                            "Order:",
+                            orderId,
+                            data
+                        );
 
-                    let dateText = "Unknown";
 
-                    if (data.timestamp) {
+                        const status =
+                            String(
+                                data.status || ""
+                            ).toLowerCase();
 
-                        const parsedDate =
-                            new Date(data.timestamp);
+
+                        // ONLY SHOW PENDING ORDERS
 
                         if (
-                            !isNaN(
-                                parsedDate.getTime()
-                            )
+                            status !==
+                                "pending_payment" &&
+                            status !==
+                                "pending_verification"
                         ) {
 
-                            dateText =
-                                parsedDate.toLocaleString();
+                            return;
                         }
+
+
+                        hasPending = true;
+
+
+                        // =================================================
+                        // RECEIPT
+                        // =================================================
+
+                        let receiptButtonHTML = "";
+
+
+                        if (data.receipt_url) {
+
+                            const safeReceiptUrl =
+                                String(
+                                    data.receipt_url
+                                )
+                                .replace(
+                                    /"/g,
+                                    "&quot;"
+                                )
+                                .replace(
+                                    /'/g,
+                                    "&#039;"
+                                );
+
+
+                            receiptButtonHTML = `
+
+                                <a
+                                    href="${safeReceiptUrl}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="receipt-btn"
+                                >
+                                    📄 View Evidence
+                                </a>
+
+
+                                <button
+                                    class="delete-btn"
+                                    onclick="deleteReceipt(
+                                        '${escapeJs(orderId)}',
+                                        '${safeReceiptUrl}'
+                                    )"
+                                >
+                                    🗑️ Delete File
+                                </button>
+
+                            `;
+
+                        } else {
+
+                            receiptButtonHTML = `
+
+                                <span
+                                    style="
+                                        color:#c0392b;
+                                        font-size:13px;
+                                        font-style:italic;
+                                    "
+                                >
+                                    No receipt uploaded yet
+                                </span>
+
+                            `;
+                        }
+
+
+                        // =================================================
+                        // DATE
+                        // =================================================
+
+                        let dateText =
+                            "Unknown";
+
+
+                        if (data.timestamp) {
+
+                            const parsedDate =
+                                new Date(
+                                    data.timestamp
+                                );
+
+
+                            if (
+                                !isNaN(
+                                    parsedDate.getTime()
+                                )
+                            ) {
+
+                                dateText =
+                                    parsedDate.toLocaleString();
+                            }
+                        }
+
+
+                        // =================================================
+                        // CARD
+                        // =================================================
+
+                        const card =
+                            document.createElement(
+                                "div"
+                            );
+
+
+                        card.className =
+                            "card";
+
+
+                        card.innerHTML = `
+
+                            <h3>
+                                Company:
+                                ${escapeHtml(
+                                    data.company_name ||
+                                    "Unknown"
+                                )}
+                            </h3>
+
+
+                            <p>
+                                <b>API:</b>
+                                ${escapeHtml(
+                                    data.api_name ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Email:</b>
+                                ${escapeHtml(
+                                    data.email ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Dosage Form:</b>
+                                ${escapeHtml(
+                                    data.dosage_form ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Category:</b>
+                                ${escapeHtml(
+                                    data.category ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Strength:</b>
+                                ${escapeHtml(
+                                    data.strength ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Indication:</b>
+                                ${escapeHtml(
+                                    data.indication ||
+                                    "Unknown"
+                                )}
+                            </p>
+
+
+                            <p>
+                                <b>Status:</b>
+                                ${escapeHtml(status)}
+                            </p>
+
+
+                            <p>
+                                <b>Date:</b>
+                                ${escapeHtml(dateText)}
+                            </p>
+
+
+                            <div class="order-actions">
+
+                                ${receiptButtonHTML}
+
+
+                                <button
+                                    class="btn btn-approve"
+                                    onclick="approveOrder(
+                                        '${escapeJs(orderId)}'
+                                    )"
+                                >
+                                    Verify Payment & Approve
+                                </button>
+
+                            </div>
+
+                        `;
+
+
+                        container.appendChild(
+                            card
+                        );
                     }
-
-
-                    // =================================================
-                    // CARD
-                    // =================================================
-
-                    const card =
-                        document.createElement("div");
-
-                    card.className = "card";
-
-
-                    card.innerHTML = `
-
-                        <h3>
-                            Company:
-                            ${escapeHtml(
-                                data.company_name ||
-                                "Unknown"
-                            )}
-                        </h3>
-
-                        <p>
-                            <b>API:</b>
-                            ${escapeHtml(
-                                data.api_name ||
-                                "Unknown"
-                            )}
-                        </p>
-
-                        <p>
-                            <b>Email:</b>
-                            ${escapeHtml(
-                                data.email ||
-                                "Unknown"
-                            )}
-                        </p>
-
-                        <p>
-                            <b>Dosage Form:</b>
-                            ${escapeHtml(
-                                data.dosage_form ||
-                                "Unknown"
-                            )}
-                        </p>
-
-                        <p>
-                            <b>Category:</b>
-                            ${escapeHtml(
-                                data.category ||
-                                "Unknown"
-                            )}
-                        </p>
-
-                        <p>
-                            <b>Status:</b>
-                            ${escapeHtml(status)}
-                        </p>
-
-                        <p>
-                            <b>Date:</b>
-                            ${dateText}
-                        </p>
-
-                        <div class="order-actions">
-
-                            ${receiptButtonHTML}
-
-                            <button
-                                class="btn btn-approve"
-                                onclick="approveOrder(
-                                    '${orderId}'
-                                )">
-
-                                Verify Payment & Approve
-
-                            </button>
-
-                        </div>
-                    `;
-
-
-                    container.appendChild(card);
-                }
-            );
-
-
-            if (!hasPending) {
-
-                container.innerHTML =
-                    "<p>No pending orders at this time.</p>";
-            }
-
-        },
-
-        function(error) {
-
-            console.error(
-                "ORDERS LISTENER ERROR:",
-                error
-            );
-
-            const container =
-                document.getElementById(
-                    "pendingOrders"
                 );
 
-            container.innerHTML = `
 
-                <div style="
-                    background:#c0392b;
-                    color:white;
-                    padding:15px;
-                    border-radius:6px;
-                ">
+                if (!hasPending) {
 
-                    <strong>
-                        Failed to load orders
-                    </strong>
+                    container.innerHTML =
+                        "<p>No pending orders at this time.</p>";
+                }
 
-                    <br><br>
+            },
 
-                    ${escapeHtml(
-                        error.message ||
-                        "Unknown Firebase error"
-                    )}
+            function(error) {
 
-                </div>
-            `;
+                console.error(
+                    "ORDERS LISTENER ERROR:",
+                    error
+                );
 
-            showFirebaseError(
-                "Orders read failed: " +
-                error.message
-            );
-        }
-    );
+
+                const container =
+                    document.getElementById(
+                        "pendingOrders"
+                    );
+
+
+                container.innerHTML = `
+
+                    <div style="
+                        background:#c0392b;
+                        color:white;
+                        padding:15px;
+                        border-radius:6px;
+                    ">
+
+                        <strong>
+                            Failed to load orders
+                        </strong>
+
+                        <br><br>
+
+                        ${escapeHtml(
+                            error.message ||
+                            "Unknown Firebase error"
+                        )}
+
+                    </div>
+
+                `;
+
+
+                showFirebaseError(
+                    "Orders read failed: " +
+                    error.message
+                );
+            }
+        );
+    }
 
 
     // =========================================================
     // APPROVE ORDER
     // =========================================================
 
-    function approveOrder(orderId) {
+    async function approveOrder(orderId) {
 
         if (
-            confirm(
-                "Have you verified the InstaPay transfer? " +
-                "Clicking OK will start the AI Engine."
+            !confirm(
+                "Have you verified the InstaPay transfer?\n\n" +
+                "Click OK to approve this order and allow " +
+                "the Railway AI Engine to process it."
             )
         ) {
 
-            db.ref(
-                `orders/${orderId}`
-            )
-            .update({
-                status: "approved"
-            })
+            return;
+        }
 
-            .then(function() {
 
-                alert(
-                    "Order approved! " +
-                    "The Railway engine will start in a few seconds."
-                );
+        try {
 
-            })
+            console.log(
+                "Approving order:",
+                orderId
+            );
 
-            .catch(function(error) {
 
-                console.error(
-                    "Approval error:",
-                    error
-                );
+            await db
+                .ref(
+                    `orders/${orderId}`
+                )
+                .update({
 
-                alert(
-                    "Failed to approve order:\n" +
-                    error.message
-                );
-            });
+                    status:
+                        "approved"
+
+                });
+
+
+            console.log(
+                "Order approved:",
+                orderId
+            );
+
+
+            showSuccess(
+                "Order approved successfully. " +
+                "The Railway engine will process it."
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Approval error:",
+                error
+            );
+
+
+            alert(
+                "Failed to approve order:\n" +
+                error.message
+            );
         }
     }
 
@@ -743,27 +1491,49 @@
             );
 
 
-            // Convert URL to Firebase Storage reference
+            // =================================================
+            // CONVERT URL TO STORAGE REFERENCE
+            // =================================================
+
             const fileRef =
                 storage.refFromURL(
                     receiptUrl
                 );
 
 
-            // Delete physical file
+            // =================================================
+            // DELETE PHYSICAL FILE
+            // =================================================
+
             await fileRef.delete();
 
 
-            // Remove URL from database
-            await db.ref(
-                `orders/${orderId}`
-            )
-            .update({
-                receipt_url: null
-            });
+            console.log(
+                "Physical receipt file deleted."
+            );
 
 
-            alert(
+            // =================================================
+            // REMOVE URL FROM DATABASE
+            // =================================================
+
+            await db
+                .ref(
+                    `orders/${orderId}`
+                )
+                .update({
+
+                    receipt_url: null
+
+                });
+
+
+            console.log(
+                "Receipt URL removed from database."
+            );
+
+
+            showSuccess(
                 "Receipt permanently deleted."
             );
 
@@ -774,6 +1544,7 @@
                 "Receipt deletion error:",
                 error
             );
+
 
             alert(
                 "Failed to delete receipt:\n" +
@@ -787,53 +1558,66 @@
     // SYSTEM HEALTH
     // =========================================================
 
-    db.ref("system_health").on(
+    function startSystemHealthListener() {
 
-        "value",
+        db.ref("system_health").on(
 
-        function(snapshot) {
+            "value",
 
-            const data =
-                snapshot.val();
+            function(snapshot) {
 
-            const alertBox =
-                document.getElementById(
-                    "systemAlert"
+                const data =
+                    snapshot.val();
+
+
+                const alertBox =
+                    document.getElementById(
+                        "systemAlert"
+                    );
+
+
+                const details =
+                    document.getElementById(
+                        "errorDetails"
+                    );
+
+
+                if (
+                    data &&
+                    data.status === "CRASHED"
+                ) {
+
+                    alertBox.style.display =
+                        "block";
+
+
+                    details.innerText =
+                        `Error: ${
+                            data.error ||
+                            "Unknown error"
+                        }
+                        at ${
+                            data.timestamp ||
+                            ""
+                        }`;
+
+                } else {
+
+                    alertBox.style.display =
+                        "none";
+                }
+
+            },
+
+            function(error) {
+
+                console.error(
+                    "System health listener error:",
+                    error
                 );
-
-            const details =
-                document.getElementById(
-                    "errorDetails"
-                );
-
-
-            if (
-                data &&
-                data.status === "CRASHED"
-            ) {
-
-                alertBox.style.display =
-                    "block";
-
-                details.innerText =
-                    `Error: ${data.error || "Unknown error"}
-                     at ${data.timestamp || ""}`;
-
-            } else {
-
-                alertBox.style.display =
-                    "none";
             }
-        },
-
-        function(error) {
-
-            console.error(
-                "System health listener error:",
-                error
-            );
-        }
-    );
+        );
+    }
 
 
     // =========================================================
@@ -843,11 +1627,52 @@
     function escapeHtml(value) {
 
         return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+    }
+
+
+    // =========================================================
+    // JAVASCRIPT STRING ESCAPE
+    // =========================================================
+
+    function escapeJs(value) {
+
+        return String(value)
+            .replace(
+                /\\/g,
+                "\\\\"
+            )
+            .replace(
+                /'/g,
+                "\\'"
+            )
+            .replace(
+                /\r/g,
+                "\\r"
+            )
+            .replace(
+                /\n/g,
+                "\\n"
+            );
     }
 
 </script>
