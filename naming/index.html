@@ -212,6 +212,14 @@
             margin: 20px 0;
         }
     </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init({
+            publicKey: "service_abihyng", // Replace with your EmailJS Public Key
+          });
+       })();
+    </script>
 </head>
 <body>
 
@@ -543,6 +551,24 @@
                 receipt_url: downloadUrl,
                 status: 'pending_verification' 
             });
+
+            // --- SEND EMAIL NOTIFICATION TO ADMIN ---
+            const companyName = document.getElementById('company_name').value;
+            const apiName = document.getElementById('api_name').value;
+            const customerEmail = document.getElementById('email').value;
+
+            try {
+                await emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+                    company_name: companyName,
+                    api_name: apiName,
+                    customer_email: customerEmail,
+                    receipt_url: downloadUrl
+                });
+                console.log("Admin notification email sent successfully.");
+            } catch (emailError) {
+                console.error("Failed to send admin email notification:", emailError);
+            }
+            // ----------------------------------------
 
             paymentBox.innerHTML = `
                 <h3 style="color: var(--primary); text-align: center;">Evidence Submitted Successfully!</h3>
