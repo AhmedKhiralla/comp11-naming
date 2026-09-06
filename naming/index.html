@@ -320,10 +320,22 @@
 
     <div id="payment-step" class="instapay-box">
         <h3 style="color: var(--primary); margin-top: 0;">Step 2: Payment Verification</h3>
-        <p style="color: var(--text-main);">Please scan the QR code below to transfer the service fee of <strong>124.5 EGP</strong> via <strong>InstaPay</strong>:</p>
+        <p style="color: var(--text-main);">Please transfer the service fee of <strong>124.5 EGP</strong> via <strong>InstaPay</strong>:</p>
         
         <div style="text-align: center; margin: 20px 0;">
-            <img src="qr.png" alt="InstaPay QR Code" style="max-width: 180px; height: auto; border-radius: 12px; border: 2px solid var(--border);">
+            <!-- Mobile-Only Direct Pay Button (Hidden on Desktop) -->
+            <div id="mobile-payment" style="display: none; margin-bottom: 20px;">
+                <a href="https://ipn.eg/S/ahmedkhiralla11/instapay/9nKaLy" 
+                   style="background-color: #5b2d82; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                   Open InstaPay App (124.5 EGP)
+                </a>
+            </div>
+
+            <!-- Desktop-Only QR Code (Hidden on Mobile) -->
+            <div id="desktop-qr">
+                <img src="qr.png" alt="InstaPay QR Code" style="max-width: 180px; height: auto; border-radius: 12px; border: 2px solid var(--border);">
+            </div>
+
             <p style="font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 15px; letter-spacing: 1px;">
                 ahmedkhiralla11@instapay
             </p>
@@ -339,6 +351,17 @@
         </div>
         <p id="upload-status" style="text-align: center; font-weight: bold; color: var(--primary); margin-top: 15px; display: none;"></p>
     </div>
+
+    <script>
+        // Automatically switch between the deep-link button (mobile) and QR code (desktop)
+        if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+            document.getElementById('mobile-payment').style.display = 'block';
+            document.getElementById('desktop-qr').style.display = 'none';
+        } else {
+            document.getElementById('mobile-payment').style.display = 'none';
+            document.getElementById('desktop-qr').style.display = 'block';
+        }
+    </script>
 
     <div id="success-msg" class="success-msg">
         <h2>Order Received!</h2>
