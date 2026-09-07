@@ -521,6 +521,7 @@
                     pill.innerText = name;
                     container.appendChild(pill);
                 });
+                // THIS LINE MAKES THE BOX VISIBLE:
                 document.getElementById('preview-results').style.display = 'block';
             } else {
                 throw new Error(data.error || 'Failed to generate preview.');
