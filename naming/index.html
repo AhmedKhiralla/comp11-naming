@@ -10,20 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Premium Dark Theme Variables - Logo Colors Integrated */
-            --bg-body: #0d1117;          /* Deep sleek background */
-            --bg-surface: #161b22;       /* Elevated card background */
-            --bg-input: #010409;         /* Very dark input background */
-            
-            /* Logo Colors */
-            --primary: #5C1781;          /* Rich Vibrant Purple from Logo */
+            --bg-body: #0d1117; 
+            --bg-surface: #161b22; 
+            --bg-input: #010409; 
+            --primary: #5C1781; 
             --primary-hover: #40115A;
-            --secondary-orange: #D35400; /* Textured Orange/Gold from Logo numbers */
-            
-            /* Muted & Bases */
-            --text-main: #e6edf3;        /* Off-white for readability */
-            --text-muted: #8b949e;       /* Soft gray for subtitles */
-            --border: #30363d;           /* Subtle borders */
+            --secondary-orange: #D35400; 
+            --text-main: #e6edf3; 
+            --text-muted: #8b949e; 
+            --border: #30363d; 
         }
         body {
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,7 +40,6 @@
             max-width: 550px;
             width: 100%;
         }
-        /* LOGO STYLING */
         .logo-container {
             text-align: center;
             margin-bottom: 25px;
@@ -103,12 +97,11 @@
             color: #d8b4fe;
             border-radius: 4px;
             box-shadow: none;
+            cursor: pointer;
         }
         .btn-sm:hover {
             background: var(--primary);
             color: white;
-            transform: none;
-            box-shadow: none;
         }
         input, select, textarea {
             width: 100%;
@@ -127,16 +120,7 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(92, 23, 129, 0.15);
         }
-        input::placeholder, textarea::placeholder {
-            color: #4b5563;
-        }
-        small {
-            display: block;
-            margin-top: 5px;
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-        button[type="submit"], #submit-receipt-btn {
+        button[type="submit"], #submit-receipt-btn, #preview-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
             color: white;
@@ -150,6 +134,18 @@
             margin-top: 15px;
             box-shadow: 0 4px 15px rgba(92, 23, 129, 0.3);
         }
+        #preview-btn {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid var(--border);
+            color: #e5e7eb;
+            font-size: 14px;
+            padding: 12px;
+            margin-top: 10px;
+            box-shadow: none;
+        }
+        #preview-btn:hover {
+            border-color: var(--primary);
+        }
         button[type="submit"]:hover, #submit-receipt-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(92, 23, 129, 0.4);
@@ -161,8 +157,6 @@
             box-shadow: none;
             transform: none;
         }
-        
-        /* Advanced Preferences Box */
         .advanced-box {
             margin-top: 25px; 
             margin-bottom: 25px; 
@@ -180,8 +174,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-        /* Warnings & Payments */
         .warning-box {
             background: rgba(211, 84, 0, 0.1); 
             border-left: 4px solid var(--secondary-orange); 
@@ -203,9 +195,25 @@
             display: none;
             text-align: center;
         }
-        .success-msg h2 { color: var(--primary); }
-        .success-msg p { color: var(--text-muted); line-height: 1.6; }
-        
+        .preview-box {
+            background: rgba(92, 23, 129, 0.08);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        .preview-pill {
+            display: inline-block;
+            background: rgba(92, 23, 129, 0.2);
+            color: #d8b4fe;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid rgba(122, 34, 168, 0.4);
+        }
         hr {
             border: 0;
             border-top: 1px solid var(--border);
@@ -315,6 +323,14 @@
             </div>
         </div>
         
+        <!-- FREE PREVIEW BUTTON -->
+        <button type="button" id="preview-btn">✨ Instant Name Preview (5 Free Ideas)</button>
+        <div id="preview-results" class="preview-box">
+            <label style="color: var(--text-main); margin-bottom: 8px;">Preview Ideas (Based on your selections):</label>
+            <div id="preview-pills-container"></div>
+            <small style="margin-top: 10px;">These are quick samples. Initialize the engine below for full EDA-verified reports.</small>
+        </div>
+
         <button type="submit" id="submit-btn">Initialize AI Engine</button>
     </form>
 
@@ -323,15 +339,13 @@
         <p style="color: var(--text-main);">Please transfer the service fee of <strong>124.5 EGP</strong> via <strong>InstaPay</strong>:</p>
         
         <div style="text-align: center; margin: 20px 0;">
-            <!-- Mobile-Only Direct Pay Button (Hidden on Desktop) -->
             <div id="mobile-payment" style="display: none; margin-bottom: 20px;">
                 <a href="https://ipn.eg/S/ahmedkhiralla11/instapay/9nKaLy" 
                    style="background-color: #5b2d82; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                   Open InstaPay App (124.5 EGP)
+                    Open InstaPay App (124.5 EGP)
                 </a>
             </div>
 
-            <!-- Desktop-Only QR Code (Hidden on Mobile) -->
             <div id="desktop-qr">
                 <img src="qr.png" alt="InstaPay QR Code" style="max-width: 180px; height: auto; border-radius: 12px; border: 2px solid var(--border);">
             </div>
@@ -353,7 +367,6 @@
     </div>
 
     <script>
-        // Automatically switch between the deep-link button (mobile) and QR code (desktop)
         if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
             document.getElementById('mobile-payment').style.display = 'block';
             document.getElementById('desktop-qr').style.display = 'none';
@@ -365,7 +378,7 @@
 
     <div id="success-msg" class="success-msg">
         <h2>Order Received!</h2>
-        <p>Our AI Engine is currently processing your request. Your 20 names will be emailed to your inbox shortly.</p>
+        <p>Our AI Engine is currently processing your request. Your names will be emailed to your inbox shortly.</p>
         <hr>
         <p style="font-size: 13px;">
             For technical support or corporate inquiries, please contact our regulatory team at <br>
@@ -376,24 +389,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-        getAuth,
-        signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import {
-        getDatabase,
-        ref as dbRef,
-        push,
-        set,
-        get,
-        update
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import {
-        getStorage,
-        ref as storageRef,
-        uploadBytes,
-        getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getDatabase, ref as dbRef, push, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCs40hr-B04Ti0FhUEE0SCg5yJHoCm9VTs",
@@ -406,28 +404,16 @@
     };
 
     const app = initializeApp(firebaseConfig);
-
     const auth = getAuth(app);
     const db = getDatabase(app);
     const storage = getStorage(app); 
 
     let currentUser = null;
-
     try {
         const userCredential = await signInAnonymously(auth);
         currentUser = userCredential.user;
-    
-        console.log("Anonymous authentication successful.");
-        console.log("Customer UID:", currentUser.uid);
-    
     } catch (error) {
         console.error("Anonymous authentication failed:", error);
-    
-        alert(
-            "Unable to initialize the service. Please refresh the page."
-        );
-    
-        throw error;
     }
     
     const form = document.getElementById('naming-form');
@@ -436,26 +422,21 @@
     const submitBtn = document.getElementById('submit-btn');
     const receiptBtn = document.getElementById('submit-receipt-btn');
     const aiGenBtn = document.getElementById('aiGenBtn');
+    const previewBtn = document.getElementById('preview-btn');
     
     let currentOrderId = null; 
 
     // Category Warning Toggle
     const categorySelect = document.getElementById('category');
     const cosmeticsWarning = document.getElementById('cosmetics-warning');
-
     categorySelect.addEventListener('change', (e) => {
-        if (e.target.value === 'Cosmetics') {
-            cosmeticsWarning.style.display = 'block';
-        } else {
-            cosmeticsWarning.style.display = 'none';
-        }
+        cosmeticsWarning.style.display = e.target.value === 'Cosmetics' ? 'block' : 'none';
     });
 
     // Affix Toggle
     const affixTypeSelect = document.getElementById('affix_type');
     const affixValueGroup = document.getElementById('affix_value_group');
     const affixValueInput = document.getElementById('affix_value');
-
     affixTypeSelect.addEventListener('change', (e) => {
         if (e.target.value !== "") {
             affixValueGroup.style.display = 'block';
@@ -465,20 +446,18 @@
         }
     });
 
-    // Optional AI Generation Handler via Firebase Cloud Function
-    // Optional AI Generation Handler via Firebase Cloud Function (One-time use)
+    // Optional AI Generation Handler (Indication)
     aiGenBtn.addEventListener('click', async () => {
         const category = document.getElementById('category').value;
         const api = document.getElementById('api_name').value.trim();
         const dosageForm = document.getElementById('dosage_form').value.trim();
 
         if (!api) {
-            alert("Please fill in the Active Ingredient (API) field first before running AI Generation.");
+            alert("Please fill in the Active Ingredient (API) field first.");
             document.getElementById('api_name').focus();
             return;
         }
 
-        // Permanently disable after first click
         aiGenBtn.disabled = true;
         aiGenBtn.innerText = "Generated ✓";
 
@@ -488,9 +467,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ category, api, dosageForm })
             });
-
             const data = await response.json();
-
             if (response.ok && data.indication) {
                 document.getElementById('indication').value = data.indication;
             } else {
@@ -498,8 +475,62 @@
             }
         } catch (error) {
             console.error("AI Generation Error:", error);
-            alert("Could not generate indication automatically. You can type it manually.");
             aiGenBtn.innerText = "✨ AI Generate (Failed)";
+        }
+    });
+
+    // INSTANT NAME PREVIEW HANDLER (FREE)
+    previewBtn.addEventListener('click', async () => {
+        const api = document.getElementById('api_name').value.trim();
+        if (!api) {
+            alert("Please fill in the Active Ingredient (API) field first before previewing names.");
+            document.getElementById('api_name').focus();
+            return;
+        }
+
+        previewBtn.disabled = true;
+        previewBtn.innerText = "Generating 5 Ideas...";
+
+        const payload = {
+            category: document.getElementById('category').value,
+            api: api,
+            company: document.getElementById('company_name').value.trim(),
+            dosageForm: document.getElementById('dosage_form').value.trim(),
+            strength: document.getElementById('strength').value.trim(),
+            indication: document.getElementById('indication').value.trim(),
+            strategy: document.getElementById('strategy').value,
+            wordCount: document.getElementById('word_count').value,
+            affixType: document.getElementById('affix_type').value,
+            affixValue: document.getElementById('affix_value').value.trim()
+        };
+
+        try {
+            const response = await fetch('https://us-central1-pharmanamingvault.cloudfunctions.net/generateNamePreview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+
+            if (response.ok && data.names) {
+                const container = document.getElementById('preview-pills-container');
+                container.innerHTML = '';
+                data.names.forEach(name => {
+                    const pill = document.createElement('span');
+                    pill.className = 'preview-pill';
+                    pill.innerText = name;
+                    container.appendChild(pill);
+                });
+                document.getElementById('preview-results').style.display = 'block';
+            } else {
+                throw new Error(data.error || 'Failed to generate preview.');
+            }
+        } catch (error) {
+            console.error("Preview Error:", error);
+            alert("Could not generate preview. Please try again.");
+        } finally {
+            previewBtn.disabled = false;
+            previewBtn.innerText = "✨ Instant Name Preview (5 Free Ideas)";
         }
     });
 
@@ -516,7 +547,6 @@
             
             const orderData = {
                 uid: currentUser.uid,
-            
                 email: document.getElementById('email').value,
                 category: document.getElementById('category').value,
                 api_name: document.getElementById('api_name').value,
@@ -524,12 +554,10 @@
                 strength: document.getElementById('strength').value,
                 dosage_form: document.getElementById('dosage_form').value,
                 indication: document.getElementById('indication').value,
-            
                 strategy: document.getElementById('strategy').value,
                 word_count: document.getElementById('word_count').value,
                 affix_type: document.getElementById('affix_type').value,
                 affix_value: document.getElementById('affix_value').value,
-            
                 status: isPaidMode ? "pending_payment" : "approved",
                 confirmation_sent: false,
                 timestamp: new Date().toISOString()
@@ -540,7 +568,6 @@
             currentOrderId = newOrderRef.key; 
             
             await set(newOrderRef, orderData);
-
             form.style.display = 'none';
 
             if (isPaidMode) {
@@ -549,15 +576,13 @@
                 successBox.style.display = 'block';
                 successBox.innerHTML = `
                     <h2>Order Received & Approved!</h2>
-                    <p>Our AI Engine is currently processing your request. Your 20 names will be emailed to <b>${orderData.email}</b> shortly.</p>
+                    <p>Our AI Engine is currently processing your request. Your report will be emailed to <b>${orderData.email}</b> shortly.</p>
                     <hr>
                     <p style="font-size: 13px; color: var(--text-muted);">
-                        For technical support or corporate inquiries, please contact our regulatory team at <br>
-                        <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
+                        For technical support, please contact <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
                     </p>
                 `;
             }
-
         } catch (error) {
             console.error("Error:", error);
             alert("Error submitting order: " + error.message);
@@ -577,28 +602,13 @@
             return;
         }
 
-        if (!file.type.startsWith('image/')) {
-            alert("Invalid file type. Please upload an image file (JPG or PNG).");
-            fileInput.value = ""; 
-            return;
-        }
-
-        if (file.size > 5242880) {
-            alert("This image is too large. Please upload a file smaller than 5MB.");
-            fileInput.value = ""; 
-            return;
-        }
-
         receiptBtn.disabled = true;
         receiptBtn.innerText = "Uploading Evidence...";
         statusText.style.display = 'block';
         statusText.innerText = "Uploading securely to Firebase...";
 
         try {
-            const fileRef = storageRef(
-                storage,
-                `receipts/${currentUser.uid}/${currentOrderId}_${file.name}`
-            );
+            const fileRef = storageRef(storage, `receipts/${currentUser.uid}/${currentOrderId}_${file.name}`);
             await uploadBytes(fileRef, file);
             const downloadUrl = await getDownloadURL(fileRef);
 
@@ -608,12 +618,6 @@
                 status: 'pending_verification' 
             });
 
-            // --- SEND EMAIL NOTIFICATION TO ADMIN ---
-            const companyName = document.getElementById('company_name').value;
-            const apiName = document.getElementById('api_name').value;
-            const customerEmail = document.getElementById('email').value;
-
-            // --- CALL SECURE BACKEND FUNCTION TO SEND EMAIL ---
             try {
                 await fetch('https://us-central1-pharmanamingvault.cloudfunctions.net/sendAdminNotification', {
                     method: 'POST',
@@ -625,7 +629,6 @@
                         receipt_url: downloadUrl
                     })
                 });
-                console.log("Admin notification email dispatched securely.");
             } catch (emailError) {
                 console.error("Failed to trigger admin email:", emailError);
             }
@@ -633,17 +636,10 @@
             paymentBox.innerHTML = `
                 <h3 style="color: var(--primary); text-align: center;">Evidence Submitted Successfully!</h3>
                 <p style="text-align: center; color: var(--text-main); line-height: 1.5;">We will review your InstaPay transfer. Once verified, your report will be generated and emailed within a few hours.</p>
-                <hr>
-                <p style="font-size: 13px; color: var(--text-muted); text-align: center;">
-                    For any inquiries or technical assistance, please contact our team at <br>
-                    <a href="mailto:comp11labs@gmail.com" style="color: var(--primary); font-weight: bold; text-decoration: none;">comp11labs@gmail.com</a>
-                </p>
             `;
-
         } catch (error) {
             console.error("Upload failed:", error);
             statusText.innerText = "Upload failed. Please try again.";
-            statusText.style.color = "#ef4444";
             receiptBtn.disabled = false;
             receiptBtn.innerText = "Submit Evidence";
         }
