@@ -554,7 +554,8 @@
                 });
                 document.getElementById('preview-results').style.display = 'block';
                 
-                // Permanently disable button after successful generation
+                // Permanently keep the button disabled and updated on success
+                previewBtn.disabled = true;
                 previewBtn.innerText = "Preview Generated ✓";
             } else {
                 throw new Error(data.error || 'No preview names returned from AI.');
@@ -562,7 +563,7 @@
         } catch (error) {
             console.error("Preview Error:", error);
             alert("Could not generate preview: " + error.message);
-            // Re-enable only if it failed so user can try again
+            // Re-enable ONLY if it failed so the user can try again
             previewBtn.disabled = false;
             previewBtn.innerText = "✨ Instant Name Preview (5 Free Ideas)";
         }
