@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Companorama | Executive Process Climate Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #090d16; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(18, 24, 38, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        .glow-purple { text-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
+        .glow-cyan { text-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+        .glow-blue { text-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .glow-emerald { text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen p-4 sm:p-6 md:p-8 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- HEADER BAR -->
+        <header class="glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="z-10">
+                <div class="flex items-center gap-3">
+                    <span class="p-2 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30 text-xl">⚡</span>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                        Companorama <span class="bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Telemetry Matrix</span>
+                    </h1>
+                </div>
+                
+                <!-- PROMINENT LAST SYNC DISPLAY AT THE TOP -->
+                <div class="mt-2.5 flex flex-wrap items-center gap-2">
+                    <div class="inline-flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 text-indigo-200 px-3 py-1 rounded-lg text-xs font-mono-code shadow-md">
+                        <span class="text-indigo-400">🕒 LAST SYNC:</span>
+                        <span id="header-timestamp-val" class="font-bold text-white tracking-wide">Awaiting Signal...</span>
+                    </div>
+                    <span class="text-slate-500 text-xs hidden sm:inline">•</span>
+                    <p class="text-xs text-slate-400 font-medium">
+                        Siemens QFM3160 Duct Node vs. Ambient DHT11 Array
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 z-10 self-end md:self-auto">
+                <div class="hidden sm:flex items-center gap-2 bg-slate-900/80 border border-slate-700/50 text-slate-300 px-3.5 py-1.5 rounded-xl text-xs font-mono-code shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span>REST / Realtime Stream</span>
+                </div>
+                <div id="comms-badge" class="bg-red-950/60 border border-red-800/80 text-red-400 px-4 py-1.5 rounded-xl text-xs uppercase tracking-wider font-bold font-mono-code animate-pulse flex items-center gap-2 shadow-lg">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span>Offline</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONNECTION ALERT -->
+        <div id="connection-warning" class="hidden glass-card border-amber-500/40 bg-amber-950/20 text-amber-300 px-5 py-4 rounded-xl flex items-center gap-3 text-sm">
+            <span class="text-xl">📡</span>
+            <div>
+                <p class="font-semibold">Awaiting Transmission Payload</p>
+                <p class="text-xs text-amber-400/80 mt-0.5">Establishing connection link to node database table <code class="font-mono-code bg-amber-950/60 px-1.5 py-0.5 rounded">analog_logs_TRH</code>...</p>
+            </div>
+        </div>
+
+        <!-- 4-ZONE METRIC DASHBOARD -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Metric 1: QFM Temperature -->
+            <div class="glass-card p-5 rounded-2xl relative overflow-hidden transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-purple-400 tracking-wider uppercase">Duct Temp (QFM3160)</span>
+                    <span class="text-xs px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800/50 font-mono-code">A0 Channel</span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-1">
+                    <p id="qfm-temp-val" class="text-4xl font-extrabold text-purple-300 glow-purple tracking-tight">0.0</p>
+                    <span class="text-lg font-semibold text-purple-400">°C</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex justify-between items-center text-[11px] text-slate-400 font-mono-code">
+                    <span>Industrial Grade</span>
+                    <span>Range: 0-50°C</span>
+                </div>
+            </div>
+
+            <!-- Metric 2: QFM Humidity -->
+            <div class="glass-card p-5 rounded-2xl relative overflow-hidden transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-cyan-400 tracking-wider uppercase">Duct Humid (QFM3160)</span>
+                    <span class="text-xs px-2 py-0.5 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-800/50 font-mono-code">A3 Channel</span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-1">
+                    <p id="qfm-hum-val" class="text-4xl font-extrabold text-cyan-300 glow-cyan tracking-tight">0.0</p>
+                    <span class="text-lg font-semibold text-cyan-400">% RH</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex justify-between items-center text-[11px] text-slate-400 font-mono-code">
+                    <span>Capacitive Sensor</span>
+                    <span>Range: 0-100%</span>
+                </div>
+            </div>
+
+            <!-- Metric 3: DHT Temperature -->
+            <div class="glass-card p-5 rounded-2xl relative overflow-hidden transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-blue-400 tracking-wider uppercase">Ambient Temp (DHT11)</span>
+                    <span class="text-xs px-2 py-0.5 rounded-md bg-blue-950/80 text-blue-300 border border-blue-800/50 font-mono-code">GPIO Pin 4</span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-1">
+                    <p id="dht-temp-val" class="text-4xl font-extrabold text-blue-300 glow-blue tracking-tight">0.0</p>
+                    <span class="text-lg font-semibold text-blue-400">°C</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex justify-between items-center text-[11px] text-slate-400 font-mono-code">
+                    <span>Room Ambient</span>
+                    <span>1-Wire Digital</span>
+                </div>
+            </div>
+
+            <!-- Metric 4: DHT Humidity -->
+            <div class="glass-card p-5 rounded-2xl relative overflow-hidden transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-bold text-emerald-400 tracking-wider uppercase">Ambient Humid (DHT11)</span>
+                    <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 font-mono-code">GPIO Pin 4</span>
+                </div>
+                <div class="mt-3 flex items-baseline gap-1">
+                    <p id="dht-hum-val" class="text-4xl font-extrabold text-emerald-300 glow-emerald tracking-tight">0.0</p>
+                    <span class="text-lg font-semibold text-emerald-400">% RH</span>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-800/60 flex justify-between items-center text-[11px] text-slate-400 font-mono-code">
+                    <span>Room Ambient</span>
+                    <span>Relative Scale</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FULL-WIDTH HIGH-FIDELITY CHART SECTION -->
+        <div class="glass-card p-6 rounded-2xl shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span>📈</span> High-Fidelity Environmental Waveforms
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Chronological comparison of duct parameters vs. room ambient conditions</p>
+                </div>
+                
+                <!-- CUSTOM CHART LEGEND -->
+                <div class="flex flex-wrap items-center gap-3 text-xs font-mono-code bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-purple-500 rounded-full"></span> Duct Temp</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-cyan-400 rounded-full"></span> Duct Humid</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-500 rounded-full"></span> Amb Temp</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-emerald-400 rounded-full"></span> Amb Humid</span>
+                </div>
+            </div>
+
+            <!-- PLOTLY CANVAS CONTAINER -->
+            <div id="scada-trend-chart" class="w-full h-80 sm:h-96"></div>
+        </div>
+
+        <!-- FOOTER STATUS STRIP -->
+        <footer class="glass-card px-6 py-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-3 font-mono-code">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                <p>Last Sync Checkpoint: <span id="timestamp-val" class="text-slate-200 font-semibold">None</span></p>
+            </div>
+            <p class="bg-slate-900/80 border border-slate-800 text-slate-300 px-3.5 py-1.5 rounded-xl">
+                ⚡ Node Pipeline: <span class="text-purple-400">analog_logs_TRH</span> • 5s Polling Interval
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- DASHBOARD LOGIC ENGINE -->
+    <script>
+        const DATABASE_STREAM_URL = 'https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app/analog_logs_TRH.json?orderBy="$key"&limitToLast=30';
+
+        // Compensation Factor for A0 Channel (4.24V actual vs 2.96V recorded)
+        const A0_VOLTAGE_CORRECTION_FACTOR = 4.24 / 2.96;
+
+        const chartLayoutBlueprint = {
+            margin: { l: 45, r: 45, t: 10, b: 40 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            showlegend: false,
+            font: { color: "#94a3b8", family: "Plus Jakarta Sans" },
+            xaxis: { 
+                gridcolor: "#1e293b", 
+                zerolinecolor: "#1e293b",
+                tickfont: { size: 10, color: "#64748b" } 
+            },
+            yaxis: { 
+                title: "Temperature (°C)", 
+                gridcolor: "#1e293b", 
+                zerolinecolor: "#1e293b",
+                titlefont: { color: "#c084fc", size: 12 }, 
+                tickfont: { color: "#c084fc", size: 10 }, 
+                range: [-2, 55] 
+            },
+            yaxis2: {
+                title: "Humidity (%)",
+                titlefont: { color: "#22d3ee", size: 12 },
+                tickfont: { color: "#22d3ee", size: 10 },
+                overlaying: 'y',
+                side: 'right',
+                range: [0, 105],
+                showgrid: false
+            }
+        };
+
+        async function pullRealtimeArrayUpdates() {
+            try {
+                const streamResponse = await fetch(DATABASE_STREAM_URL);
+                const databaseNodeCollection = await streamResponse.json();
+                
+                if (!databaseNodeCollection || Object.keys(databaseNodeCollection).length === 0) {
+                    document.getElementById('connection-warning').classList.remove('hidden');
+                    return;
+                }
+                document.getElementById('connection-warning').classList.add('hidden');
+
+                const sequentialSortedKeys = Object.keys(databaseNodeCollection).sort();
+                const totalRecordsCollected = sequentialSortedKeys.map(key => databaseNodeCollection[key]);
+                const absoluteLatestNode = totalRecordsCollected[totalRecordsCollected.length - 1];
+
+                // Update Status Badge
+                const commsBadge = document.getElementById('comms-badge');
+                commsBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Online</span>`;
+                commsBadge.className = "bg-emerald-950/60 border border-emerald-800/80 text-emerald-400 px-4 py-1.5 rounded-xl text-xs uppercase tracking-wider font-bold font-mono-code flex items-center gap-2 shadow-lg";
+
+                // Unpack variables & apply hardware compensation transparently
+                const rawQfmTemp = absoluteLatestNode.qfm_temperature !== undefined ? absoluteLatestNode.qfm_temperature : 0.0;
+                const qfmTemp = rawQfmTemp * A0_VOLTAGE_CORRECTION_FACTOR; // Corrected temperature reading
+                
+                const qfmHum  = absoluteLatestNode.qfm_humidity !== undefined ? absoluteLatestNode.qfm_humidity : 0.0;
+                const dhtTemp = absoluteLatestNode.dht_temperature !== undefined ? absoluteLatestNode.dht_temperature : 0.0;
+                const dhtHum  = absoluteLatestNode.dht_humidity !== undefined ? absoluteLatestNode.dht_humidity : 0.0;
+
+                // Update UI KPI elements
+                document.getElementById('qfm-temp-val').innerText = qfmTemp.toFixed(1);
+                document.getElementById('qfm-hum-val').innerText  = qfmHum.toFixed(1);
+                document.getElementById('dht-temp-val').innerText = (dhtTemp < -50) ? "Err" : dhtTemp.toFixed(1);
+                document.getElementById('dht-hum-val').innerText  = (dhtHum < -50) ? "Err" : dhtHum.toFixed(1);
+                
+                // Update Timestamps (Footer & Top Header Badge)
+                const latestTimestamp = absoluteLatestNode.timestamp || "N/A";
+                document.getElementById('timestamp-val').innerText = latestTimestamp;
+                document.getElementById('header-timestamp-val').innerText = latestTimestamp;
+
+                // Map timeline arrays with compensation applied to A0 history
+                const timelineTimestamps = totalRecordsCollected.map(record => {
+                    let dateObject = new Date(record.timestamp);
+                    return isNaN(dateObject) ? record.timestamp : dateObject.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                });
+
+                const historyQfmTemp = totalRecordsCollected.map(r => (r.qfm_temperature ?? 0.0) * A0_VOLTAGE_CORRECTION_FACTOR);
+                const historyQfmHum  = totalRecordsCollected.map(r => r.qfm_humidity ?? 0.0);
+                const historyDhtTemp = totalRecordsCollected.map(r => (r.dht_temperature !== undefined && r.dht_temperature > -50) ? r.dht_temperature : null);
+                const historyDhtHum  = totalRecordsCollected.map(r => (r.dht_humidity !== undefined && r.dht_humidity > -50) ? r.dht_humidity : null);
+
+                // Trace 1: QFM Temperature (Calibrated)
+                const traceQfmTemp = {
+                    x: timelineTimestamps,
+                    y: historyQfmTemp,
+                    name: 'QFM Temp',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#a855f7', width: 2.5, shape: 'spline' }
+                };
+
+                // Trace 2: QFM Humidity
+                const traceQfmHum = {
+                    x: timelineTimestamps,
+                    y: historyQfmHum,
+                    name: 'QFM Humid',
+                    yaxis: 'y2',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#06b6d4', width: 2.5, shape: 'spline' }
+                };
+
+                // Trace 3: DHT Temperature
+                const traceDhtTemp = {
+                    x: timelineTimestamps,
+                    y: historyDhtTemp,
+                    name: 'DHT Temp',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#3b82f6', width: 1.5, dash: 'dash', shape: 'spline' }
+                };
+
+                // Trace 4: DHT Humidity
+                const traceDhtHum = {
+                    x: timelineTimestamps,
+                    y: historyDhtHum,
+                    name: 'DHT Humid',
+                    yaxis: 'y2',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#10b981', width: 1.5, dash: 'dash', shape: 'spline' }
+                };
+
+                Plotly.react('scada-trend-chart', [traceQfmTemp, traceQfmHum, traceDhtTemp, traceDhtHum], chartLayoutBlueprint, {responsive: true});
+
+            } catch (error) {
+                console.error("SCADA Telemetry Exception: ", error);
+                const commsBadge = document.getElementById('comms-badge');
+                commsBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Lag Warning</span>`;
+                commsBadge.className = "bg-amber-950/60 border border-amber-800/80 text-amber-400 px-4 py-1.5 rounded-xl text-xs uppercase tracking-wider font-bold font-mono-code flex items-center gap-2 shadow-lg";
+            }
+        }
+
+        setInterval(pullRealtimeArrayUpdates, 5000);
+        pullRealtimeArrayUpdates();
+    </script>
+</body>
+</html>
