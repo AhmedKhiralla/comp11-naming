@@ -646,7 +646,7 @@
         receiptBtn.disabled = true;
         receiptBtn.innerText = "Uploading Evidence...";
         statusText.style.display = 'block';
-        statusText.innerText = "Uploading securely to Firebase...";
+        statusText.innerText = "Uploading securely to database...";
 
         try {
             const fileRef = storageRef(storage, `receipts/${currentUser.uid}/${currentOrderId}_${file.name}`);
