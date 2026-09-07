@@ -572,6 +572,12 @@
         submitBtn.innerText = "Initializing Engine...";
 
         try {
+            // Ensure user is authenticated before writing
+            if (!currentUser) {
+                const userCredential = await signInAnonymously(auth);
+                currentUser = userCredential.user;
+            }
+
             const settingsRef = dbRef(db, 'settings/is_paid_mode');
             const snapshot = await get(settingsRef);
             const isPaidMode = snapshot.exists() ? snapshot.val() : false;
