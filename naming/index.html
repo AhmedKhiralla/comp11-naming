@@ -280,7 +280,7 @@
                 <button type="button" id="aiGenBtn" class="btn-sm" title="Optionally generate indication using Groq AI">✨ AI Generate (Optional)</button>
             </div>
             <textarea id="indication" rows="3" placeholder="Type manually or click AI Generate if you prefer..."></textarea>
-            <small>Completely optional: fill manually or use AI based on category, API, & dosage form.</small>
+            <small>Completely optional for submission, but required to preview names.</small>
         </div>
         
         <div class="advanced-box">
@@ -328,7 +328,7 @@
         <div id="preview-results" class="preview-box">
             <label style="color: var(--text-main); margin-bottom: 8px;">Preview Ideas (Based on your selections):</label>
             <div id="preview-pills-container"></div>
-            <small style="margin-top: 10px;">These are quick samples. Initialize the engine below for full EDA-verified reports.</small>
+            <small style="margin-top: 10px; display: block; color: var(--text-muted);">These are quick samples. Initialize the engine below for full EDA-verified reports.</small>
         </div>
 
         <button type="submit" id="submit-btn">Initialize AI Engine</button>
@@ -459,7 +459,7 @@
         }
 
         aiGenBtn.disabled = true;
-        aiGenBtn.innerText = "Generated ✓";
+        aiGenBtn.innerText = "Generating...";
 
         try {
             const response = await fetch('https://us-central1-pharmanamingvault.cloudfunctions.net/generateIndication', {
@@ -470,21 +470,52 @@
             const data = await response.json();
             if (response.ok && data.indication) {
                 document.getElementById('indication').value = data.indication;
+                aiGenBtn.innerText = "Generated ✓";
             } else {
                 throw new Error(data.error || 'Failed to generate indication.');
             }
         } catch (error) {
             console.error("AI Generation Error:", error);
+            alert("Failed to generate indication: " + error.message);
             aiGenBtn.innerText = "✨ AI Generate (Failed)";
+        } finally {
+            aiGenBtn.disabled = false;
         }
     });
 
     // INSTANT NAME PREVIEW HANDLER (FREE)
     previewBtn.addEventListener('click', async () => {
         const api = document.getElementById('api_name').value.trim();
+        const company = document.getElementById('company_name').value.trim();
+        const indication = document.getElementById('indication').value.trim();
+        const affixType = document.getElementById('affix_type').value;
+        const affixValue = document.getElementById('affix_value').value.trim();
+
+        // 1. Validate API
         if (!api) {
-            alert("Please fill in the Active Ingredient (API) field first before previewing names.");
+            alert("Please fill in the Active Ingredient (API) field before previewing names.");
             document.getElementById('api_name').focus();
+            return;
+        }
+
+        // 2. Validate Company Name
+        if (!company) {
+            alert("Please fill in the Company Name before previewing names.");
+            document.getElementById('company_name').focus();
+            return;
+        }
+
+        // 3. Validate Therapeutic Indication
+        if (!indication) {
+            alert("Please enter or generate a Therapeutic Indication before previewing names.");
+            document.getElementById('indication').focus();
+            return;
+        }
+
+        // 4. Validate Affix Value if an Affix is chosen
+        if (affixType && !affixValue) {
+            alert("Please provide the Affix Value (e.g., 'Ner', 'Cef') or set Required Affix back to 'None'.");
+            document.getElementById('affix_value').focus();
             return;
         }
 
@@ -494,14 +525,14 @@
         const payload = {
             category: document.getElementById('category').value,
             api: api,
-            company: document.getElementById('company_name').value.trim(),
+            company: company,
             dosageForm: document.getElementById('dosage_form').value.trim(),
             strength: document.getElementById('strength').value.trim(),
-            indication: document.getElementById('indication').value.trim(),
+            indication: indication,
             strategy: document.getElementById('strategy').value,
             wordCount: document.getElementById('word_count').value,
-            affixType: document.getElementById('affix_type').value,
-            affixValue: document.getElementById('affix_value').value.trim()
+            affixType: affixType,
+            affixValue: affixValue
         };
 
         try {
@@ -512,7 +543,7 @@
             });
             const data = await response.json();
 
-            if (response.ok && data.names) {
+            if (response.ok && Array.isArray(data.names) && data.names.length > 0) {
                 const container = document.getElementById('preview-pills-container');
                 container.innerHTML = '';
                 data.names.forEach(name => {
@@ -521,14 +552,13 @@
                     pill.innerText = name;
                     container.appendChild(pill);
                 });
-                // THIS LINE MAKES THE BOX VISIBLE:
                 document.getElementById('preview-results').style.display = 'block';
             } else {
-                throw new Error(data.error || 'Failed to generate preview.');
+                throw new Error(data.error || 'No preview names returned from AI.');
             }
         } catch (error) {
             console.error("Preview Error:", error);
-            alert("Could not generate preview. Please try again.");
+            alert("Could not generate preview: " + error.message);
         } finally {
             previewBtn.disabled = false;
             previewBtn.innerText = "✨ Instant Name Preview (5 Free Ideas)";
