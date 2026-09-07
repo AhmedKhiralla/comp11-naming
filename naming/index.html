@@ -553,20 +553,23 @@
                     container.appendChild(pill);
                 });
                 document.getElementById('preview-results').style.display = 'block';
+                
+                // Permanently disable button after successful generation
+                previewBtn.innerText = "Preview Generated ✓";
             } else {
                 throw new Error(data.error || 'No preview names returned from AI.');
             }
         } catch (error) {
             console.error("Preview Error:", error);
             alert("Could not generate preview: " + error.message);
-        } finally {
+            // Re-enable only if it failed so user can try again
             previewBtn.disabled = false;
             previewBtn.innerText = "✨ Instant Name Preview (5 Free Ideas)";
         }
     });
 
-        // 1. Handle Initial Form Submission
-        form.addEventListener('submit', async (e) => {
+    // 1. Handle Initial Form Submission
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
         submitBtn.innerText = "Initializing Engine...";
