@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Companorama | OEE Command Center</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#071018; --panel:#0d1822; --panel2:#101f2b; --line:#203241;
+  --text:#e8f0f5; --muted:#8193a2; --cyan:#35d4ff; --green:#38e08f;
+  --amber:#ffbf5b; --red:#ff5d6c; --purple:#9b7cff; --blue:#5ea7ff;
+  --shadow:0 18px 55px rgba(0,0,0,.32); --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+ radial-gradient(circle at 15% 0%,rgba(53,212,255,.08),transparent 28%),
+ radial-gradient(circle at 85% 10%,rgba(155,124,255,.07),transparent 30%),
+ var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+.app{min-height:100vh}
+.topbar{height:74px;border-bottom:1px solid var(--line);background:rgba(7,16,24,.84);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20}
+.brand{display:flex;gap:13px;align-items:center}.brandmark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#12384a,#102033);border:1px solid #295268;box-shadow:0 0 30px rgba(53,212,255,.1);font-size:21px}
+.brand h1{font-size:17px;letter-spacing:.08em;margin:0}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.16em;margin-top:3px}
+.live{display:flex;align-items:center;gap:9px;color:#b7c7d2;font-size:12px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.dot.off{background:var(--red);box-shadow:0 0 12px var(--red)}
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 74px)}
+aside{border-right:1px solid var(--line);padding:22px 18px;background:rgba(8,17,25,.7)}
+main{padding:26px;max-width:1700px;width:100%;margin:auto}
+.section-title{font-size:10px;color:#718596;letter-spacing:.16em;text-transform:uppercase;margin:9px 8px 12px}
+.control{margin-bottom:13px}.control label{display:block;font-size:11px;color:#91a4b2;margin:0 0 7px 3px}.control input,.control select{width:100%;border:1px solid #263b4a;background:#0b151e;color:var(--text);padding:11px 12px;border-radius:10px;outline:none}.control input:focus,.control select:focus{border-color:#397e99;box-shadow:0 0 0 3px rgba(53,212,255,.08)}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{width:100%;border:1px solid #294353;background:#112331;color:#dcebf2;border-radius:10px;padding:11px 12px;cursor:pointer;transition:.2s}.btn:hover{border-color:#4d7890;background:#142c3c}.btn.primary{background:linear-gradient(135deg,#0c718c,#145477);border-color:#3187a1}.btn + .btn{margin-top:8px}
+.hint{font-size:10px;line-height:1.5;color:#667c8c;margin:12px 3px}
+.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}.hero h2{font-size:30px;line-height:1.05;margin:7px 0 8px;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);font-size:13px}.status{min-width:270px;border:1px solid var(--line);background:linear-gradient(145deg,#0d1b25,#0b141c);padding:15px 18px;border-radius:15px;box-shadow:var(--shadow)}.status strong{display:block;font-size:14px}.status span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}.card{background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:17px;min-height:118px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;right:-25px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,255,.1),transparent 65%)}.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#8195a5}.kpi .value{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:11px}.kpi .sub{font-size:10px;color:#6f8492;margin-top:7px}.accent-green{color:var(--green)}.accent-cyan{color:var(--cyan)}.accent-amber{color:var(--amber)}.accent-red{color:var(--red)}.accent-purple{color:var(--purple)}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:1fr 1fr}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}.badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}.chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
+.oee-layout{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:center}.oee-ring{width:220px;height:220px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0deg, var(--green) var(--oeeDeg), #1a2b35 var(--oeeDeg), #1a2b35 360deg);position:relative;margin:auto}.oee-ring:before{content:"";position:absolute;width:174px;height:174px;border-radius:50%;background:#0b151e;border:1px solid #243744}.oee-center{position:relative;text-align:center}.oee-center .num{font-size:48px;font-weight:850;letter-spacing:-.06em}.oee-center .unit{font-size:11px;color:#7e94a2;letter-spacing:.15em}.pillars{display:grid;gap:14px}.pillar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}.pillar label{font-size:11px;color:#9bb0bd}.bar{height:8px;background:#172731;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit}.pillar b{font-size:12px;text-align:right}.formula{margin-top:16px;padding:10px 12px;border-radius:10px;background:#0a141d;border:1px solid #1d303d;color:#8096a4;font-size:10px;line-height:1.5}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.mini{padding:13px;background:#0a151e;border:1px solid #1c303d;border-radius:12px}.mini .v{font-size:19px;font-weight:800}.mini .l{font-size:9px;text-transform:uppercase;color:#6f8492;letter-spacing:.1em;margin-top:5px}
+.losses{display:grid;grid-template-columns:1fr 1fr;gap:10px}.loss{padding:14px;border:1px solid #243542;background:#0a151e;border-radius:12px}.loss .num{font-size:20px;font-weight:800}.loss .label{font-size:9px;color:#718695;text-transform:uppercase;letter-spacing:.1em;margin-top:5px}
+.timeline{position:relative;height:92px;background:#09131b;border:1px solid #1c303c;border-radius:12px;overflow:hidden}.timeline-track{position:absolute;left:10px;right:10px;top:30px;height:30px;border-radius:7px;background:#14232d;overflow:hidden}.seg{position:absolute;height:100%;top:0}.seg.on{background:linear-gradient(90deg,#159b62,#38e08f)}.seg.off{background:linear-gradient(90deg,#7b2634,#ff5d6c)}.timeline-label{position:absolute;left:10px;right:10px;bottom:9px;display:flex;justify-content:space-between;color:#607685;font-size:9px}
+.legend{display:flex;gap:14px;margin-top:10px;font-size:9px;color:#78909e}.legend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}.legend .on:before{background:var(--green)}.legend .off:before{background:var(--red)}
+.footer{padding:18px 0 4px;color:#536a79;font-size:9px;display:flex;justify-content:space-between}
+.toast{position:fixed;right:22px;bottom:22px;background:#10212c;border:1px solid #2b5368;color:#d9edf5;padding:12px 15px;border-radius:11px;box-shadow:var(--shadow);display:none;font-size:11px;z-index:50}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid,.grid.equal{grid-template-columns:1fr}.oee-layout{grid-template-columns:220px 1fr}}
+@media(max-width:850px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}main{padding:17px}.kpis{grid-template-columns:1fr 1fr}.hero{align-items:stretch;flex-direction:column}.status{min-width:0}.oee-layout{grid-template-columns:1fr}.topbar{padding:0 16px}}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}.stat-grid,.losses{grid-template-columns:1fr}.topbar{height:64px}.brand small{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand"><div class="brandmark">🏭</div><div><h1>COMPANORAMA</h1><small>INDUSTRIAL OEE COMMAND CENTER</small></div></div>
+  <div class="live"><span id="liveDot" class="dot"></span><span id="connectionText">Connecting to telemetry…</span><span>•</span><span id="lastRefresh">—</span></div>
+</header>
+
+<div class="layout">
+<aside>
+  <div class="section-title">Analysis Scope</div>
+  <div class="control"><label>Production Line / Cell</label><select id="unit"><option>Blistering Machine 01</option><option>Tablet Press 03</option><option>Liquid Filling 04</option></select></div>
+  <div class="control"><label>Analysis Date</label><input id="analysisDate" type="date"></div>
+  <div class="section-title">OEE Parameters</div>
+  <div class="control"><label>Available Working Hours</label><input id="workingHours" type="number" min="0.1" max="24" step="0.25" value="8"></div>
+  <div class="control"><label>Nominal Speed — parts / minute</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="10"></div>
+  <div class="control"><label>Downtime Cost — EGP / hour</label><input id="downtimeCost" type="number" min="0" step="1000" value="15000"></div>
+  <button class="btn primary" id="applyBtn">Apply Parameters</button>
+  <button class="btn" id="refreshBtn">↻ Refresh Telemetry</button>
+  <div class="hint">
+    OEE is calculated for the selected analysis date. Planned production time is the available working-hours input. Performance uses the nominal machine speed rather than a hard-coded cycle time.
+  </div>
+  <div class="section-title">Live Data Sources</div>
+  <div class="mini"><div class="v">/events</div><div class="l">Production pulses</div></div>
+  <div class="mini" style="margin-top:8px"><div class="v">/status_logs</div><div class="l">Machine state changes</div></div>
+</aside>
+
+<main>
+<section class="hero">
+  <div><div class="eyebrow">Executive production intelligence</div><h2>Factory Operations Command Center</h2><p id="scopeText">Blistering Machine 01 • Today</p></div>
+  <div class="status"><strong id="machineStatus">● Waiting for telemetry</strong><span id="statusDetail">Reading machine state from Firebase Realtime Database</span></div>
+</section>
+
+<section class="kpis">
+  <div class="card kpi"><div class="label">Total output</div><div class="value accent-cyan" id="totalOutput">—</div><div class="sub">cycle pulses captured</div></div>
+  <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">accepted product pulses</div></div>
+  <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">derived total − good</div></div>
+  <div class="card kpi"><div class="label">Run time</div><div class="value" id="runTime">—</div><div class="sub" id="availabilitySub">availability —</div></div>
+  <div class="card kpi"><div class="label">Downtime loss</div><div class="value accent-amber" id="lossValue">—</div><div class="sub" id="lossSub">—</div></div>
+</section>
+
+<section class="grid">
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">OEE Performance Profile</div><div class="panel-desc">Availability × Performance × Quality</div></div><span class="badge">LIVE CALCULATION</span></div>
+    <div class="oee-layout">
+      <div class="oee-ring" id="oeeRing"><div class="oee-center"><div class="num" id="oeeValue">—</div><div class="unit">OEE</div></div></div>
+      <div>
+        <div class="pillars">
+          <div class="pillar"><label>Availability</label><div class="bar"><i id="avBar" style="width:0;background:var(--cyan)"></i></div><b id="avValue">—</b></div>
+          <div class="pillar"><label>Performance</label><div class="bar"><i id="perfBar" style="width:0;background:var(--purple)"></i></div><b id="perfValue">—</b></div>
+          <div class="pillar"><label>Quality</label><div class="bar"><i id="qualBar" style="width:0;background:var(--green)"></i></div><b id="qualValue">—</b></div>
+        </div>
+        <div class="formula">Availability = Run Time ÷ Available Working Time<br>Performance = Actual Output ÷ (Nominal Speed × Run Time)<br>Quality = Good Output ÷ Total Output</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">Production Velocity</div><div class="panel-desc">Output pulses grouped by minute</div></div><span class="badge" id="speedBadge">— parts/min avg</span></div>
+    <div class="chart-wrap"><canvas id="velocityChart"></canvas></div>
+  </div>
+</section>
+
+<section class="grid equal">
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
+    <div class="chart-wrap short"><canvas id="capacityChart"></canvas></div>
+    <div class="stat-grid" style="margin-top:12px">
+      <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
+      <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
+      <div class="mini"><div class="v" id="speedGap">—</div><div class="l">Speed gap</div></div>
+    </div>
+  </div>
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned production time is being consumed</div></div></div>
+    <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
+    <div class="losses" style="margin-top:10px">
+      <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
+      <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Unrun time</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="card panel" style="margin-bottom:14px">
+  <div class="panel-head"><div><div class="panel-title">Machine State Chronology</div><div class="panel-desc">Actual ON/OFF intervals reconstructed from status transitions</div></div><span class="badge">/status_logs</span></div>
+  <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">00:00</span><span id="dayEnd">24:00</span></div></div>
+  <div class="legend"><span class="on">Machine On</span><span class="off">Machine Off</span></div>
+</section>
+
+<section class="grid equal">
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by hour</div></div></div>
+    <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
+  </div>
+  <div class="card panel">
+    <div class="panel-head"><div><div class="panel-title">Quality Mix</div><div class="panel-desc">Good versus rejected output</div></div></div>
+    <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
+  </div>
+</section>
+
+<div class="footer"><span>Companorama • Firebase Realtime Telemetry • OEE calculation engine</span><span id="footerTime">—</span></div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+const FIREBASE_URL="https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app";
+let events=[], statuses=[], charts={};
+let params={hours:8,speed:10,cost:15000};
+
+const $=id=>document.getElementById(id);
+const fmt=(n,d=0)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+const pct=n=>`${fmt(n,1)}%`;
+const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+$("analysisDate").value=todayISO();
+
+function toast(msg){$("toast").textContent=msg;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2600)}
+function parseDate(v){const d=new Date(v);return isNaN(d)?null:d}
+function localDay(dateStr){
+  const [y,m,d]=dateStr.split("-").map(Number);
+  const start=new Date(y,m-1,d,0,0,0,0), end=new Date(y,m-1,d+1,0,0,0,0);
+  return {start,end};
+}
+async function getJSON(path){
+  const r=await fetch(`${FIREBASE_URL}/${path}.json`,{cache:"no-store"});
+  if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+  return await r.json();
+}
+function normalize(obj){
+  if(!obj)return[];
+  return Object.values(obj).map(x=>({...x,timestamp:parseDate(x.timestamp)})).filter(x=>x.timestamp);
+}
+async function loadTelemetry(){
+  try{
+    const [e,s]=await Promise.all([getJSON("events"),getJSON("status_logs")]);
+    events=normalize(e);statuses=normalize(s);
+    $("liveDot").classList.remove("off");$("connectionText").textContent="Telemetry connected";
+    $("lastRefresh").textContent="Updated "+new Date().toLocaleTimeString();
+    render();
+  }catch(err){
+    $("liveDot").classList.add("off");$("connectionText").textContent="Telemetry unavailable";
+    toast("Unable to read Firebase telemetry");
+    console.error(err);
+  }
+}
+function selectedData(){
+  const {start,end}=localDay($("analysisDate").value);
+  const ev=events.filter(x=>x.timestamp>=start&&x.timestamp<end);
+  const st=statuses.filter(x=>x.timestamp<end && x.timestamp>=new Date(start.getTime()-48*3600000));
+  return {start,end,ev,st};
+}
+function intervalsForDay(st,start,end){
+  if(!st.length)return[];
+  const all=st.slice().sort((a,b)=>a.timestamp-b.timestamp);
+  let state="Machine Off";
+  for(const x of all){if(x.timestamp<=start)state=x.val;else break}
+  const points=[{timestamp:start,val:state},...all.filter(x=>x.timestamp>start&&x.timestamp<end)];
+  const out=[];
+  for(let i=0;i<points.length;i++){
+    const a=points[i].timestamp,b=i+1<points.length?points[i+1].timestamp:end;
+    if(b>a)out.push({start:a,end:b,val:points[i].val});
+  }
+  return out;
+}
+function destroy(name){if(charts[name]){charts[name].destroy();charts[name]=null}}
+const commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8ca1af",boxWidth:10,font:{size:10}}},tooltip:{backgroundColor:"#0b151e",borderColor:"#29404f",borderWidth:1,titleColor:"#fff",bodyColor:"#b8c8d2"}},scales:{x:{grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493",font:{size:9}}},y:{grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493",font:{size:9}}}}};
+function chartLine(id,labels,datasets){
+  destroy(id);charts[id]=new Chart($(id),{type:"line",data:{labels,datasets},options:{...commonOpts,elements:{line:{tension:.35,borderWidth:2},point:{radius:2,hoverRadius:5}}}});
+}
+function render(){
+  const {start,end,ev,st}=selectedData();
+  const total=ev.filter(x=>x.type==="cycles count").length;
+  const good=ev.filter(x=>x.type==="good products cycle count").length;
+  const reject=Math.max(0,total-good);
+  const intervals=intervalsForDay(st,start,end);
+  let runSec=0;
+  intervals.forEach(x=>{if(x.val==="Machine On")runSec+=(x.end-x.start)/1000});
+  const availableSec=Math.max(0,params.hours*3600);
+  const runHours=runSec/3600;
+  const availability=availableSec?Math.min(100,runSec/availableSec*100):0;
+  const nominalOutput=runHours*60*params.speed;
+  const performance=nominalOutput?Math.min(100,total/nominalOutput*100):0;
+  const quality=total?Math.min(100,good/total*100):100;
+  const oee=availability*performance*quality/10000;
+  const downtimeHours=Math.max(0,params.hours-runHours);
+  const loss=downtimeHours*params.cost;
+  const actualRate=runHours?total/(runHours*60):0;
+  const dayLabel=$("analysisDate").value===todayISO()?"Today":$("analysisDate").value;
+
+  $("scopeText").textContent=`${$("unit").value} • ${dayLabel}`;
+  $("totalOutput").textContent=fmt(total);
+  $("goodOutput").textContent=fmt(good);
+  $("rejectOutput").textContent=fmt(reject);
+  $("runTime").textContent=fmt(runHours,2)+" h";
+  $("availabilitySub").textContent=`availability ${pct(availability)}`;
+  $("lossValue").textContent=fmt(loss)+" EGP";
+  $("lossSub").textContent=`${fmt(downtimeHours,2)} h unrun`;
+  $("oeeValue").textContent=pct(oee);
+  $("oeeRing").style.setProperty("--oeeDeg",`${oee*3.6}deg`);
+  $("avValue").textContent=pct(availability);$("perfValue").textContent=pct(performance);$("qualValue").textContent=pct(quality);
+  $("avBar").style.width=Math.min(100,availability)+"%";$("perfBar").style.width=Math.min(100,performance)+"%";$("qualBar").style.width=Math.min(100,quality)+"%";
+  $("nominalCapacity").textContent=fmt(nominalOutput);
+  $("actualRate").textContent=fmt(actualRate,1);
+  $("speedGap").textContent=fmt(Math.max(0,params.speed-actualRate),1)+" /min";
+  $("plannedTime").textContent=fmt(params.hours,2)+" h";
+  $("idleTime").textContent=fmt(downtimeHours,2)+" h";
+  $("speedBadge").textContent=fmt(actualRate,1)+" parts/min avg";
+  const latest=st.slice().sort((a,b)=>a.timestamp-b.timestamp).at(-1);
+  const current=latest?.val||"Machine Off";
+  const isOn=current==="Machine On";
+  $("machineStatus").textContent=(isOn?"● LINE ACTIVE & RUNNING":"● LINE STOPPED");
+  $("machineStatus").style.color=isOn?"var(--green)":"var(--red)";
+  $("statusDetail").textContent=isOn?`Current run time ${fmt(runHours,2)} h • nominal ${fmt(params.speed,1)} parts/min`:`Downtime ${fmt(downtimeHours,2)} h • estimated loss ${fmt(loss)} EGP`;
+
+  renderVelocity(ev,start,end);
+  renderCapacity(total,nominalOutput,actualRate,params.speed);
+  renderLoss(availableSec/3600,runHours,downtimeHours);
+  renderTimeline(intervals,start,end);
+  renderHourly(ev);
+  renderQuality(good,reject);
+  $("footerTime").textContent="Calculated "+new Date().toLocaleString();
+}
+function renderVelocity(ev,start,end){
+  const map={};ev.filter(x=>x.type==="cycles count").forEach(x=>{const k=x.timestamp.getHours()+":"+String(x.timestamp.getMinutes()).padStart(2,"0");map[k]=(map[k]||0)+1});
+  const labels=[],vals=[];
+  const cursor=new Date(start);
+  while(cursor<end){const k=cursor.getHours()+":"+String(cursor.getMinutes()).padStart(2,"0");labels.push(k);vals.push(map[k]||0);cursor.setMinutes(cursor.getMinutes()+1)}
+  chartLine("velocityChart",labels,[{label:"Parts / min",data:vals,borderColor:"#35d4ff",backgroundColor:"rgba(53,212,255,.12)",fill:true}]);
+}
+function renderCapacity(total,nominal,actual,speed){
+  destroy("capacityChart");charts.capacityChart=new Chart($("capacityChart"),{type:"bar",data:{labels:["Output / day","Rate / min"],datasets:[
+    {label:"Actual",data:[total,actual],backgroundColor:["#35d4ff","#9b7cff"],borderRadius:7},
+    {label:"Nominal",data:[nominal,speed],backgroundColor:["rgba(129,147,162,.25)","rgba(129,147,162,.25)"],borderRadius:7}
+  ]},options:{...commonOpts,scales:{x:{grid:{display:false},ticks:{color:"#8ca1af"}},y:{beginAtZero:true,grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493"}}}}});
+}
+function renderLoss(available,run,downtime){
+  destroy("lossChart");charts.lossChart=new Chart($("lossChart"),{type:"doughnut",data:{labels:["Run time","Unrun time"],datasets:[{data:[run,Math.max(0,downtime)],backgroundColor:["#38e08f","#ff5d6c"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"70%",plugins:{legend:{position:"bottom",labels:{color:"#8ca1af",font:{size:10},boxWidth:10}}}}});
+}
+function renderTimeline(intervals,start,end){
+  const track=$("timelineTrack");track.innerHTML="";
+  const total=end-start;
+  intervals.forEach(x=>{const s=Math.max(0,(x.start-start)/total*100),w=Math.max(.15,(x.end-x.start)/total*100);const d=document.createElement("div");d.className="seg "+(x.val==="Machine On"?"on":"off");d.style.left=s+"%";d.style.width=w+"%";d.title=`${x.val}: ${x.start.toLocaleTimeString()} – ${x.end.toLocaleTimeString()}`;track.appendChild(d)});
+}
+function renderHourly(ev){
+  const total=Array(24).fill(0),good=Array(24).fill(0);
+  ev.forEach(x=>{if(x.type==="cycles count")total[x.timestamp.getHours()]++;if(x.type==="good products cycle count")good[x.timestamp.getHours()]++});
+  const labels=total.map((_,i)=>String(i).padStart(2,"0"));
+  destroy("hourChart");charts.hourChart=new Chart($("hourChart"),{type:"bar",data:{labels,datasets:[
+    {label:"Total",data:total,backgroundColor:"#35d4ff",borderRadius:4},
+    {label:"Good",data:good,backgroundColor:"#38e08f",borderRadius:4}
+  ]},options:commonOpts});
+}
+function renderQuality(good,reject){
+  destroy("qualityChart");charts.qualityChart=new Chart($("qualityChart"),{type:"doughnut",data:{labels:["Good","Reject"],datasets:[{data:[good,reject],backgroundColor:["#38e08f","#ff5d6c"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{position:"bottom",labels:{color:"#8ca1af",font:{size:10},boxWidth:10}}}}});
+}
+function apply(){
+  params.hours=Math.max(.1,Number($("workingHours").value)||8);
+  params.speed=Math.max(.01,Number($("nominalSpeed").value)||10);
+  params.cost=Math.max(0,Number($("downtimeCost").value)||0);
+  render();toast("OEE parameters applied");
+}
+$("applyBtn").onclick=apply;
+$("refreshBtn").onclick=()=>{loadTelemetry();toast("Refreshing telemetry…")};
+$("analysisDate").onchange=render;
+setInterval(loadTelemetry,5000);
+loadTelemetry();
+</script>
+</body>
+</html>
