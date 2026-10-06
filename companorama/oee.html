@@ -28,9 +28,7 @@ aside{border-right:1px solid var(--line);padding:22px 18px;background:rgba(8,17,
 main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .section-title{font-size:10px;color:#718596;letter-spacing:.16em;text-transform:uppercase;margin:9px 8px 12px}
 .control{margin-bottom:13px}.control label{display:block;font-size:11px;color:#91a4b2;margin:0 0 7px 3px}.control input,.control select{width:100%;border:1px solid #263b4a;background:#0b151e;color:var(--text);padding:11px 12px;border-radius:10px;outline:none}.control input:focus,.control select:focus{border-color:#397e99;box-shadow:0 0 0 3px rgba(53,212,255,.08)}
-.input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn{width:100%;border:1px solid #294353;background:#112331;color:#dcebf2;border-radius:10px;padding:11px 12px;cursor:pointer;transition:.2s}.btn:hover{border-color:#4d7890;background:#142c3c}.btn.primary{background:linear-gradient(135deg,#0c718c,#145477);border-color:#3187a1}.btn + .btn{margin-top:8px}
-.hint{font-size:10px;line-height:1.5;color:#667c8c;margin:12px 3px}
 .hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}.hero h2{font-size:30px;line-height:1.05;margin:7px 0 8px;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);font-size:13px}.status{min-width:270px;border:1px solid var(--line);background:linear-gradient(145deg,#0d1b25,#0b141c);padding:15px 18px;border-radius:15px;box-shadow:var(--shadow)}.status strong{display:block;font-size:14px}.status span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}.card{background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:17px;min-height:118px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;right:-25px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,255,.1),transparent 65%)}.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#8195a5}.kpi .value{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:11px}.kpi .sub{font-size:10px;color:#6f8492;margin-top:7px}.accent-green{color:var(--green)}.accent-cyan{color:var(--cyan)}.accent-amber{color:var(--amber)}.accent-red{color:var(--red)}.accent-purple{color:var(--purple)}
 .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:1fr 1fr}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}.badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}.chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
@@ -55,27 +53,35 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 
 <div class="layout">
 <aside>
-  <div class="section-title">Analysis Scope</div>
-  <div class="control"><label>Production Line / Cell</label><select id="unit"><option>Blistering Machine 01</option><option>Tablet Press 03</option><option>Liquid Filling 04</option></select></div>
-  <div class="control"><label>Analysis Date</label><input id="analysisDate" type="date"></div>
+  <div class="section-title">Hierarchy Navigation</div>
+  <div class="control"><label>Group</label><select id="groupSelect"><option>Loading...</option></select></div>
+  <div class="control"><label>Factory</label><select id="factorySelect"><option>Loading...</option></select></div>
+  <div class="control"><label>Area</label><select id="areaSelect"><option>Loading...</option></select></div>
+  <div class="control"><label>Machine</label><select id="machineSelect"><option>Loading...</option></select></div>
+  
+  <div class="section-title">Shift Window</div>
+  <div class="control"><label>Shift Start Date</label><input id="analysisDate" type="date"></div>
+  <div class="control"><label>Shift Start Hour</label><input id="shiftStartHour" type="number" min="0" max="23" value="8"></div>
+  <div class="control"><label>Shift Duration (Hours)</label><input id="workingHours" type="number" min="0.1" max="24" step="0.25" value="24"></div>
+
   <div class="section-title">OEE Parameters</div>
-  <div class="control"><label>Available Working Hours</label><input id="workingHours" type="number" min="0.1" max="24" step="0.25" value="8"></div>
-  <div class="control"><label>Nominal Speed — parts / minute</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="10"></div>
+  <div class="control"><label>Nominal Speed — parts / min</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="120"></div>
   <div class="control"><label>Downtime Cost — EGP / hour</label><input id="downtimeCost" type="number" min="0" step="1000" value="15000"></div>
+  
   <button class="btn primary" id="applyBtn">Apply Parameters</button>
   <button class="btn" id="refreshBtn">↻ Refresh Telemetry</button>
 </aside>
 
 <main>
 <section class="hero">
-  <div><div class="eyebrow">Executive production intelligence</div><h2>Factory Operations Command Center</h2><p id="scopeText">Blistering Machine 01 • Today</p></div>
+  <div><div class="eyebrow">Executive production intelligence</div><h2>Factory Operations Command Center</h2><p id="scopeText">Select Hierarchy</p></div>
   <div class="status"><strong id="machineStatus">● Waiting for telemetry</strong><span id="statusDetail">Reading machine state from Realtime Database</span></div>
 </section>
 
 <section class="kpis">
   <div class="card kpi"><div class="label">Total output</div><div class="value accent-cyan" id="totalOutput">—</div><div class="sub">cycle pulses captured</div></div>
-  <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">accepted product pulses</div></div>
-  <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">derived total − good</div></div>
+  <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">derived (Total − Rejects)</div></div>
+  <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">reject sensor pulses</div></div>
   <div class="card kpi"><div class="label">Run time</div><div class="value" id="runTime">—</div><div class="sub" id="availabilitySub">availability —</div></div>
   <div class="card kpi"><div class="label">Downtime loss</div><div class="value accent-amber" id="lossValue">—</div><div class="sub" id="lossSub">—</div></div>
 </section>
@@ -91,7 +97,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           <div class="pillar"><label>Performance</label><div class="bar"><i id="perfBar" style="width:0;background:var(--purple)"></i></div><b id="perfValue">—</b></div>
           <div class="pillar"><label>Quality</label><div class="bar"><i id="qualBar" style="width:0;background:var(--green)"></i></div><b id="qualValue">—</b></div>
         </div>
-        <div class="formula">Availability = Run Time ÷ Available Working Time<br>Performance = Actual Output ÷ (Nominal Speed × Run Time)<br>Quality = Good Output ÷ Total Output</div>
+        <div class="formula">Availability = Run Time ÷ Planned Shift Time<br>Performance = Actual Output ÷ (Nominal Speed × Run Time)<br>Quality = (Total Output − Rejects) ÷ Total Output</div>
       </div>
     </div>
   </div>
@@ -113,7 +119,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     </div>
   </div>
   <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned production time is being consumed</div></div></div>
+    <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned shift time is being consumed</div></div></div>
     <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
     <div class="losses" style="margin-top:10px">
       <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
@@ -123,14 +129,14 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 </section>
 
 <section class="card panel" style="margin-bottom:14px">
-  <div class="panel-head"><div><div class="panel-title">Machine State Chronology</div><div class="panel-desc">Actual ON/OFF intervals reconstructed from status transitions</div></div><span class="badge">/status_logs</span></div>
-  <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">00:00</span><span id="dayEnd">24:00</span></div></div>
+  <div class="panel-head"><div><div class="panel-title">Machine State Chronology</div><div class="panel-desc">High-precision ON/OFF intervals reconstructed from status transitions</div></div><span class="badge">Millisecond Auditing</span></div>
+  <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">Shift Start</span><span id="dayEnd">Shift End</span></div></div>
   <div class="legend"><span class="on">Machine On</span><span class="off">Machine Off</span></div>
 </section>
 
 <section class="grid equal">
   <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by hour</div></div></div>
+    <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by shift hour</div></div></div>
     <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
   </div>
   <div class="card panel">
@@ -139,173 +145,311 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </section>
 
-<div class="footer"><span>Companorama • Realtime Telemetry • OEE calculation engine</span><span id="footerTime">—</span></div>
+<div class="footer"><span>Companorama • Multi-Site Telemetry Engine</span><span id="footerTime">—</span></div>
 </main>
 </div>
 <div class="toast" id="toast"></div>
 </div>
 
 <script>
-const FIREBASE_URL="https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app";
-let events=[], statuses=[], charts={};
-let params={hours:8,speed:10,cost:15000};
+const FIREBASE_URL = "https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app";
+let events = [], statuses = [], charts = {};
+let params = { hours: 24, speed: 120, cost: 15000, startHour: 8 };
+let dbTree = {};
 
-const $=id=>document.getElementById(id);
-const fmt=(n,d=0)=>Number(n||0).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
-const pct=n=>`${fmt(n,1)}%`;
-const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
-$("analysisDate").value=todayISO();
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 0) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
+const pct = n => `${fmt(n, 1)}%`;
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` };
+$("analysisDate").value = todayISO();
 
-function toast(msg){$("toast").textContent=msg;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2600)}
-function parseDate(v){const d=new Date(v);return isNaN(d)?null:d}
-function localDay(dateStr){
-  const [y,m,d]=dateStr.split("-").map(Number);
-  const start=new Date(y,m-1,d,0,0,0,0), end=new Date(y,m-1,d+1,0,0,0,0);
-  return {start,end};
+function toast(msg) { $("toast").textContent = msg; $("toast").style.display = "block"; setTimeout(() => $("toast").style.display = "none", 2600); }
+function parseDate(v) { const d = new Date(v); return isNaN(d) ? null : d; }
+
+function getShiftWindow() {
+  const [y, m, d] = $("analysisDate").value.split("-").map(Number);
+  const startHour = Number($("shiftStartHour").value) || 0;
+  const durationHours = Number($("workingHours").value) || 24;
+  
+  const start = new Date(y, m - 1, d, startHour, 0, 0, 0);
+  const end = new Date(start.getTime() + durationHours * 3600000);
+  return { start, end };
 }
-async function getJSON(path){
-  const r=await fetch(`${FIREBASE_URL}/${path}.json`,{cache:"no-store"});
-  if(!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+
+async function fetchRaw(path) {
+  const r = await fetch(`${FIREBASE_URL}/${path}.json`, { cache: "no-store" });
+  if (!r.ok) return null;
   return await r.json();
 }
-function normalize(obj){
-  if(!obj)return[];
-  return Object.values(obj).map(x=>({...x,timestamp:parseDate(x.timestamp)})).filter(x=>x.timestamp);
+
+async function discoverHierarchy() {
+  try {
+    dbTree = await fetchRaw("");
+    populateGroups();
+  } catch(e) {
+    console.error("Hierarchy discovery failed", e);
+  }
 }
-async function loadTelemetry(){
-  try{
-    const [e,s]=await Promise.all([getJSON("events"),getJSON("status_logs")]);
-    events=normalize(e);statuses=normalize(s);
-    $("liveDot").classList.remove("off");$("connectionText").textContent="Telemetry connected";
-    $("lastRefresh").textContent="Updated "+new Date().toLocaleTimeString();
+
+function populateGroups() {
+  const gSel = $("groupSelect"); gSel.innerHTML = "";
+  if (!dbTree) return;
+  Object.keys(dbTree).filter(k => !k.startsWith(".")).forEach(g => {
+    gSel.add(new Option(g, g));
+  });
+  populateFactories();
+}
+
+function populateFactories() {
+  const g = $("groupSelect").value;
+  const fSel = $("factorySelect"); fSel.innerHTML = "";
+  if (dbTree[g]) {
+    Object.keys(dbTree[g]).forEach(f => fSel.add(new Option(f, f)));
+  }
+  populateAreas();
+}
+
+function populateAreas() {
+  const g = $("groupSelect").value, f = $("factorySelect").value;
+  const aSel = $("areaSelect"); aSel.innerHTML = "";
+  if (dbTree[g] && dbTree[g][f]) {
+    Object.keys(dbTree[g][f]).forEach(a => aSel.add(new Option(a, a)));
+  }
+  populateMachines();
+}
+
+function populateMachines() {
+  const g = $("groupSelect").value, f = $("factorySelect").value, a = $("areaSelect").value;
+  const mSel = $("machineSelect"); mSel.innerHTML = "";
+  if (dbTree[g] && dbTree[g][f] && dbTree[g][f][a]) {
+    Object.keys(dbTree[g][f][a]).forEach(m => mSel.add(new Option(m, m)));
+  }
+  loadTelemetry();
+}
+
+$("groupSelect").onchange = populateFactories;
+$("factorySelect").onchange = populateAreas;
+$("areaSelect").onchange = populateMachines;
+$("machineSelect").onchange = loadTelemetry;
+
+async function loadTelemetry() {
+  const g = $("groupSelect").value, f = $("factorySelect").value, a = $("areaSelect").value, m = $("machineSelect").value;
+  if (!g || !f || !a || !m) return;
+
+  const { start, end } = getShiftWindow();
+  
+  // Calculate distinct calendar dates covered by shift window
+  const dateKeys = [];
+  let cur = new Date(start.getTime());
+  while (cur < end) {
+    const dStr = `${cur.getUTCFullYear()}-${String(cur.getUTCMonth()+1).padStart(2,"0")}-${String(cur.getUTCDate()).padStart(2,"0")}`;
+    if (!dateKeys.includes(dStr)) dateKeys.push(dStr);
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  try {
+    let rawEvents = [], rawStatuses = [];
+    for (const dKey of dateKeys) {
+      const eData = await fetchRaw(`${g}/${f}/${a}/${m}/events/${dKey}`);
+      const sData = await fetchRaw(`${g}/${f}/${a}/${m}/status_logs/${dKey}`);
+      if (eData) rawEvents.push(...Object.values(eData));
+      if (sData) rawStatuses.push(...Object.values(sData));
+    }
+
+    events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp && x.timestamp >= start && x.timestamp < end);
+    statuses = rawStatuses.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
+
+    $("liveDot").classList.remove("off");
+    $("connectionText").textContent = "Telemetry connected";
+    $("lastRefresh").textContent = "Updated " + new Date().toLocaleTimeString();
     render();
-  }catch(err){
-    $("liveDot").classList.add("off");$("connectionText").textContent="Telemetry unavailable";
-    toast("Unable to read Firebase telemetry");
+  } catch(err) {
+    $("liveDot").classList.add("off");
+    $("connectionText").textContent = "Telemetry unavailable";
     console.error(err);
   }
 }
-function selectedData(){
-  const {start,end}=localDay($("analysisDate").value);
-  const ev=events.filter(x=>x.timestamp>=start&&x.timestamp<end);
-  const st=statuses.filter(x=>x.timestamp<end && x.timestamp>=new Date(start.getTime()-48*3600000));
-  return {start,end,ev,st};
-}
-function intervalsForDay(st,start,end){
-  if(!st.length)return[];
-  const all=st.slice().sort((a,b)=>a.timestamp-b.timestamp);
-  let state="Machine Off";
-  for(const x of all){if(x.timestamp<=start)state=x.val;else break}
-  const points=[{timestamp:start,val:state},...all.filter(x=>x.timestamp>start&&x.timestamp<end)];
-  const out=[];
-  for(let i=0;i<points.length;i++){
-    const a=points[i].timestamp,b=i+1<points.length?points[i+1].timestamp:end;
-    if(b>a)out.push({start:a,end:b,val:points[i].val});
+
+function intervalsForShift(st, start, end) {
+  if (!st.length) return [];
+  const sorted = st.slice().sort((a,b) => a.timestamp - b.timestamp);
+  let state = "Machine Off";
+  for (const x of sorted) {
+    if (x.timestamp <= start) state = x.val;
+    else break;
+  }
+  const points = [{ timestamp: start, val: state }, ...sorted.filter(x => x.timestamp > start && x.timestamp < end)];
+  const out = [];
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i].timestamp, b = i + 1 < points.length ? points[i+1].timestamp : end;
+    if (b > a) out.push({ start: a, end: b, val: points[i].val });
   }
   return out;
 }
-function destroy(name){if(charts[name]){charts[name].destroy();charts[name]=null}}
-const commonOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8ca1af",boxWidth:10,font:{size:10}}},tooltip:{backgroundColor:"#0b151e",borderColor:"#29404f",borderWidth:1,titleColor:"#fff",bodyColor:"#b8c8d2"}},scales:{x:{grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493",font:{size:9}}},y:{grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493",font:{size:9}}}}};
-function chartLine(id,labels,datasets){
-  destroy(id);charts[id]=new Chart($(id),{type:"line",data:{labels,datasets},options:{...commonOpts,elements:{line:{tension:.35,borderWidth:2},point:{radius:2,hoverRadius:5}}}});
-}
-function render(){
-  const {start,end,ev,st}=selectedData();
-  const total=ev.filter(x=>x.type==="cycles count").length;
-  const good=ev.filter(x=>x.type==="good products cycle count").length;
-  const reject=Math.max(0,total-good);
-  const intervals=intervalsForDay(st,start,end);
-  let runSec=0;
-  intervals.forEach(x=>{if(x.val==="Machine On")runSec+=(x.end-x.start)/1000});
-  const availableSec=Math.max(0,params.hours*3600);
-  const runHours=runSec/3600;
-  const availability=availableSec?Math.min(100,runSec/availableSec*100):0;
-  const nominalOutput=runHours*60*params.speed;
-  const performance=nominalOutput?Math.min(100,total/nominalOutput*100):0;
-  const quality=total?Math.min(100,good/total*100):100;
-  const oee=availability*performance*quality/10000;
-  const downtimeHours=Math.max(0,params.hours-runHours);
-  const loss=downtimeHours*params.cost;
-  const actualRate=runHours?total/(runHours*60):0;
-  const dayLabel=$("analysisDate").value===todayISO()?"Today":$("analysisDate").value;
 
-  $("scopeText").textContent=`${$("unit").value} • ${dayLabel}`;
-  $("totalOutput").textContent=fmt(total);
-  $("goodOutput").textContent=fmt(good);
-  $("rejectOutput").textContent=fmt(reject);
-  $("runTime").textContent=fmt(runHours,2)+" h";
-  $("availabilitySub").textContent=`availability ${pct(availability)}`;
-  $("lossValue").textContent=fmt(loss)+" EGP";
-  $("lossSub").textContent=`${fmt(downtimeHours,2)} h unrun`;
-  $("oeeValue").textContent=pct(oee);
-  $("oeeRing").style.setProperty("--oeeDeg",`${oee*3.6}deg`);
-  $("avValue").textContent=pct(availability);$("perfValue").textContent=pct(performance);$("qualValue").textContent=pct(quality);
-  $("avBar").style.width=Math.min(100,availability)+"%";$("perfBar").style.width=Math.min(100,performance)+"%";$("qualBar").style.width=Math.min(100,quality)+"%";
-  $("nominalCapacity").textContent=fmt(nominalOutput);
-  $("actualRate").textContent=fmt(actualRate,1);
-  $("speedGap").textContent=fmt(Math.max(0,params.speed-actualRate),1)+" /min";
-  $("plannedTime").textContent=fmt(params.hours,2)+" h";
-  $("idleTime").textContent=fmt(downtimeHours,2)+" h";
-  $("speedBadge").textContent=fmt(actualRate,1)+" parts/min avg";
-  const latest=st.slice().sort((a,b)=>a.timestamp-b.timestamp).at(-1);
-  const current=latest?.val||"Machine Off";
-  const isOn=current==="Machine On";
-  $("machineStatus").textContent=(isOn?"● LINE ACTIVE & RUNNING":"● LINE STOPPED");
-  $("machineStatus").style.color=isOn?"var(--green)":"var(--red)";
-  $("statusDetail").textContent=isOn?`Current run time ${fmt(runHours,2)} h • nominal ${fmt(params.speed,1)} parts/min`:`Downtime ${fmt(downtimeHours,2)} h • estimated loss ${fmt(loss)} EGP`;
+function destroy(name) { if (charts[name]) { charts[name].destroy(); charts[name] = null; } }
+const commonOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#8ca1af", boxWidth: 10, font: { size: 10 } } } }, scales: { x: { grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } }, y: { grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } } } };
 
-  renderVelocity(ev,start,end);
-  renderCapacity(total,nominalOutput,actualRate,params.speed);
-  renderLoss(availableSec/3600,runHours,downtimeHours);
-  renderTimeline(intervals,start,end);
-  renderHourly(ev);
-  renderQuality(good,reject);
-  $("footerTime").textContent="Calculated "+new Date().toLocaleString();
+function render() {
+  const { start, end } = getShiftWindow();
+  const total = events.filter(x => x.type === "cycles count").length;
+  const reject = events.filter(x => x.type === "rejected products cycle count").length;
+  const good = Math.max(0, total - reject);
+
+  const intervals = intervalsForShift(statuses, start, end);
+  let runSec = 0;
+  intervals.forEach(x => { if (x.val === "Machine On") runSec += (x.end - x.start) / 1000; });
+
+  const shiftHours = Number($("workingHours").value) || 24;
+  const availableSec = shiftHours * 3600;
+  const runHours = runSec / 3600;
+  const availability = availableSec ? Math.min(100, (runSec / availableSec) * 100) : 0;
+  
+  params.speed = Number($("nominalSpeed").value) || 120;
+  params.cost = Number($("downtimeCost").value) || 15000;
+
+  const nominalOutput = runHours * 60 * params.speed;
+  const performance = nominalOutput ? Math.min(100, (total / nominalOutput) * 100) : 0;
+  const quality = total ? Math.min(100, (good / total) * 100) : 100;
+  const oee = (availability * performance * quality) / 10000;
+
+  const downtimeHours = Math.max(0, shiftHours - runHours);
+  const loss = downtimeHours * params.cost;
+  const actualRate = runHours ? total / (runHours * 60) : 0;
+
+  $("scopeText").textContent = `${$("machineSelect").value} • Shift Start: ${start.toLocaleString()}`;
+  $("totalOutput").textContent = fmt(total);
+  $("goodOutput").textContent = fmt(good);
+  $("rejectOutput").textContent = fmt(reject);
+  $("runTime").textContent = fmt(runHours, 2) + " h";
+  $("availabilitySub").textContent = `availability ${pct(availability)}`;
+  $("lossValue").textContent = fmt(loss) + " EGP";
+  $("lossSub").textContent = `${fmt(downtimeHours, 2)} h unrun`;
+  $("oeeValue").textContent = pct(oee);
+  $("oeeRing").style.setProperty("--oeeDeg", `${oee * 3.6}deg`);
+  
+  $("avValue").textContent = pct(availability); $("perfValue").textContent = pct(performance); $("qualValue").textContent = pct(quality);
+  $("avBar").style.width = Math.min(100, availability) + "%"; $("perfBar").style.width = Math.min(100, performance) + "\%"; $("qualBar").style.width = Math.min(100, quality) + "%";
+  
+  $("nominalCapacity").textContent = fmt(nominalOutput);
+  $("actualRate").textContent = fmt(actualRate, 1);
+  $("speedGap").textContent = fmt(Math.max(0, params.speed - actualRate), 1) + " /min";
+  $("plannedTime").textContent = fmt(shiftHours, 2) + " h";
+  $("idleTime").textContent = fmt(downtimeHours, 2) + " h";
+  $("speedBadge").textContent = fmt(actualRate, 1) + " parts/min avg";
+
+  const latest = statuses.slice().sort((a,b) => a.timestamp - b.timestamp).at(-1);
+  const isOn = (latest?.val || "Machine Off") === "Machine On";
+  $("machineStatus").textContent = isOn ? "● LINE ACTIVE & RUNNING" : "● LINE STOPPED";
+  $("machineStatus").style.color = isOn ? "var(--green)" : "var(--red)";
+  $("statusDetail").textContent = isOn ? `Current run time ${fmt(runHours, 2)} h` : `Downtime ${fmt(downtimeHours, 2)} h • Loss ${fmt(loss)} EGP`;
+
+  renderVelocity(events, start, end);
+  renderCapacity(total, nominalOutput, actualRate, params.speed);
+  renderLoss(shiftHours, runHours, downtimeHours);
+  renderTimeline(intervals, start, end);
+  renderHourly(events, start, shiftHours);
+  renderQuality(good, reject);
+  $("footerTime").textContent = "Calculated " + new Date().toLocaleString();
 }
-function renderVelocity(ev,start,end){
-  const map={};ev.filter(x=>x.type==="cycles count").forEach(x=>{const k=x.timestamp.getHours()+":"+String(x.timestamp.getMinutes()).padStart(2,"0");map[k]=(map[k]||0)+1});
-  const labels=[],vals=[];
-  const cursor=new Date(start);
-  while(cursor<end){const k=cursor.getHours()+":"+String(cursor.getMinutes()).padStart(2,"0");labels.push(k);vals.push(map[k]||0);cursor.setMinutes(cursor.getMinutes()+1)}
-  chartLine("velocityChart",labels,[{label:"Parts / min",data:vals,borderColor:"#35d4ff",backgroundColor:"rgba(53,212,255,.12)",fill:true}]);
+
+function renderVelocity(ev, start, end) {
+  const map = {};
+  ev.filter(x => x.type === "cycles count").forEach(x => {
+    const k = x.timestamp.getHours() + ":" + String(x.timestamp.getMinutes()).padStart(2, "0");
+    map[k] = (map[k] || 0) + 1;
+  });
+  const labels = [], vals = [];
+  let cursor = new Date(start.getTime());
+  while (cursor < end) {
+    const k = cursor.getHours() + ":" + String(cursor.getMinutes()).padStart(2, "0");
+    labels.push(k); vals.push(map[k] || 0);
+    cursor.setMinutes(cursor.getMinutes() + 1);
+  }
+  destroy("velocityChart");
+  charts.velocityChart = new Chart($("velocityChart"), {
+    type: "line",
+    data: { labels, datasets: [{ label: "Parts / min", data: vals, borderColor: "#35d4ff", backgroundColor: "rgba(53,212,255,.12)", fill: true }] },
+    options: { ...commonOpts, elements: { line: { tension: 0.35, borderWidth: 2 }, point: { radius: 1 } } }
+  });
 }
-function renderCapacity(total,nominal,actual,speed){
-  destroy("capacityChart");charts.capacityChart=new Chart($("capacityChart"),{type:"bar",data:{labels:["Output / day","Rate / min"],datasets:[
-    {label:"Actual",data:[total,actual],backgroundColor:["#35d4ff","#9b7cff"],borderRadius:7},
-    {label:"Nominal",data:[nominal,speed],backgroundColor:["rgba(129,147,162,.25)","rgba(129,147,162,.25)"],borderRadius:7}
-  ]},options:{...commonOpts,scales:{x:{grid:{display:false},ticks:{color:"#8ca1af"}},y:{beginAtZero:true,grid:{color:"rgba(35,52,65,.35)"},ticks:{color:"#708493"}}}}});
+
+function renderCapacity(total, nominal, actual, speed) {
+  destroy("capacityChart");
+  charts.capacityChart = new Chart($("capacityChart"), {
+    type: "bar",
+    data: { labels: ["Output / shift", "Rate / min"], datasets: [
+      { label: "Actual", data: [total, actual], backgroundColor: ["#35d4ff", "#9b7cff"], borderRadius: 7 },
+      { label: "Nominal", data: [nominal, speed], backgroundColor: ["rgba(129,147,162,.25)", "rgba(129,147,162,.25)"], borderRadius: 7 }
+    ]},
+    options: { ...commonOpts, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
+  });
 }
-function renderLoss(available,run,downtime){
-  destroy("lossChart");charts.lossChart=new Chart($("lossChart"),{type:"doughnut",data:{labels:["Run time","Unrun time"],datasets:[{data:[run,Math.max(0,downtime)],backgroundColor:["#38e08f","#ff5d6c"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"70%",plugins:{legend:{position:"bottom",labels:{color:"#8ca1af",font:{size:10},boxWidth:10}}}}});
+
+function renderLoss(available, run, downtime) {
+  destroy("lossChart");
+  charts.lossChart = new Chart($("lossChart"), {
+    type: "doughnut",
+    data: { labels: ["Run time", "Unrun time"], datasets: [{ data: [run, Math.max(0, downtime)], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } } } }
+  });
 }
-function renderTimeline(intervals,start,end){
-  const track=$("timelineTrack");track.innerHTML="";
-  const total=end-start;
-  intervals.forEach(x=>{const s=Math.max(0,(x.start-start)/total*100),w=Math.max(.15,(x.end-x.start)/total*100);const d=document.createElement("div");d.className="seg "+(x.val==="Machine On"?"on":"off");d.style.left=s+"%";d.style.width=w+"%";d.title=`${x.val}: ${x.start.toLocaleTimeString()} – ${x.end.toLocaleTimeString()}`;track.appendChild(d)});
+
+function renderTimeline(intervals, start, end) {
+  const track = $("timelineTrack"); track.innerHTML = "";
+  const totalDuration = end - start;
+  intervals.forEach(x => {
+    const s = Math.max(0, ((x.start - start) / totalDuration) * 100);
+    const w = Math.max(0.15, ((x.end - x.start) / totalDuration) * 100);
+    const d = document.createElement("div");
+    d.className = "seg " + (x.val === "Machine On" ? "on" : "off");
+    d.style.left = s + "%"; d.style.width = w + "%";
+    d.title = `${x.val}: ${x.start.toLocaleTimeString()} – ${x.end.toLocaleTimeString()}`;
+    track.appendChild(d);
+  });
 }
-function renderHourly(ev){
-  const total=Array(24).fill(0),good=Array(24).fill(0);
-  ev.forEach(x=>{if(x.type==="cycles count")total[x.timestamp.getHours()]++;if(x.type==="good products cycle count")good[x.timestamp.getHours()]++});
-  const labels=total.map((_,i)=>String(i).padStart(2,"0"));
-  destroy("hourChart");charts.hourChart=new Chart($("hourChart"),{type:"bar",data:{labels,datasets:[
-    {label:"Total",data:total,backgroundColor:"#35d4ff",borderRadius:4},
-    {label:"Good",data:good,backgroundColor:"#38e08f",borderRadius:4}
-  ]},options:commonOpts});
+
+function renderHourly(ev, start, hours) {
+  const total = Array(hours).fill(0), good = Array(hours).fill(0);
+  ev.forEach(x => {
+    const hIdx = Math.floor((x.timestamp - start) / 3600000);
+    if (hIdx >= 0 && hIdx < hours) {
+      if (x.type === "cycles count") total[hIdx]++;
+      if (x.type === "rejected products cycle count") good[hIdx]--;
+    }
+  });
+  for (let i = 0; i < hours; i++) good[i] = Math.max(0, total[i] + good[i]);
+  const labels = total.map((_, i) => {
+    const h = new Date(start.getTime() + i * 3600000);
+    return String(h.getHours()).padStart(2, "0") + ":00";
+  });
+  destroy("hourChart");
+  charts.hourChart = new Chart($("hourChart"), {
+    type: "bar",
+    data: { labels, datasets: [
+      { label: "Total", data: total, backgroundColor: "#35d4ff", borderRadius: 4 },
+      { label: "Good", data: good, backgroundColor: "#38e08f", borderRadius: 4 }
+    ]},
+    options: commonOpts
+  });
 }
-function renderQuality(good,reject){
-  destroy("qualityChart");charts.qualityChart=new Chart($("qualityChart"),{type:"doughnut",data:{labels:["Good","Reject"],datasets:[{data:[good,reject],backgroundColor:["#38e08f","#ff5d6c"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{position:"bottom",labels:{color:"#8ca1af",font:{size:10},boxWidth:10}}}}});
+
+function renderQuality(good, reject) {
+  destroy("qualityChart");
+  charts.qualityChart = new Chart($("qualityChart"), {
+    type: "doughnut",
+    data: { labels: ["Good", "Reject"], datasets: [{ data: [good, reject], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "64%", plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } } } }
+  });
 }
-function apply(){
-  params.hours=Math.max(.1,Number($("workingHours").value)||8);
-  params.speed=Math.max(.01,Number($("nominalSpeed").value)||10);
-  params.cost=Math.max(0,Number($("downtimeCost").value)||0);
-  render();toast("OEE parameters applied");
-}
-$("applyBtn").onclick=apply;
-$("refreshBtn").onclick=()=>{loadTelemetry();toast("Refreshing telemetry…")};
-$("analysisDate").onchange=render;
-setInterval(loadTelemetry,5000);
-loadTelemetry();
+
+$("applyBtn").onclick = () => { loadTelemetry(); toast("Shift & OEE parameters applied"); };
+$("refreshBtn").onclick = () => { discoverHierarchy(); toast("Refreshing hierarchy & telemetry…"); };
+$("analysisDate").onchange = loadTelemetry;
+$("shiftStartHour").onchange = loadTelemetry;
+
+discoverHierarchy();
+setInterval(loadTelemetry, 15000);
 </script>
 </body>
 </html>
