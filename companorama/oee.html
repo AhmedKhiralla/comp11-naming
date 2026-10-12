@@ -23,25 +23,84 @@ button,input,select{font:inherit}
 .brand{display:flex;gap:13px;align-items:center}.brandmark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,#12384a,#102033);border:1px solid #295268;box-shadow:0 0 30px rgba(53,212,255,.1);font-size:21px}
 .brand h1{font-size:17px;letter-spacing:.08em;margin:0}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.16em;margin-top:3px}
 .live{display:flex;align-items:center;gap:9px;color:#b7c7d2;font-size:12px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}.dot.off{background:var(--red);box-shadow:0 0 12px var(--red)}
+
+/* Breadcrumbs & Navigation Header */
+.nav-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:15px}
+.breadcrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.breadcrumbs span{color:var(--cyan);cursor:pointer;transition:.2s}
+.breadcrumbs span:hover{text-decoration:underline}
+.breadcrumbs .separator{color:var(--line)}
+.breadcrumbs .current{color:var(--text);font-weight:600;cursor:default}
+
+.back-btn{background:rgba(53,212,255,0.1);border:1px solid rgba(53,212,255,0.3);color:var(--cyan);padding:8px 16px;border-radius:10px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.back-btn:hover{background:rgba(53,212,255,0.2)}
+
+/* Drill Down Grid & Card Flip Animation */
+.drill-container{perspective:1400px;width:100%}
+.drill-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:18px;transform-style:preserve-3d;transition:transform 0.5s ease, opacity 0.5s ease}
+.drill-grid.flipping{transform:rotateY(90deg) scale(0.96);opacity:0}
+
+.drill-card{background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);cursor:pointer;transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;position:relative;overflow:hidden}
+.drill-card:hover{transform:translateY(-5px);border-color:var(--cyan);box-shadow:0 20px 50px rgba(53,212,255,.18)}
+.drill-card::after{content:"";position:absolute;right:-30px;bottom:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,255,.08),transparent 70%)}
+.drill-card h3{margin:0 0 6px;font-size:18px;letter-spacing:-.02em}
+.drill-card .sub-info{font-size:11px;color:var(--muted);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+
+/* Metrics Summary Inside Cards */
+.card-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;background:rgba(7,16,24,.5);padding:12px;border-radius:12px;border:1px solid #1a2b38}
+.card-metric-item .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.card-metric-item .val{font-size:15px;font-weight:750;margin-top:2px}
+
+.card-bars{display:grid;gap:8px}
+.card-bar-row{display:grid;grid-template-columns:85px 1fr 42px;gap:8px;align-items:center;font-size:11px;color:#9bb0bd}
+.card-bar-track{height:6px;background:#172731;border-radius:999px;overflow:hidden}
+.card-bar-track i{display:block;height:100%;border-radius:inherit}
+.card-bar-row b{font-size:11px;text-align:right}
+
+/* Dashboard View Layout */
 .layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 74px)}
 aside{border-right:1px solid var(--line);padding:22px 18px;background:rgba(8,17,25,.7)}
 main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .section-title{font-size:10px;color:#718596;letter-spacing:.16em;text-transform:uppercase;margin:9px 8px 12px}
 .control{margin-bottom:13px}.control label{display:block;font-size:11px;color:#91a4b2;margin:0 0 7px 3px}.control input,.control select{width:100%;border:1px solid #263b4a;background:#0b151e;color:var(--text);padding:11px 12px;border-radius:10px;outline:none}.control input:focus,.control select:focus{border-color:#397e99;box-shadow:0 0 0 3px rgba(53,212,255,.08)}
 .btn{width:100%;border:1px solid #294353;background:#112331;color:#dcebf2;border-radius:10px;padding:11px 12px;cursor:pointer;transition:.2s}.btn:hover{border-color:#4d7890;background:#142c3c}.btn.primary{background:linear-gradient(135deg,#0c718c,#145477);border-color:#3187a1}.btn + .btn{margin-top:8px}
-.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}.hero h2{font-size:30px;line-height:1.05;margin:7px 0 8px;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);font-size:13px}.status{min-width:270px;border:1px solid var(--line);background:linear-gradient(145deg,#0d1b25,#0b141c);padding:15px 18px;border-radius:15px;box-shadow:var(--shadow)}.status strong{display:block;font-size:14px}.status span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}.card{background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.kpi{padding:17px;min-height:118px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;right:-25px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,255,.1),transparent 65%)}.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#8195a5}.kpi .value{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:11px}.kpi .sub{font-size:10px;color:#6f8492;margin-top:7px}.accent-green{color:var(--green)}.accent-cyan{color:var(--cyan)}.accent-amber{color:var(--amber)}.accent-red{color:var(--red)}.accent-purple{color:var(--purple)}
-.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:1fr 1fr}.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}.badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}.chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
-.oee-layout{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:center}.oee-ring{width:220px;height:220px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0deg, var(--green) var(--oeeDeg), #1a2b35 var(--oeeDeg), #1a2b35 360deg);position:relative;margin:auto}.oee-ring:before{content:"";position:absolute;width:174px;height:174px;border-radius:50%;background:#0b151e;border:1px solid #243744}.oee-center{position:relative;text-align:center}.oee-center .num{font-size:48px;font-weight:850;letter-spacing:-.06em}.oee-center .unit{font-size:11px;color:#7e94a2;letter-spacing:.15em}.pillars{display:grid;gap:14px}.pillar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}.pillar label{font-size:11px;color:#9bb0bd}.bar{height:8px;background:#172731;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit}.pillar b{font-size:12px;text-align:right}.formula{margin-top:16px;padding:10px 12px;border-radius:10px;background:#0a141d;border:1px solid #1d303d;color:#8096a4;font-size:10px;line-height:1.5}
+
+.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}.hero h2{font-size:30px;line-height:1.05;margin:7px 0 8px;letter-spacing:-.03em}.hero p{margin:0;color:var(--muted);font-size:13px}
+.status{min-width:270px;border:1px solid var(--line);background:linear-gradient(145deg,#0d1b25,#0b141c);padding:15px 18px;border-radius:15px;box-shadow:var(--shadow)}.status strong{display:block;font-size:14px}.status span{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.card{background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.kpi{padding:17px;min-height:118px;position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;right:-25px;bottom:-35px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(53,212,255,.1),transparent 65%)}
+.kpi .label{font-size:10px;text-transform:uppercase;letter-spacing:.13em;color:#8195a5}
+.kpi .value{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:11px}
+.kpi .sub{font-size:10px;color:#6f8492;margin-top:7px}
+.accent-green{color:var(--green)}.accent-cyan{color:var(--cyan)}.accent-amber{color:var(--amber)}.accent-red{color:var(--red)}.accent-purple{color:var(--purple)}
+
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:1fr 1fr}
+.panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}
+.badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}
+.chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
+
+.oee-layout{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:center}
+.oee-ring{width:220px;height:220px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0deg, var(--green) var(--oeeDeg), #1a2b35 var(--oeeDeg), #1a2b35 360deg);position:relative;margin:auto}
+.oee-ring:before{content:"";position:absolute;width:174px;height:174px;border-radius:50%;background:#0b151e;border:1px solid #243744}
+.oee-center{position:relative;text-align:center}.oee-center .num{font-size:48px;font-weight:850;letter-spacing:-.06em}.oee-center .unit{font-size:11px;color:#7e94a2;letter-spacing:.15em}
+.pillars{display:grid;gap:14px}.pillar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}.pillar label{font-size:11px;color:#9bb0bd}.bar{height:8px;background:#172731;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit}.pillar b{font-size:12px;text-align:right}
+.formula{margin-top:16px;padding:10px 12px;border-radius:10px;background:#0a141d;border:1px solid #1d303d;color:#8096a4;font-size:10px;line-height:1.5}
+
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.mini{padding:13px;background:#0a151e;border:1px solid #1c303d;border-radius:12px}.mini .v{font-size:19px;font-weight:800}.mini .l{font-size:9px;text-transform:uppercase;color:#6f8492;letter-spacing:.1em;margin-top:5px}
 .losses{display:grid;grid-template-columns:1fr 1fr;gap:10px}.loss{padding:14px;border:1px solid #243542;background:#0a151e;border-radius:12px}.loss .num{font-size:20px;font-weight:800}.loss .label{font-size:9px;color:#718695;text-transform:uppercase;letter-spacing:.1em;margin-top:5px}
+
 .timeline{position:relative;height:92px;background:#09131b;border:1px solid #1c303c;border-radius:12px;overflow:hidden}.timeline-track{position:absolute;left:10px;right:10px;top:30px;height:30px;border-radius:7px;background:#14232d;overflow:hidden}.seg{position:absolute;height:100%;top:0}.seg.on{background:linear-gradient(90deg,#159b62,#38e08f)}.seg.off{background:linear-gradient(90deg,#7b2634,#ff5d6c)}.timeline-label{position:absolute;left:10px;right:10px;bottom:9px;display:flex;justify-content:space-between;color:#607685;font-size:9px}
 .legend{display:flex;gap:14px;margin-top:10px;font-size:9px;color:#78909e}.legend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}.legend .on:before{background:var(--green)}.legend .off:before{background:var(--red)}
+
 .footer{padding:18px 0 4px;color:#536a79;font-size:9px;display:flex;justify-content:space-between}
 .toast{position:fixed;right:22px;bottom:22px;background:#10212c;border:1px solid #2b5368;color:#d9edf5;padding:12px 15px;border-radius:11px;box-shadow:var(--shadow);display:none;font-size:11px;z-index:50}
+.loading-indicator{font-size:12px;color:var(--cyan);margin-left:10px;display:none}
+
 @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid,.grid.equal{grid-template-columns:1fr}.oee-layout{grid-template-columns:220px 1fr}}
-@media(max-width:850px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}main{padding:17px}.kpis{grid-template-columns:1fr 1fr}.hero{align-items:stretch;flex-direction:column}.status{min-width:0}.oee-layout{grid-template-columns:1fr}.topbar{padding:0 16px}}
-@media(max-width:520px){.kpis{grid-template-columns:1fr}.stat-grid,.losses{grid-template-columns:1fr}.topbar{height:64px}.brand small{display:none}}
+@media(max-width:850px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
 </style>
 </head>
 <body>
@@ -51,126 +110,234 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   <div class="live"><span id="liveDot" class="dot"></span><span id="connectionText">Connecting to telemetry…</span><span>•</span><span id="lastRefresh">—</span></div>
 </header>
 
-<div class="layout">
-<aside>
-  <div class="section-title">Hierarchy Navigation</div>
-  <div class="control"><label>Group</label><select id="groupSelect"><option>Loading...</option></select></div>
-  <div class="control"><label>Factory</label><select id="factorySelect"><option>Loading...</option></select></div>
-  <div class="control"><label>Area</label><select id="areaSelect"><option>Loading...</option></select></div>
-  <div class="control"><label>Machine</label><select id="machineSelect"><option>Loading...</option></select></div>
-  
-  <div class="section-title">Shift Window</div>
-  <div class="control"><label>Shift Start Date</label><input id="analysisDate" type="date"></div>
-  <div class="control"><label>Shift Start Hour</label><input id="shiftStartHour" type="number" min="0" max="23" value="8"></div>
-  <div class="control"><label>Shift Duration (Hours)</label><input id="workingHours" type="number" min="0.1" max="24" step="0.25" value="24"></div>
-
-  <div class="section-title">OEE Parameters</div>
-  <div class="control"><label>Nominal Speed — parts / min</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="120"></div>
-  <div class="control"><label>Downtime Cost — EGP / hour</label><input id="downtimeCost" type="number" min="0" step="1000" value="15000"></div>
-  
-  <button class="btn primary" id="applyBtn">Apply Parameters</button>
-  <button class="btn" id="refreshBtn">↻ Refresh Telemetry</button>
-</aside>
-
-<main>
-<section class="hero">
-  <div><div class="eyebrow">Executive production intelligence</div><h2>Factory Operations Command Center</h2><p id="scopeText">Select Hierarchy</p></div>
-  <div class="status"><strong id="machineStatus">● Waiting for telemetry</strong><span id="statusDetail">Reading machine state from Realtime Database</span></div>
-</section>
-
-<section class="kpis">
-  <div class="card kpi"><div class="label">Total output</div><div class="value accent-cyan" id="totalOutput">—</div><div class="sub">cycle pulses captured</div></div>
-  <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">derived (Total − Rejects)</div></div>
-  <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">reject sensor pulses</div></div>
-  <div class="card kpi"><div class="label">Run time</div><div class="value" id="runTime">—</div><div class="sub" id="availabilitySub">availability —</div></div>
-  <div class="card kpi"><div class="label">Downtime loss</div><div class="value accent-amber" id="lossValue">—</div><div class="sub" id="lossSub">—</div></div>
-</section>
-
-<section class="grid">
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">OEE Performance Profile</div><div class="panel-desc">Availability × Performance × Quality</div></div><span class="badge">LIVE CALCULATION</span></div>
-    <div class="oee-layout">
-      <div class="oee-ring" id="oeeRing"><div class="oee-center"><div class="num" id="oeeValue">—</div><div class="unit">OEE</div></div></div>
+<div class="layout" id="mainLayout" style="display:block;">
+  <main id="drillDownMain">
+    <div class="nav-header">
       <div>
-        <div class="pillars">
-          <div class="pillar"><label>Availability</label><div class="bar"><i id="avBar" style="width:0;background:var(--cyan)"></i></div><b id="avValue">—</b></div>
-          <div class="pillar"><label>Performance</label><div class="bar"><i id="perfBar" style="width:0;background:var(--purple)"></i></div><b id="perfValue">—</b></div>
-          <div class="pillar"><label>Quality</label><div class="bar"><i id="qualBar" style="width:0;background:var(--green)"></i></div><b id="qualValue">—</b></div>
-        </div>
-        <div class="formula">Availability = Run Time ÷ Planned Shift Time<br>Performance = Actual Output ÷ (Nominal Speed × Run Time)<br>Quality = (Total Output − Rejects) ÷ Total Output</div>
+        <div class="eyebrow">Hierarchy Navigation</div>
+        <h2 id="drillTitle" style="margin:5px 0 0;font-size:26px;">Select Group</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="back-btn" id="drillBackBtn" style="display:none;">← Back</button>
       </div>
     </div>
-  </div>
 
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">Production Velocity</div><div class="panel-desc">Output pulses grouped by minute</div></div><span class="badge" id="speedBadge">— parts/min avg</span></div>
-    <div class="chart-wrap"><canvas id="velocityChart"></canvas></div>
-  </div>
-</section>
-
-<section class="grid equal">
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
-    <div class="chart-wrap short"><canvas id="capacityChart"></canvas></div>
-    <div class="stat-grid" style="margin-top:12px">
-      <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
-      <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
-      <div class="mini"><div class="v" id="speedGap">—</div><div class="l">Speed gap</div></div>
+    <div class="breadcrumbs" id="breadcrumbsTrail">
+      <span onclick="navigateToLevel('root')">Companorama</span>
     </div>
-  </div>
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned shift time is being consumed</div></div></div>
-    <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
-    <div class="losses" style="margin-top:10px">
-      <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
-      <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Unrun time</div></div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:20px 0 10px;">
+      <div style="color:var(--muted); font-size:12px;" id="drillSubtitle">Live operational metrics computed for selected date range</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="loading-indicator" id="drillLoading">Aggregating live telemetry...</span>
+      </div>
     </div>
-  </div>
-</section>
 
-<section class="card panel" style="margin-bottom:14px">
-  <div class="panel-head"><div><div class="panel-title">Machine State Chronology</div><div class="panel-desc">High-precision ON/OFF intervals reconstructed from status transitions</div></div><span class="badge">Millisecond Auditing</span></div>
-  <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">Shift Start</span><span id="dayEnd">Shift End</span></div></div>
-  <div class="legend"><span class="on">Machine On</span><span class="off">Machine Off</span></div>
-</section>
+    <div style="display:grid; grid-template-columns: 280px 1fr; gap:24px; align-items:start;">
+      <aside style="border:1px solid var(--line); border-radius:var(--radius); background:rgba(8,17,25,.7); padding:18px;">
+        <div class="section-title" style="margin-top:0;">Telemetry Time Filter</div>
+        <div class="control"><label>Filter Mode</label><select id="filterModeSelect"><option value="single">Single Day</option><option value="range">Date Range Period</option></select></div>
+        <div class="control" id="singleDateGroup"><label>Selected Date</label><input id="filterDate" type="date"></div>
+        <div class="control" id="startDateGroup" style="display:none;"><label>Start Date</label><input id="filterStartDate" type="date"></div>
+        <div class="control" id="endDateGroup" style="display:none;"><label>End Date</label><input id="filterEndDate" type="date"></div>
+        <button class="btn primary" id="applyHierarchyFilterBtn">Apply Data Filter</button>
+      </aside>
 
-<section class="grid equal">
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by shift hour</div></div></div>
-    <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
-  </div>
-  <div class="card panel">
-    <div class="panel-head"><div><div class="panel-title">Quality Mix</div><div class="panel-desc">Good versus rejected output</div></div></div>
-    <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
-  </div>
-</section>
+      <div class="drill-container">
+        <div class="drill-grid" id="drillGrid"></div>
+      </div>
+    </div>
+  </main>
 
-<div class="footer"><span>Companorama • Multi-Site Telemetry Engine</span><span id="footerTime">—</span></div>
-</main>
+  <main id="dashboardMain" style="display:none;">
+    <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+      <button class="back-btn" id="returnToDrillBtn">← Return to Hierarchy</button>
+      <div style="font-size:12px; color:var(--muted);" id="currentMachinePath">Group > Factory > Area > Machine</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 280px 1fr; gap: 26px;">
+      <aside style="border:1px solid var(--line); border-radius:var(--radius); background:rgba(8,17,25,.7);">
+        <div class="section-title" style="margin-top:0;">Shift Window</div>
+        <div class="control"><label>Shift Start Date</label><input id="analysisDate" type="date"></div>
+        <div class="control"><label>Shift Start Hour</label><input id="shiftStartHour" type="number" min="0" max="23" value="8"></div>
+        <div class="control"><label>Shift Duration (Hours)</label><input id="workingHours" type="number" min="0.1" max="24" step="0.25" value="24"></div>
+
+        <div class="section-title">OEE Parameters</div>
+        <div class="control"><label>Nominal Speed — parts / min</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="120"></div>
+        <div class="control"><label>Downtime Cost — EGP / hour</label><input id="downtimeCost" type="number" min="0" step="1000" value="15000"></div>
+        
+        <button class="btn primary" id="applyBtn">Apply Parameters</button>
+        <button class="btn" id="refreshTelemetryBtn">↻ Refresh Telemetry</button>
+      </aside>
+
+      <div>
+        <section class="hero">
+          <div><div class="eyebrow">Machine Operations Command</div><h2 id="machineHeroTitle">Machine Telemetry</h2><p id="scopeText">Active Telemetry Feed</p></div>
+          <div class="status"><strong id="machineStatus">● Waiting for telemetry</strong><span id="statusDetail">Reading machine state from Realtime Database</span></div>
+        </section>
+
+        <section class="kpis">
+          <div class="card kpi"><div class="label">Total output</div><div class="value accent-cyan" id="totalOutput">—</div><div class="sub">cycle pulses captured</div></div>
+          <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">derived (Total − Rejects)</div></div>
+          <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">reject sensor pulses</div></div>
+          <div class="card kpi"><div class="label">Run time</div><div class="value" id="runTime">—</div><div class="sub" id="availabilitySub">availability —</div></div>
+          <div class="card kpi"><div class="label">Downtime loss</div><div class="value accent-amber" id="lossValue">—</div><div class="sub" id="lossSub">—</div></div>
+        </section>
+
+        <section class="grid">
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">OEE Performance Profile</div><div class="panel-desc">Availability × Performance × Quality</div></div><span class="badge">LIVE CALCULATION</span></div>
+            <div class="oee-layout">
+              <div class="oee-ring" id="oeeRing"><div class="oee-center"><div class="num" id="oeeValue">—</div><div class="unit">OEE</div></div></div>
+              <div>
+                <div class="pillars">
+                  <div class="pillar"><label>Availability</label><div class="bar"><i id="avBar" style="width:0;background:var(--cyan)"></i></div><b id="avValue">—</b></div>
+                  <div class="pillar"><label>Performance</label><div class="bar"><i id="perfBar" style="width:0;background:var(--purple)"></i></div><b id="perfValue">—</b></div>
+                  <div class="pillar"><label>Quality</label><div class="bar"><i id="qualBar" style="width:0;background:var(--green)"></i></div><b id="qualValue">—</b></div>
+                </div>
+                <div class="formula">Availability = Run Time ÷ Planned Shift Time<br>Performance = Actual Output ÷ (Nominal Speed × Run Time)<br>Quality = (Total Output − Rejects) ÷ Total Output</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Production Velocity</div><div class="panel-desc">Output pulses grouped by minute</div></div><span class="badge" id="speedBadge">— parts/min avg</span></div>
+            <div class="chart-wrap"><canvas id="velocityChart"></canvas></div>
+          </div>
+        </section>
+
+        <section class="grid equal">
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
+            <div class="chart-wrap short"><canvas id="capacityChart"></canvas></div>
+            <div class="stat-grid" style="margin-top:12px">
+              <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
+              <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
+              <div class="mini"><div class="v" id="speedGap">—</div><div class="l">Speed gap</div></div>
+            </div>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned shift time is being consumed</div></div></div>
+            <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
+            <div class="losses" style="margin-top:10px">
+              <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
+              <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Unrun time</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">Machine State Chronology</div><div class="panel-desc">High-precision ON/OFF intervals reconstructed from status transitions</div></div><span class="badge">Millisecond Auditing</span></div>
+          <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">Shift Start</span><span id="dayEnd">Shift End</span></div></div>
+          <div class="legend"><span class="on">Machine On</span><span class="off">Machine Off</span></div>
+        </section>
+
+        <section class="grid equal">
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by shift hour</div></div></div>
+            <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Quality Mix</div><div class="panel-desc">Good versus rejected output</div></div></div>
+            <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="footer"><span>Companorama • Multi-Site Telemetry Engine</span><span id="footerTime">—</span></div>
 </div>
+</div>
+
 <div class="toast" id="toast"></div>
-</div>
 
 <script>
 const FIREBASE_URL = "https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app";
 let events = [], statuses = [], charts = {};
 let params = { hours: 24, speed: 120, cost: 15000, startHour: 8 };
 let dbTree = {};
+let telemetryCache = {}; 
+let autoRefreshTimer = null;
+
+let navState = { level: "root", group: null, factory: null, area: null, machine: null };
 
 const $ = id => document.getElementById(id);
 const fmt = (n, d = 0) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
 const pct = n => `${fmt(n, 1)}%`;
 const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` };
+
+$("filterDate").value = todayISO();
+$("filterStartDate").value = todayISO();
+$("filterEndDate").value = todayISO();
 $("analysisDate").value = todayISO();
+
+$("filterModeSelect").onchange = (e) => {
+  const isRange = e.target.value === "range";
+  $("singleDateGroup").style.display = isRange ? "none" : "block";
+  $("startDateGroup").style.display = isRange ? "block" : "none";
+  $("endDateGroup").style.display = isRange ? "block" : "none";
+};
 
 function toast(msg) { $("toast").textContent = msg; $("toast").style.display = "block"; setTimeout(() => $("toast").style.display = "none", 2600); }
 function parseDate(v) { const d = new Date(v); return isNaN(d) ? null : d; }
+
+function isTodayIncluded() {
+  const mode = $("filterModeSelect").value;
+  const currentDay = todayISO();
+  if (mode === "single") {
+    return ($("filterDate").value || currentDay) === currentDay;
+  } else {
+    const sStr = $("filterStartDate").value || currentDay;
+    const eStr = $("filterEndDate").value || currentDay;
+    return currentDay >= sStr && currentDay <= eStr;
+  }
+}
+
+function manageAutoRefresh() {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+  if (isTodayIncluded()) {
+    autoRefreshTimer = setInterval(() => {
+      telemetryCache = {}; 
+      if (navState.machine) {
+        loadMachineTelemetryDashboard();
+      } else {
+        renderCurrentLevel(true);
+      }
+    }, 10000);
+  }
+}
+
+function getActiveDateRange() {
+  const mode = $("filterModeSelect").value;
+  if (mode === "single") {
+    const d = $("filterDate").value || todayISO();
+    return { start: new Date(d + "T00:00:00"), end: new Date(d + "T23:59:59"), dateKeys: [d] };
+  } else {
+    const sStr = $("filterStartDate").value || todayISO();
+    const eStr = $("filterEndDate").value || todayISO();
+    let sDate = new Date(sStr + "T00:00:00");
+    let eDate = new Date(eStr + "T23:59:59");
+    if (sDate > eDate) eDate = new Date(sDate);
+    
+    const dateKeys = [];
+    let cur = new Date(sDate.getTime());
+    while (cur <= eDate) {
+      const dKey = `${cur.getUTCFullYear()}-${String(cur.getUTCMonth()+1).padStart(2,"0")}-${String(cur.getUTCDate()).padStart(2,"0")}`;
+      dateKeys.push(dKey);
+      cur.setDate(cur.getDate() + 1);
+    }
+    return { start: sDate, end: eDate, dateKeys };
+  }
+}
 
 function getShiftWindow() {
   const [y, m, d] = $("analysisDate").value.split("-").map(Number);
   const startHour = Number($("shiftStartHour").value) || 0;
   const durationHours = Number($("workingHours").value) || 24;
-  
   const start = new Date(y, m - 1, d, startHour, 0, 0, 0);
   const end = new Date(start.getTime() + durationHours * 3600000);
   return { start, end };
@@ -185,60 +352,315 @@ async function fetchRaw(path) {
 async function discoverHierarchy() {
   try {
     dbTree = await fetchRaw("");
-    populateGroups();
+    telemetryCache = {}; 
+    renderCurrentLevel();
+    manageAutoRefresh();
   } catch(e) {
     console.error("Hierarchy discovery failed", e);
+    toast("Failed to connect to telemetry database");
   }
 }
 
-function populateGroups() {
-  const gSel = $("groupSelect"); gSel.innerHTML = "";
-  if (!dbTree) return;
-  Object.keys(dbTree).filter(k => !k.startsWith(".")).forEach(g => {
-    gSel.add(new Option(g, g));
-  });
-  populateFactories();
-}
+async function fetchMachineTelemetry(g, f, a, m, dateKeys) {
+  const cacheKey = `${g}/${f}/${a}/${m}_${dateKeys.join(",")}`;
+  if (telemetryCache[cacheKey]) return telemetryCache[cacheKey];
 
-function populateFactories() {
-  const g = $("groupSelect").value;
-  const fSel = $("factorySelect"); fSel.innerHTML = "";
-  if (dbTree[g]) {
-    Object.keys(dbTree[g]).forEach(f => fSel.add(new Option(f, f)));
+  let rawEvents = [], rawStatuses = [];
+  for (const dKey of dateKeys) {
+    const eData = await fetchRaw(`${g}/${f}/${a}/${m}/events/${dKey}`);
+    const sData = await fetchRaw(`${g}/${f}/${a}/${m}/status_logs/${dKey}`);
+    if (eData) rawEvents.push(...Object.values(eData));
+    if (sData) rawStatuses.push(...Object.values(sData));
   }
-  populateAreas();
+
+  const events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
+  const statuses = rawStatuses.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
+
+  const total = events.filter(x => x.type === "cycles count").length;
+  const reject = events.filter(x => x.type === "rejected products cycle count").length;
+  const good = Math.max(0, total - reject);
+
+  const { start, end } = getActiveDateRange();
+  const intervals = intervalsForShiftStatic(statuses, start, end);
+  let runSec = 0;
+  intervals.forEach(x => { if (x.val === "Machine On") runSec += (x.end - x.start) / 1000; });
+
+  const totalDurationSec = (end - start) / 1000;
+  const runHours = runSec / 3600;
+  const totalHours = totalDurationSec ? totalDurationSec / 3600 : 24;
+  const availability = totalHours ? Math.min(100, (runHours / totalHours) * 100) : 0;
+  
+  const nominalSpeed = 120;
+  const nominalOutput = runHours * 60 * nominalSpeed;
+  const performance = nominalOutput ? Math.min(100, (total / nominalOutput) * 100) : 0;
+  const quality = total ? Math.min(100, (good / total) * 100) : 100;
+  const oee = (availability * performance * quality) / 10000;
+
+  const latest = statuses.slice().sort((a,b) => a.timestamp - b.timestamp).at(-1);
+  const isOnline = (latest?.val || "Machine Off") === "Machine On";
+
+  const result = { total, good, reject, runHours, availability, performance, quality, oee, isOnline };
+  telemetryCache[cacheKey] = result;
+  return result;
 }
 
-function populateAreas() {
-  const g = $("groupSelect").value, f = $("factorySelect").value;
-  const aSel = $("areaSelect"); aSel.innerHTML = "";
-  if (dbTree[g] && dbTree[g][f]) {
-    Object.keys(dbTree[g][f]).forEach(a => aSel.add(new Option(a, a)));
+function intervalsForShiftStatic(st, start, end) {
+  if (!st.length) return [{ start, end, val: "Machine Off" }];
+  const sorted = st.slice().sort((a,b) => a.timestamp - b.timestamp);
+  let state = "Machine Off";
+  for (const x of sorted) {
+    if (x.timestamp <= start) state = x.val;
+    else break;
   }
-  populateMachines();
-}
-
-function populateMachines() {
-  const g = $("groupSelect").value, f = $("factorySelect").value, a = $("areaSelect").value;
-  const mSel = $("machineSelect"); mSel.innerHTML = "";
-  if (dbTree[g] && dbTree[g][f] && dbTree[g][f][a]) {
-    Object.keys(dbTree[g][f][a]).forEach(m => mSel.add(new Option(m, m)));
+  const points = [{ timestamp: start, val: state }, ...sorted.filter(x => x.timestamp > start && x.timestamp < end)];
+  const out = [];
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i].timestamp, b = i + 1 < points.length ? points[i+1].timestamp : end;
+    if (b > a) out.push({ start: a, end: b, val: points[i].val });
   }
-  loadTelemetry();
+  return out;
 }
 
-$("groupSelect").onchange = populateFactories;
-$("factorySelect").onchange = populateAreas;
-$("areaSelect").onchange = populateMachines;
-$("machineSelect").onchange = loadTelemetry;
+// Fixed aggregation function ensuring strict filtering per specific node level
+async function calculateAggregatedStats({ group, factory, area, machine }) {
+  const { dateKeys } = getActiveDateRange();
+  let machinesList = [];
 
-async function loadTelemetry() {
-  const g = $("groupSelect").value, f = $("factorySelect").value, a = $("areaSelect").value, m = $("machineSelect").value;
-  if (!g || !f || !a || !m) return;
+  if (!dbTree) return { numMachines: 0, onlineCount: 0, onlinePct: 0, oee: 0, av: 0, perf: 0, qual: 0 };
 
+  if (machine) {
+    machinesList = [{ g: group, f: factory, a: area, m: machine }];
+  } else {
+    const gObj = dbTree[group];
+    if (!gObj) return { numMachines: 0, onlineCount: 0, onlinePct: 0, oee: 0, av: 0, perf: 0, qual: 0 };
+
+    if (factory) {
+      const fObj = gObj[factory];
+      if (!fObj) return { numMachines: 0, onlineCount: 0, onlinePct: 0, oee: 0, av: 0, perf: 0, qual: 0 };
+
+      if (area) {
+        const aObj = fObj[area];
+        if (aObj) {
+          Object.keys(aObj).forEach(mKey => {
+            machinesList.push({ g: group, f: factory, a: area, m: mKey });
+          });
+        }
+      } else {
+        // Factory level: loop strictly through areas belonging to THIS factory
+        Object.keys(fObj).forEach(aKey => {
+          const aObj = fObj[aKey];
+          if (aObj) {
+            Object.keys(aObj).forEach(mKey => {
+              machinesList.push({ g: group, f: factory, a: aKey, m: mKey });
+            });
+          }
+        });
+      }
+    } else {
+      // Group level: loop through all factories and areas belonging to THIS group
+      Object.keys(gObj).forEach(fKey => {
+        const fObj = gObj[fKey];
+        if (fObj) {
+          Object.keys(fObj).forEach(aKey => {
+            const aObj = fObj[aKey];
+            if (aObj) {
+              Object.keys(aObj).forEach(mKey => {
+                machinesList.push({ g: group, f: fKey, a: aKey, m: mKey });
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+
+  const numMachines = machinesList.length || 1;
+  let onlineCount = 0;
+  let sumOee = 0, sumAv = 0, sumPerf = 0, sumQual = 0;
+
+  for (const item of machinesList) {
+    const stats = await fetchMachineTelemetry(item.g, item.f, item.a, item.m, dateKeys);
+    if (stats.isOnline) onlineCount++;
+    sumOee += stats.oee;
+    sumAv += stats.availability;
+    sumPerf += stats.performance;
+    sumQual += stats.quality;
+  }
+
+  const onlinePct = (onlineCount / numMachines) * 100;
+  return {
+    numMachines,
+    onlineCount,
+    onlinePct,
+    oee: sumOee / numMachines,
+    av: sumAv / numMachines,
+    perf: sumPerf / numMachines,
+    qual: sumQual / numMachines
+  };
+}
+
+async function renderCurrentLevel(silent = false) {
+  const grid = $("drillGrid");
+  const loader = $("drillLoading");
+  if (!silent) grid.classList.add("flipping");
+  loader.style.display = "inline";
+
+  setTimeout(async () => {
+    grid.innerHTML = "";
+    updateBreadcrumbs();
+
+    if (navState.level === "root") {
+      $("drillTitle").textContent = "Select Group";
+      $("drillBackBtn").style.display = "none";
+      if (dbTree) {
+        for (const group of Object.keys(dbTree).filter(k => !k.startsWith("."))) {
+          const stats = await calculateAggregatedStats({ group });
+          grid.appendChild(createDrillCard(group, "Group", stats, () => {
+            navState.level = "factory";
+            navState.group = group;
+            renderCurrentLevel();
+          }));
+        }
+      }
+    } else if (navState.level === "factory") {
+      $("drillTitle").textContent = `Group: ${navState.group} — Select Factory`;
+      $("drillBackBtn").style.display = "inline-flex";
+      $("drillBackBtn").onclick = () => navigateToLevel("root");
+      if (dbTree[navState.group]) {
+        for (const factory of Object.keys(dbTree[navState.group])) {
+          const stats = await calculateAggregatedStats({ group: navState.group, factory });
+          grid.appendChild(createDrillCard(factory, "Factory", stats, () => {
+            navState.level = "area";
+            navState.factory = factory;
+            renderCurrentLevel();
+          }));
+        }
+      }
+    } else if (navState.level === "area") {
+      $("drillTitle").textContent = `Factory: ${navState.factory} — Select Area`;
+      $("drillBackBtn").style.display = "inline-flex";
+      $("drillBackBtn").onclick = () => navigateToLevel("factory");
+      if (dbTree[navState.group]?.[navState.factory]) {
+        for (const area of Object.keys(dbTree[navState.group][navState.factory])) {
+          const stats = await calculateAggregatedStats({ group: navState.group, factory: navState.factory, area });
+          grid.appendChild(createDrillCard(area, "Area", stats, () => {
+            navState.level = "machine";
+            navState.area = area;
+            renderCurrentLevel();
+          }));
+        }
+      }
+    } else if (navState.level === "machine") {
+      $("drillTitle").textContent = `Area: ${navState.area} — Select Machine`;
+      $("drillBackBtn").style.display = "inline-flex";
+      $("drillBackBtn").onclick = () => navigateToLevel("area");
+      if (dbTree[navState.group]?.[navState.factory]?.[navState.area]) {
+        for (const machine of Object.keys(dbTree[navState.group][navState.factory][navState.area])) {
+          const stats = await calculateAggregatedStats({ group: navState.group, factory: navState.factory, area: navState.area, machine });
+          grid.appendChild(createDrillCard(machine, "Machine Node", stats, () => {
+            navState.machine = machine;
+            openDashboardView();
+          }));
+        }
+      }
+    }
+
+    loader.style.display = "none";
+    if (!silent) grid.classList.remove("flipping");
+  }, silent ? 0 : 200);
+}
+
+function navigateToLevel(target) {
+  if (target === "root") {
+    navState = { level: "root", group: null, factory: null, area: null, machine: null };
+  } else if (target === "factory") {
+    navState.level = "factory"; navState.factory = null; navState.area = null; navState.machine = null;
+  } else if (target === "area") {
+    navState.level = "area"; navState.area = null; navState.machine = null;
+  }
+  renderCurrentLevel();
+}
+
+function updateBreadcrumbs() {
+  const trail = $("breadcrumbsTrail");
+  let html = `<span onclick="navigateToLevel('root')">Companorama</span>`;
+  if (navState.group) {
+    html += ` <span class="separator">/</span> <span onclick="navigateToLevel('factory')">${navState.group}</span>`;
+  }
+  if (navState.factory) {
+    html += ` <span class="separator">/</span> <span onclick="navigateToLevel('area')">${navState.factory}</span>`;
+  }
+  if (navState.area) {
+    html += ` <span class="separator">/</span> <span class="current">${navState.area}</span>`;
+  }
+  if (navState.level === "machine") {
+    html += ` <span class="separator">/</span> <span class="current">Machines</span>`;
+  }
+  trail.innerHTML = html;
+}
+
+function createDrillCard(title, subtitle, stats, onClick) {
+  const card = document.createElement("div");
+  card.className = "drill-card";
+  card.onclick = onClick;
+
+  card.innerHTML = `
+    <h3>${title}</h3>
+    <div class="sub-info">
+      <span>${subtitle}</span>
+      <span style="color:var(--cyan); font-weight:600;">${stats.numMachines} Machines (${stats.onlineCount} Online - ${fmt(stats.onlinePct, 0)}%)</span>
+    </div>
+    <div class="card-metrics">
+      <div class="card-metric-item">
+        <div class="label">Average OEE</div>
+        <div class="val accent-green">${fmt(stats.oee, 1)}%</div>
+      </div>
+      <div class="card-metric-item">
+        <div class="label">Online Status</div>
+        <div class="val accent-cyan">${fmt(stats.onlinePct, 0)}% Active</div>
+      </div>
+    </div>
+    <div class="card-bars">
+      <div class="card-bar-row">
+        <label>Availability</label>
+        <div class="card-bar-track"><i style="width:${stats.av}%; background:var(--cyan);"></i></div>
+        <b>${fmt(stats.av, 1)}%</b>
+      </div>
+      <div class="card-bar-row">
+        <label>Performance</label>
+        <div class="card-bar-track"><i style="width:${stats.perf}%; background:var(--purple);"></i></div>
+        <b>${fmt(stats.perf, 1)}%</b>
+      </div>
+      <div class="card-bar-row">
+        <label>Quality</label>
+        <div class="card-bar-track"><i style="width:${stats.qual}%; background:var(--green);"></i></div>
+        <b>${fmt(stats.qual, 1)}%</b>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function openDashboardView() {
+  $("drillDownMain").style.display = "none";
+  $("dashboardMain").style.display = "block";
+  $("currentMachinePath").textContent = `${navState.group} > ${navState.factory} > ${navState.area} > ${navState.machine}`;
+  $("machineHeroTitle").textContent = navState.machine;
+  loadMachineTelemetryDashboard();
+}
+
+$("returnToDrillBtn").onclick = () => {
+  $("dashboardMain").style.display = "none";
+  $("drillDownMain").style.display = "block";
+  navState.level = "machine";
+  renderCurrentLevel();
+};
+
+async function loadMachineTelemetryDashboard() {
+  if (!navState.machine) return;
+  const { group: g, factory: f, area: a, machine: m } = navState;
   const { start, end } = getShiftWindow();
   
-  // Calculate distinct calendar dates covered by shift window
   const dateKeys = [];
   let cur = new Date(start.getTime());
   while (cur < end) {
@@ -262,7 +684,7 @@ async function loadTelemetry() {
     $("liveDot").classList.remove("off");
     $("connectionText").textContent = "Telemetry connected";
     $("lastRefresh").textContent = "Updated " + new Date().toLocaleTimeString();
-    render();
+    renderDashboard();
   } catch(err) {
     $("liveDot").classList.add("off");
     $("connectionText").textContent = "Telemetry unavailable";
@@ -290,7 +712,7 @@ function intervalsForShift(st, start, end) {
 function destroy(name) { if (charts[name]) { charts[name].destroy(); charts[name] = null; } }
 const commonOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#8ca1af", boxWidth: 10, font: { size: 10 } } } }, scales: { x: { grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } }, y: { grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } } } };
 
-function render() {
+function renderDashboard() {
   const { start, end } = getShiftWindow();
   const total = events.filter(x => x.type === "cycles count").length;
   const reject = events.filter(x => x.type === "rejected products cycle count").length;
@@ -317,7 +739,7 @@ function render() {
   const loss = downtimeHours * params.cost;
   const actualRate = runHours ? total / (runHours * 60) : 0;
 
-  $("scopeText").textContent = `${$("machineSelect").value} • Shift Start: ${start.toLocaleString()}`;
+  $("scopeText").textContent = `${navState.machine} • Shift Start: ${start.toLocaleString()}`;
   $("totalOutput").textContent = fmt(total);
   $("goodOutput").textContent = fmt(good);
   $("rejectOutput").textContent = fmt(reject);
@@ -390,7 +812,7 @@ function renderLoss(available, run, downtime) {
   destroy("lossChart");
   charts.lossChart = new Chart($("lossChart"), {
     type: "doughnut",
-    data: { labels: ["Run time", "Unrun time"], datasets: [{ data: [run, Math.max(0, downtime)], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
+    data: { labels: ["Run time", "Unrun time"], datasets: [{ data: [run, Math.main(0, downtime)], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } } } }
   });
 }
@@ -443,13 +865,19 @@ function renderQuality(good, reject) {
   });
 }
 
-$("applyBtn").onclick = () => { loadTelemetry(); toast("Shift & OEE parameters applied"); };
-$("refreshBtn").onclick = () => { discoverHierarchy(); toast("Refreshing hierarchy & telemetry…"); };
-$("analysisDate").onchange = loadTelemetry;
-$("shiftStartHour").onchange = loadTelemetry;
+$("applyHierarchyFilterBtn").onclick = () => {
+  telemetryCache = {}; 
+  renderCurrentLevel();
+  manageAutoRefresh();
+  toast(isTodayIncluded() ? "Filter applied. Auto-refresh active (every 10s)." : "Filter applied for past dates (one-time fetch).");
+};
+
+$("applyBtn").onclick = () => { loadMachineTelemetryDashboard(); toast("Shift & OEE parameters applied"); };
+$("refreshTelemetryBtn").onclick = () => { loadMachineTelemetryDashboard(); toast("Refreshing machine telemetry…"); };
+$("analysisDate").onchange = loadMachineTelemetryDashboard;
+$("shiftStartHour").onchange = loadMachineTelemetryDashboard;
 
 discoverHierarchy();
-setInterval(loadTelemetry, 1000);
 </script>
 </body>
 </html>
