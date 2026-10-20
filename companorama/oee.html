@@ -42,7 +42,7 @@ button,input,select{font:inherit}
 
 /* Management Modals & Panels */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;place-items:center;padding:20px}
-.modal-card{background:#0d1822;border:1px solid var(--line);border-radius:var(--radius);padding:25px;width:100%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-card{background:#0d1822;border:1px solid var(--line);border-radius:var(--radius);padding:25px;width:100%;max-width:740px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
 
 .nav-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:15px}
 .breadcrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
@@ -173,7 +173,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
-<!-- CLIENT USER MANAGEMENT MODAL (For Admins & Supervisors) -->
+<!-- CLIENT USER MANAGEMENT MODAL -->
 <div class="modal-overlay" id="userManagementModal">
   <div class="modal-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -190,7 +190,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="control"><label>Role Type</label><select id="newUsrRole"><option value="operator">Operator (View Only)</option><option value="supervisor">Supervisor (Sidebar Control)</option></select></div>
-        <div class="control"><label>Assigned Scope (Machine / Factory / Area)</label><input type="text" id="newUsrScope" placeholder="Packaging_Area_1"></div>
+        <div class="control"><label>Assigned Scope</label><input type="text" id="newUsrScope" placeholder="Packaging_Area_1"></div>
       </div>
       <button class="btn primary" id="createUserBtn">Create User Account</button>
     </div>
@@ -207,7 +207,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
-<!-- AUDIT LOG MODAL (For Customer Admin/Supervisor Audit Trail viewing) -->
+<!-- AUDIT LOG MODAL -->
 <div class="modal-overlay" id="auditTrailModal">
   <div class="modal-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -220,6 +220,41 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
+<!-- ALERT RULES MANAGEMENT MODAL -->
+<div class="modal-overlay" id="alertManagementModal">
+  <div class="modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <h2 style="margin:0; font-size:18px; color:var(--cyan);">🔔 Automated Alert & Threshold Rules</h2>
+      <button class="back-btn" onclick="$('alertManagementModal').style.display='none'">Close X</button>
+    </div>
+    <p style="color:var(--muted); font-size:12px;">Configure operational threshold conditions and target notification email recipients sent from comp11labs@gmail.com.</p>
+    
+    <div style="margin-top:15px; background:#071018; padding:15px; border-radius:12px; border:1px solid var(--line);">
+      <h3 style="font-size:13px; margin-top:0;">Create New Alert Rule</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="control"><label>Target Hierarchy Level</label><select id="alertScopeLevel"><option value="group">Group Level (All underlying)</option><option value="factory">Factory Level (All underlying)</option><option value="area">Area Level (All underlying)</option><option value="machine">Specific Machine</option></select></div>
+        <div class="control"><label>Target Name / Path Identifier</label><select id="alertTargetValue"></select></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="control"><label>Condition Trigger Type</label><select id="alertConditionType"><option value="state_off">Machine OFF for duration (Minutes)</option><option value="state_on">Machine WORKING for duration (Minutes)</option><option value="speed_below">Cycle Rate: Less than threshold (parts/min)</option><option value="speed_above">Cycle Rate: More than threshold (parts/min)</option><option value="quality_below">Quality Percentage: Less than threshold (%)</option></select></div>
+        <div class="control"><label>Threshold Limit Value</label><input type="number" id="alertThresholdValue" placeholder="e.g. 15 (mins) or 85 (%)" step="0.1"></div>
+      </div>
+      <div class="control"><label>Recipient Email Addresses (Comma-separated)</label><input type="text" id="alertRecipients" placeholder="engineer@client.com, supervisor@client.com"></div>
+      <button class="btn primary" id="saveAlertRuleBtn">Save & Activate Alert Rule</button>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3 style="font-size:13px;">Active Group Alert Rules</h3>
+      <div style="max-height:180px; overflow-y:auto;">
+        <table class="batch-table">
+          <thead><tr><th>Target Scope</th><th>Condition</th><th>Threshold</th><th>Recipients</th><th>Action</th></tr></thead>
+          <tbody id="alertRulesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 <header class="topbar">
   <div class="brand">
@@ -227,9 +262,10 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     <div><h1>COMPANORAMA</h1><small id="currentUserBadge">USER: NOT LOGGED IN</small></div>
   </div>
   <div class="top-controls">
-<button class="btn" id="openUserMgmtBtn" style="display:none; width:auto;" onclick="openUserManagement()">👥 Users</button>
-<button class="btn" id="openAuditBtn" style="display:none; width:auto;" onclick="openAuditTrail()">📜 Audit Log</button>
-<button class="btn" id="logoutBtn" style="width:auto; border-color:var(--red); color:var(--red);">Logout</button>
+    <button class="btn" id="openUserMgmtBtn" style="display:none; width:auto;" onclick="openUserManagement()">👥 Users</button>
+    <button class="btn" id="openAuditBtn" style="display:none; width:auto;" onclick="openAuditTrail()">📜 Audit Log</button>
+    <button class="btn" id="openAlertsBtn" style="display:none; width:auto;" onclick="openAlertManagement()">🔔 Alerts</button>
+    <button class="btn" id="logoutBtn" style="width:auto; border-color:var(--red); color:var(--red);">Logout</button>
     <div class="transition-group">
       <span style="font-size:11px; color:var(--muted);">Transition Style:</span>
       <select id="transitionStyleSelect" class="transition-selector">
@@ -492,7 +528,6 @@ auth.onAuthStateChanged(async (user) => {
 
   if (user) {
     if (user.email.toLowerCase() === MASTER_EMAIL.toLowerCase()) {
-      // Authenticated as Master Comp11 Labs Account
       currentUserRecord = { email: user.email, role: 'comp11_master', group: 'all', active: true };
       $('authOverlay').style.display = 'none';
       if (isMasterPortalRequested) {
@@ -524,6 +559,7 @@ auth.onAuthStateChanged(async (user) => {
       if (currentUserRecord.role === 'admin' || currentUserRecord.role === 'supervisor') {
         $('openUserMgmtBtn').style.display = 'inline-block';
         $('openAuditBtn').style.display = 'inline-block';
+        $('openAlertsBtn').style.display = 'inline-block';
       } else {
         disableSidebarControls();
       }
@@ -680,6 +716,169 @@ async function openAuditTrail() {
   $('auditLogsContainer').innerHTML = html || "No group audit logs found.";
 }
 
+// --- ALERT RULES MANAGEMENT FUNCTIONS ---
+function openAlertManagement() {
+  if (!currentUserRecord) return;
+  $('alertManagementModal').style.display = 'grid';
+  updateAlertTargetOptions();
+  loadAlertRules();
+}
+
+$("alertScopeLevel").onchange = () => {
+  updateAlertTargetOptions();
+};
+
+function updateAlertTargetOptions() {
+  if (!currentUserRecord) return;
+  const scopeLevel = $("alertScopeLevel").value;
+  const group = currentUserRecord.group;
+  const select = $("alertTargetValue");
+  select.innerHTML = "";
+
+  if (!dbTree) {
+    const opt = document.createElement("option");
+    opt.value = group || "DefaultGroup";
+    opt.textContent = group || "DefaultGroup";
+    select.appendChild(opt);
+    return;
+  }
+
+  const allowedGroups = (group && group !== 'all') ? [group] : Object.keys(dbTree).filter(k => !k.startsWith(".") && !["users", "audit_trail", "alert_rules", "alert_queue"].includes(k));
+
+  if (scopeLevel === "group") {
+    allowedGroups.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = g;
+      select.appendChild(opt);
+    });
+  } else if (scopeLevel === "factory") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const opt = document.createElement("option");
+          opt.value = f;
+          opt.textContent = `${g} > ${f}`;
+          select.appendChild(opt);
+        });
+      }
+    });
+  } else if (scopeLevel === "area") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const fObj = gObj[f];
+          if (fObj && typeof fObj === 'object') {
+            Object.keys(fObj).forEach(a => {
+              const opt = document.createElement("option");
+              opt.value = a;
+              opt.textContent = `${g} > ${f} > ${a}`;
+              select.appendChild(opt);
+            });
+          }
+        });
+      }
+    });
+  } else if (scopeLevel === "machine") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const fObj = gObj[f];
+          if (fObj && typeof fObj === 'object') {
+            Object.keys(fObj).forEach(a => {
+              const aObj = fObj[a];
+              if (aObj && typeof aObj === 'object') {
+                Object.keys(aObj).forEach(m => {
+                  const opt = document.createElement("option");
+                  opt.value = m;
+                  opt.textContent = `${g} > ${f} > ${a} > ${m}`;
+                  select.appendChild(opt);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (select.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = group || "Default";
+    opt.textContent = group || "Default";
+    select.appendChild(opt);
+  }
+}
+
+$("saveAlertRuleBtn").onclick = async () => {
+  const scopeLevel = $("alertScopeLevel").value;
+  const targetValue = $("alertTargetValue").value.trim() || currentUserRecord.group;
+  const conditionType = $("alertConditionType").value;
+  const thresholdVal = Number($("alertThresholdValue").value);
+  const recipients = $("alertRecipients").value.trim();
+
+  if (!recipients || isNaN(thresholdVal)) {
+    alert("Please provide valid threshold values and recipient email addresses.");
+    return;
+  }
+
+  const rulePayload = {
+    scopeLevel,
+    targetValue,
+    conditionType,
+    thresholdVal,
+    recipients,
+    createdBy: currentUserRecord.email,
+    timestamp: new Date().toISOString()
+  };
+
+  const group = currentUserRecord.group;
+  await rtdb.ref(`alert_rules/${group}`).push().set(rulePayload);
+  logAuditAction("CREATE_ALERT_RULE", `Created threshold rule for ${targetValue} (${conditionType})`);
+  toast("Alert rule successfully saved & activated!");
+  $("alertThresholdValue").value = "";
+  $("alertRecipients").value = "";
+  loadAlertRules();
+};
+
+async function loadAlertRules() {
+  if (!currentUserRecord) return;
+  const group = currentUserRecord.group;
+  const snap = await rtdb.ref(`alert_rules/${group}`).once('value');
+  const tbody = $('alertRulesTableBody');
+  tbody.innerHTML = "";
+  
+  if (!snap.exists()) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:15px;">No alert rules configured for this group.</td></tr>`;
+    return;
+  }
+
+  snap.forEach(child => {
+    const ruleId = child.key;
+    const r = child.val();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>[${r.scopeLevel.toUpperCase()}]</b> ${r.targetValue}</td>
+      <td>${r.conditionType}</td>
+      <td class="accent-cyan">${r.thresholdVal}</td>
+      <td style="font-size:10px; color:var(--muted);">${r.recipients}</td>
+      <td><button class="btn" style="padding:4px 8px; font-size:10px; border-color:var(--red); color:var(--red);" onclick="deleteAlertRule('${ruleId}')">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteAlertRule(ruleId) {
+  const group = currentUserRecord.group;
+  await rtdb.ref(`alert_rules/${group}/${ruleId}`).remove();
+  logAuditAction("DELETE_ALERT_RULE", `Removed rule ID ${ruleId}`);
+  toast("Alert rule deleted.");
+  loadAlertRules();
+}
+
 // --- STANDARD DASHBOARD & TELEMETRY ENGINE ---
 $("filterModeSelect").onchange = (e) => {
   const isRange = e.target.value === "range";
@@ -746,7 +945,6 @@ function getActiveDateRange() {
     const d = rawVal || todayISO();
     return { start: new Date(d + "T00:00:00"), end: new Date(d + "T23:59:59"), dateKeys: [d] };
   } else {
-    // Read directly from the input element values to avoid object parsing bugs
     const sStr = $("filterStartDate").value || todayISO();
     const eStr = $("filterEndDate").value || todayISO();
     let sDate = new Date(sStr + "T00:00:00");
@@ -775,27 +973,17 @@ function getShiftWindow() {
   return { start, end };
 }
 
-
 async function fetchRaw(path) {
   try {
     const user = auth.currentUser;
-
-    if (!user) {
-      throw new Error("No authenticated Firebase user.");
-    }
-
+    if (!user) throw new Error("No authenticated Firebase user.");
     const snapshot = await rtdb.ref(path || "/").once("value");
     return snapshot.val();
   } catch (error) {
-    console.error(
-      `Firebase read failed for path "${path || "/"}":`,
-      error
-    );
-
+    console.error(`Firebase read failed for path "${path || "/"}":`, error);
     throw error;
   }
 }
-
 
 async function discoverHierarchy() {
   try {
@@ -964,12 +1152,11 @@ async function renderCurrentLevel(silent = false) {
       $("drillBackBtn").style.display = "none";
       if (dbTree) {
         const allowedGroup = (currentUserRecord && currentUserRecord.group !== 'all') ? currentUserRecord.group : null;
-        const systemNodes = ["users", "audit_trail"];
+        const systemNodes = ["users", "audit_trail", "alert_rules", "alert_queue"];
         
         for (const group of Object.keys(dbTree).filter(k => !k.startsWith(".") && !systemNodes.includes(k))) {
           if (allowedGroup && group !== allowedGroup) continue;
           
-          // Fallback wrapper so a missing telemetry day never blocks the card from showing up
           let stats;
           try {
             stats = await calculateAggregatedStats({ group });
@@ -1154,6 +1341,112 @@ async function loadMachineTelemetryDashboard() {
   }
 }
 
+async function evaluateAndTriggerAlerts(metrics, targetName) {
+  if (!currentUserRecord || !currentUserRecord.group) return;
+  const group = currentUserRecord.group;
+
+  try {
+    const snap = await rtdb.ref(`alert_rules/${group}`).once('value');
+    if (!snap.exists()) return;
+
+    snap.forEach(childSnap => {
+      const rule = childSnap.val();
+      let triggered = false;
+      let conditionDesc = "";
+
+      if (rule.scopeLevel === 'machine' && rule.targetValue !== targetName) return;
+
+      if (rule.conditionType === 'speed_below') {
+        const currentSpeed = metrics.actualRate || 0;
+        if (currentSpeed < rule.thresholdVal) {
+          triggered = true;
+          conditionDesc = `Cycle rate dropped to ${currentSpeed.toFixed(1)} parts/min (below threshold ${rule.thresholdVal})`;
+        }
+      } else if (rule.conditionType === 'speed_above') {
+        const currentSpeed = metrics.actualRate || 0;
+        if (currentSpeed > rule.thresholdVal) {
+          triggered = true;
+          conditionDesc = `Cycle rate surged to ${currentSpeed.toFixed(1)} parts/min (above threshold ${rule.thresholdVal})`;
+        }
+      } else if (rule.conditionType === 'quality_below') {
+        const currentQual = metrics.quality || 100;
+        if (currentQual < rule.thresholdVal) {
+          triggered = true;
+          conditionDesc = `Quality percentage dropped to ${currentQual.toFixed(1)}% (below threshold ${rule.thresholdVal}%)`;
+        }
+      } else if (rule.conditionType === 'state_off' && !metrics.isOnline) {
+        triggered = true;
+        conditionDesc = `Machine offline condition met for target scope.`;
+      }
+
+      if (triggered) {
+        dispatchAlertEmail({
+          recipients: rule.recipients,
+          ruleName: rule.conditionType,
+          target: targetName,
+          condition: conditionDesc,
+          threshold: rule.thresholdVal
+        });
+      }
+    });
+  } catch (err) {
+    console.error("Failed to evaluate alert rules:", err);
+  }
+}
+
+
+async function dispatchAlertEmail(payload) {
+  const FUNCTION_URL =
+    "https://us-central1-companorama-5da32.cloudfunctions.net/sendOperationalAlert";
+
+  try {
+    const response = await fetch(FUNCTION_URL, {
+      method: "POST",
+      redirect: "error",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const responseText = await response.text();
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch {
+      result = { rawResponse: responseText };
+    }
+
+    if (!response.ok) {
+      console.error("Operational alert failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        response: result
+      });
+      return false;
+    }
+
+    if (!result.success) {
+      console.error("Alert was not confirmed:", result);
+      return false;
+    }
+
+    console.log("Operational alert email accepted:", result);
+    return true;
+
+  } catch (error) {
+    console.error("Operational alert request failed:", {
+      message: error.message,
+      name: error.name,
+      endpoint: FUNCTION_URL
+    });
+
+    return false;
+  }
+}
+
+
 function intervalsForShift(st, start, end) {
   if (!st.length) return [];
   const sorted = st.slice().sort((a,b) => a.timestamp - b.timestamp);
@@ -1321,6 +1614,8 @@ function renderDashboard() {
   renderHourly(events, start, shiftHours);
   renderQuality(good, reject);
   $("footerTime").textContent = "Calculated " + new Date().toLocaleString();
+  const isOnline = normStatus === 'Working' || normStatus === 'Idle';
+  evaluateAndTriggerAlerts({ actualRate, quality, isOnline }, navState.machine);
 }
 
 function renderVelocity(ev, start, end) {
