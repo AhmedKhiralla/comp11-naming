@@ -1666,6 +1666,9 @@ auth.onAuthStateChanged(async (user) => {
       $('authSubtitle').textContent = "Please sign in with comp11labs@gmail.com to access Master Portal.";
     }
     $('authOverlay').style.display = 'grid';
+    
+    // Ensure the AI button is hidden when the login overlay is active
+    setAIFabVisibility(false);
   }
 });
 
