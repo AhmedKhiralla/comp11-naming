@@ -129,6 +129,218 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 
 @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid,.grid.equal{grid-template-columns:1fr}.oee-layout{grid-template-columns:220px 1fr}}
 @media(max-width:850px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+
+
+.audit-modal-card {
+  width: min(1200px, 96vw);
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.audit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.audit-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--cyan);
+}
+
+.audit-header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.audit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.audit-toolbar input {
+  flex: 1 1 260px;
+  min-width: 180px;
+}
+
+.audit-toolbar select {
+  flex: 0 1 190px;
+  min-width: 150px;
+}
+
+.audit-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.audit-stat {
+  padding: 13px 15px;
+  background: #0b1722;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.audit-stat span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.audit-stat strong {
+  font-size: 19px;
+  color: var(--text, #e8f1f8);
+  overflow-wrap: anywhere;
+}
+
+.audit-table-wrapper {
+  overflow: auto;
+  max-height: 48vh;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.audit-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+.audit-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.audit-table th {
+  padding: 13px 12px;
+  background: #132536;
+  color: var(--cyan);
+  font-weight: 700;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.audit-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(120, 150, 175, 0.15);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.audit-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.audit-table tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.audit-time {
+  min-width: 155px;
+  color: #b8c8d8;
+  white-space: nowrap;
+}
+
+.audit-user {
+  min-width: 155px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.audit-role {
+  color: #c4d1df;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.audit-details {
+  min-width: 250px;
+  max-width: 440px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #cbd5e1;
+}
+
+.audit-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #263747;
+  color: #dce7f0;
+}
+
+.audit-badge.success {
+  background: #123b30;
+  color: #6ee7b7;
+}
+
+.audit-badge.danger {
+  background: #482329;
+  color: #fda4af;
+}
+
+.audit-badge.info {
+  background: #153650;
+  color: #7dd3fc;
+}
+
+.audit-badge.warning {
+  background: #493819;
+  color: #fcd34d;
+}
+
+.audit-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 30px !important;
+}
+
+.audit-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+@media (max-width: 650px) {
+  .audit-modal-card {
+    width: 96vw;
+    padding: 14px;
+  }
+
+  .audit-header {
+    flex-direction: column;
+  }
+
+  .audit-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 </style>
 </head>
 <body>
@@ -150,7 +362,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   <div class="modal-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
       <h2 style="margin:0; font-size:18px; color:var(--cyan);">🛠️ Comp11 Labs Master Control Center</h2>
-      <button class="back-btn" onclick="window.location.href = window.location.pathname;">Exit Master Portal</button>
+      <button class="back-btn" onclick="auth.signOut().then(() => window.location.href = window.location.pathname);">Sign Out & Exit</button>
     </div>
     <p style="color:var(--muted); font-size:12px;">Provision customer admin users, allocate groups, and audit system-wide activity logs.</p>
     
@@ -190,8 +402,9 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="control"><label>Role Type</label><select id="newUsrRole"><option value="operator">Operator (View Only)</option><option value="supervisor">Supervisor (Sidebar Control)</option></select></div>
-        <div class="control"><label>Assigned Scope</label><input type="text" id="newUsrScope" placeholder="Packaging_Area_1"></div>
+        <div class="control"><label>Assigned Scope Level</label><select id="newUsrScopeLevel"><option value="group">Group Level (All underlying)</option><option value="factory">Factory Level (All underlying)</option><option value="area">Area Level (All underlying)</option><option value="machine">Specific Machine</option></select></div>
       </div>
+      <div class="control"><label>Target Name / Path Identifier</label><select id="newUsrScopeTarget"></select></div>
       <button class="btn primary" id="createUserBtn">Create User Account</button>
     </div>
 
@@ -208,17 +421,90 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 </div>
 
 <!-- AUDIT LOG MODAL -->
+
 <div class="modal-overlay" id="auditTrailModal">
-  <div class="modal-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-      <h2 style="margin:0; font-size:18px; color:var(--cyan);">📜 Group Audit Trail Log</h2>
-      <button class="back-btn" onclick="$('auditTrailModal').style.display='none'">Close X</button>
+  <div class="modal-card audit-modal-card">
+
+    <div class="audit-header">
+      <div>
+        <h2>📜 Group Audit Trail Log</h2>
+        <p>
+          Review user activity, security events, and system changes.
+        </p>
+      </div>
+
+      <button class="back-btn"
+              onclick="$('auditTrailModal').style.display='none'">
+        ✕ Close
+      </button>
     </div>
-    <div style="max-height:300px; overflow-y:auto; background:#071018; padding:10px; border-radius:8px; font-size:11px;" id="auditLogsContainer">
-      Loading audit logs...
+
+    <div class="audit-toolbar">
+      <input
+        type="search"
+        id="auditSearch"
+        placeholder="Search user, action, or details..."
+        oninput="filterAuditTable()"
+      />
+
+      <select id="auditActionFilter" onchange="filterAuditTable()">
+        <option value="">All Actions</option>
+        <option value="USER_ACTIVATED">User Activated</option>
+        <option value="USER_INACTIVATED">User Inactivated</option>
+        <option value="LOGIN">Login</option>
+        <option value="AUTO_LOGOUT">Auto Logout</option>
+        <option value="CONFIG_CHANGE">Configuration Change</option>
+      </select>
+
+      <button class="btn" onclick="openAuditTrail()">
+        ↻ Refresh
+      </button>
     </div>
+
+    <div class="audit-summary">
+      <div class="audit-stat">
+        <span>Total Events</span>
+        <strong id="auditTotal">0</strong>
+      </div>
+      <div class="audit-stat">
+        <span>User Changes</span>
+        <strong id="auditUserChanges">0</strong>
+      </div>
+      <div class="audit-stat">
+        <span>Latest Event</span>
+        <strong id="auditLatest">—</strong>
+      </div>
+    </div>
+
+    <div class="audit-table-wrapper">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Role</th>
+            <th>Action</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="auditLogsContainer">
+          <tr>
+            <td colspan="5" class="audit-empty">
+              Open the audit trail to load events.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="audit-footer">
+      <span id="auditResultCount">0 events</span>
+      <span>Group-scoped audit records</span>
+    </div>
+
   </div>
 </div>
+
 
 <!-- ALERT RULES MANAGEMENT MODAL -->
 <div class="modal-overlay" id="alertManagementModal">
@@ -255,6 +541,70 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
+<!-- BATCH MANAGEMENT & SPEED CALIBRATION MODAL -->
+<div class="modal-overlay" id="batchManagementModal">
+  <div class="modal-card" style="max-width: 1050px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <h2 style="margin:0; font-size:18px; color:var(--cyan);">📦 Production Batch Manager & Velocity Splitter</h2>
+      <button class="back-btn" onclick="$('batchManagementModal').style.display='none'">Close X</button>
+    </div>
+    <p style="color:var(--muted); font-size:12px;">Inspect auto-detected batches, configure date modes, merge/split runs using velocity profiles, and define custom nominal speeds per batch.</p>
+    
+    <!-- Shift Window & Date Mode Controls -->
+    <div style="margin-top:15px; background:#071018; padding:15px; border-radius:12px; border:1px solid var(--line); display:grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap:10px; align-items:end;">
+      <div class="control" style="margin:0;"><label>Batch Filter Mode</label><select id="bmFilterMode" onchange="toggleBMDateMode(this)"><option value="single">Single Day</option><option value="range">Date Range Period</option></select></div>
+      <div class="control" style="margin:0;" id="bmSingleDateGroup"><label>Batch Analysis Date</label><input type="date" id="bmStartDate"></div>
+      <div class="control" style="margin:0; display:none;" id="bmRangeStartGroup"><label>Start Date</label><input type="date" id="bmRangeStartDate"></div>
+      <div class="control" style="margin:0; display:none;" id="bmRangeEndGroup"><label>End Date</label><input type="date" id="bmRangeEndDate"></div>
+      <div class="control" style="margin:0;"><label>Shift Start Hour</label><input type="number" id="bmStartHour" min="0" max="23" value="8"></div>
+      <button class="btn primary" onclick="loadManagedBatches()" style="height: 42px;">Load Batches</button>
+    </div>
+
+    <!-- Interactive Batches Table -->
+    <div style="margin-top:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="font-size:13px; margin:0;">Detected Batches (Select adjacent rows to Merge)</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" style="padding:6px 12px; font-size:11px;" onclick="mergeSelectedBatches()">🔗 Merge Selected</button>
+          <button class="btn primary" style="padding:6px 12px; font-size:11px;" onclick="exportBatchReportCSV()">📥 Export Batch CSV</button>
+        </div>
+      </div>
+      <div style="max-height:280px; overflow-y:auto; border:1px solid var(--line); border-radius:8px;">
+        <table class="batch-table">
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="selectAllBatches" onclick="toggleSelectAllBatches(this)"></th>
+              <th>Batch ID</th>
+              <th>Time Window</th>
+              <th>Duration</th>
+              <th>Good / Total</th>
+              <th>Rejects</th>
+              <th>Nominal Speed</th>
+              <th>Batch OEE</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="managedBatchesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BATCH SPLIT VELOCITY INSPECTOR MODAL SUB-PANEL -->
+    <div id="batchSplitPanel" style="display:none; margin-top:20px; background:#071018; border:1px solid var(--cyan); border-radius:12px; padding:15px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h4 style="margin:0; font-size:13px; color:var(--cyan);" id="splitModalTitle">✂️ Velocity Split Inspector</h4>
+        <button class="back-btn" style="padding:2px 6px; font-size:10px;" onclick="$('batchSplitPanel').style.display='none'">Close Splitter</button>
+      </div>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Review the production velocity profile of this batch. Choose a minute timestamp to split the run into two separate batches.</p>
+      <div style="height:180px; position:relative;"><canvas id="batchVelocitySplitChart"></canvas></div>
+      <div style="display:flex; gap:10px; margin-top:12px; align-items:center;">
+        <div class="control" style="margin:0; flex:1;"><label>Split Timestamp (HH:MM)</label><input type="time" id="splitTargetTime" style="height:36px;"></div>
+        <button class="btn primary" onclick="confirmSplitBatch()" style="height:36px; margin-top:18px;">Execute Split at Timestamp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app">
 <header class="topbar">
   <div class="brand">
@@ -265,6 +615,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     <button class="btn" id="openUserMgmtBtn" style="display:none; width:auto;" onclick="openUserManagement()">👥 Users</button>
     <button class="btn" id="openAuditBtn" style="display:none; width:auto;" onclick="openAuditTrail()">📜 Audit Log</button>
     <button class="btn" id="openAlertsBtn" style="display:none; width:auto;" onclick="openAlertManagement()">🔔 Alerts</button>
+    <button class="btn" id="openBatchMgmtBtn" style="display:none; width:auto;" onclick="openBatchManagement()">📦 Batches</button>
     <button class="btn" id="logoutBtn" style="width:auto; border-color:var(--red); color:var(--red);">Logout</button>
     <div class="transition-group">
       <span style="font-size:11px; color:var(--muted);">Transition Style:</span>
@@ -337,7 +688,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <div class="control"><label>Nominal Speed — parts / min</label><input id="nominalSpeed" type="number" min="0.01" step="0.1" value="120"></div>
         <div class="control"><label>Downtime Cost — EGP / hour</label><input id="downtimeCost" type="number" min="0" step="1000" value="15000"></div>
         
-        <button class="btn primary" id="applyBtn">Apply Parameters</button>
+        <button class="btn primary" id="applyBtn">Save Shift Window</button>
         <button class="btn" id="refreshTelemetryBtn">↻ Refresh Telemetry</button>
       </aside>
 
@@ -454,6 +805,254 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 </div>
 </div>
 
+
+<style>
+.ai-fab {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#0c718c,#35d4ff);
+  border: 1px solid rgba(53,212,255,.4);
+  color: #071018;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(53,212,255,.3);
+  z-index: 9999;
+  transition: transform .25s ease;
+}
+.ai-fab:hover { transform: scale(1.08); }
+
+.ai-chat-window {
+  position: fixed;
+  right: 28px;
+  bottom: 98px;
+  width: 460px;
+  max-width: calc(100vw - 40px);
+  height: min(570px, calc(100vh - 125px));
+  background: #0c1822;
+  border: 1px solid rgba(53,212,255,.25);
+  border-radius: 16px;
+  box-shadow: 0 18px 55px rgba(0,0,0,.45);
+  display: none;
+  flex-direction: column;
+  z-index: 9999;
+  overflow: hidden;
+  color: #e4edf5;
+  font-family: inherit;
+}
+.ai-chat-window.open { display: flex; }
+
+.ai-chat-header {
+  padding: 15px 16px;
+  background: #101f2b;
+  border-bottom: 1px solid #203545;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.ai-chat-title { font-size: 13px; font-weight: 750; color: #35d4ff; }
+.ai-chat-subtitle { color: #91a7b8; font-size: 10px; margin-top: 5px; }
+.ai-chat-close {
+  border: 0;
+  background: transparent;
+  color: #9eb4c4;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ai-chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+}
+
+/* ---------- Messages ---------- */
+.ai-msg {
+  max-width: 92%;
+  padding: 11px 13px;
+  border-radius: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.ai-msg.assistant {
+  align-self: flex-start;
+  max-width: 98%;
+  background: #122331;
+  border: 1px solid #203545;
+  color: #e4edf5;
+}
+.ai-msg.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg,#0c718c,#145477);
+  color: #fff;
+}
+.ai-msg.user .ai-msg-content { white-space: pre-wrap; }
+
+.ai-msg-meta { margin-top: 6px; color: #8da7b8; font-size: 9px; }
+
+/* ---------- Formatted AI content ---------- */
+.ai-msg-content p { margin: 0 0 8px; }
+.ai-msg-content p:last-child { margin-bottom: 0; }
+.ai-msg-content ul,
+.ai-msg-content ol { margin: 4px 0 8px; padding-left: 18px; }
+.ai-msg-content li { margin-bottom: 4px; }
+.ai-msg-content strong { color: #ffffff; }
+.ai-msg-content code {
+  background: #0b151e;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* ---------- Tables ---------- */
+.ai-table-wrap {
+  overflow-x: auto;
+  margin: 8px 0;
+  border: 1px solid #203545;
+  border-radius: 8px;
+}
+.ai-markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.ai-markdown-table th,
+.ai-markdown-table td {
+  border-bottom: 1px solid #203545;
+  padding: 7px 9px;
+  vertical-align: top;
+}
+.ai-markdown-table th {
+  background: #101f2b;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+.ai-markdown-table tr:last-child td { border-bottom: 0; }
+
+/* ---------- Suggestions ---------- */
+.ai-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ai-chip {
+  background: rgba(53,212,255,.08);
+  border: 1px solid rgba(53,212,255,.25);
+  color: #35d4ff;
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.ai-chip:hover { background: rgba(53,212,255,.18); }
+
+/* ---------- Footer ---------- */
+.ai-chat-footer {
+  padding: 12px;
+  border-top: 1px solid #203545;
+  display: flex;
+  gap: 8px;
+  background: #09141d;
+}
+.ai-chat-footer input {
+  min-width: 0;
+  flex: 1;
+  background: #0b151e;
+  border: 1px solid #263b4a;
+  color: #e4edf5;
+  padding: 11px;
+  border-radius: 10px;
+  outline: none;
+  font-size: 12px;
+}
+.ai-chat-footer input:focus { border-color: #35d4ff; }
+.ai-chat-footer button {
+  background: linear-gradient(135deg,#0c718c,#145477);
+  border: 1px solid #3187a1;
+  color: #fff;
+  padding: 0 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ai-chat-footer button:disabled { opacity: .5; cursor: not-allowed; }
+
+.ai-typing { color: #8da7b8; font-size: 11px; padding: 4px 2px; }
+.ai-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #35d4a0;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+@media (max-width: 520px) {
+  .ai-chat-window {
+    right: 10px;
+    bottom: 82px;
+    width: calc(100vw - 20px);
+    height: min(600px, calc(100vh - 100px));
+  }
+  .ai-fab { right: 16px; bottom: 16px; }
+}
+</style>
+
+<button class="ai-fab" id="aiFab" type="button" onclick="toggleAIChat()" aria-label="Open Companorama AI" style="display: grid; place-items: center; padding: 0; overflow: hidden;">
+  <img src="AI.jpg" alt="Companorama AI" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+</button>
+
+<div class="ai-chat-window" id="aiChatWindow" aria-label="Companorama AI chat">
+  <div class="ai-chat-header">
+    <div>
+      <div class="ai-chat-title">💡 Companorama Telemetry Copilot</div>
+      <div class="ai-chat-subtitle">
+        <span class="ai-status-dot"></span>
+        AI assistant · Production intelligence
+      </div>
+    </div>
+    <button class="ai-chat-close"
+            type="button"
+            onclick="toggleAIChat(false)"
+            aria-label="Close chat">×</button>
+  </div>
+
+  <div class="ai-chat-body" id="aiChatBody" aria-live="polite">
+    <div class="ai-msg assistant">
+      Hello! I'm your Companorama AI copilot.
+
+      I can help interpret machine telemetry, production performance, downtime, rejected cycles, and batch trends—using the data made available to me.
+
+      What would you like to investigate?
+      <div class="ai-suggestions">
+        <button class="ai-chip" onclick="sendDemoQuery('Analyze our current OEE performance.')">📊 Analyze OEE</button>
+        <button class="ai-chip" onclick="sendDemoQuery('Identify the main downtime losses.')">⚠️ Downtime losses</button>
+        <button class="ai-chip" onclick="sendDemoQuery('Analyze rejected product cycles and quality trends.')">📦 Rejection trends</button>
+        <button class="ai-chip" onclick="sendDemoQuery('Compare actual machine speed with nominal speed.')">⚙️ Speed gap</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-chat-footer">
+    <input type="text"
+           id="aiInput"
+           placeholder="Ask about OEE, downtime, batches..."
+           autocomplete="off"
+           aria-label="Ask Companorama AI"
+           onkeydown="if(event.key==='Enter' && !event.isComposing){event.preventDefault();handleUserSubmit();}">
+    <button id="aiSendButton" type="button" onclick="handleUserSubmit()">Send</button>
+  </div>
+</div>
+
+
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -471,23 +1070,419 @@ let currentUserRecord = null;
 let inactivityTimer = null;
 const MASTER_EMAIL = "comp11labs@gmail.com";
 
-const FIREBASE_URL = "https://companorama-5da32-default-rtdb.europe-west1.firebasedatabase.app";
+// RBAC helpers: UI visibility is not the only check; modal-opening functions
+// also enforce permissions independently.
+function isManagementRole() {
+  const role = String(currentUserRecord?.role || "").toLowerCase();
+  return role === "admin" || role === "supervisor" || role === "comp11_master";
+}
+function getUserScope() {
+  const raw = currentUserRecord?.scope;
+  if (raw && typeof raw === "object") {
+    return {
+      level: String(raw.level || currentUserRecord?.level || "").toLowerCase(),
+      target: String(raw.target || currentUserRecord?.target || "")
+    };
+  }
+  return {
+    level: String(currentUserRecord?.level || "").toLowerCase(),
+    target: String(currentUserRecord?.target || (typeof raw === "string" ? raw : ""))
+  };
+}
+function isMachineScopedOperator() {
+  return String(currentUserRecord?.role || "").toLowerCase() === "operator"
+    && getUserScope().level === "machine"
+    && !!getUserScope().target;
+}
+function isFactoryScopedUser() {
+  // Scope applies to supervisors as well as operators; role does not override scope.
+  return !isManagementBypass() && getUserScope().level === "factory" && !!getUserScope().target;
+}
+function isManagementBypass() {
+  // Admins and the Comp11 master account retain broad navigation.
+  const role = String(currentUserRecord?.role || "").toLowerCase();
+  return role === "admin" || role === "comp11_master";
+}
+function canAccessFactory(factory) {
+  if (isManagementBypass() || !isFactoryScopedUser()) return true;
+  return factory === getUserScope().target;
+}
+function canAccessMachine(machine) {
+  if (isMachineScopedOperator()) return machine === getUserScope().target;
+  return true;
+}
+function denyManagementAccess() {
+  if (isManagementRole()) return false;
+  toast("Access denied: this feature is available to administrators and supervisors only.");
+  return true;
+}
+
+
+/* =============================================
+   COMPANORAMA AI CHAT CLIENT
+   ============================================= */
+
+// Replace this with your actual deployed Firebase
+// Cloud Function URL. Do not use your Groq API key here.
+const COMPANORAMA_AI_ENDPOINT =
+  'https://companoramaai-zrghone4lq-uc.a.run.app';
+
+let aiChatHistory = [];
+let aiRequestInProgress = false;
+
+function toggleAIChat(forceOpen) {
+  const chat = document.getElementById("aiChatWindow");
+  const input = document.getElementById("aiInput");
+
+  const shouldOpen =
+    typeof forceOpen === "boolean"
+      ? forceOpen
+      : !chat.classList.contains("open");
+
+  chat.classList.toggle("open", shouldOpen);
+
+  if (shouldOpen) {
+    setTimeout(() => input?.focus(), 50);
+  }
+}
+
+function sendDemoQuery(question) {
+  const input = document.getElementById("aiInput");
+  if (!input) return;
+
+  input.value = question;
+  handleUserSubmit();
+}
+
+function addAIMessage(text, role = "assistant") {
+  const body = document.getElementById("aiChatBody");
+  const wrapper = document.createElement("div");
+  wrapper.className = `ai-msg ${role}`;
+
+  const content = document.createElement("div");
+  content.className = "ai-msg-content";
+  if (role === "assistant") content.innerHTML = formatAIResponse(text);
+  else content.textContent = text;          // user text is never parsed as HTML
+
+  const meta = document.createElement("div");
+  meta.className = "ai-msg-meta";
+  meta.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  wrapper.append(content, meta);
+  body.appendChild(wrapper);
+  body.scrollTop = body.scrollHeight;
+  return wrapper;
+}
+
+function renderMarkdownTables(text) {
+  if (!text) return "";
+
+  // Helper to parse inline markdown (e.g., **bold text**)
+  const parseInline = (str) => {
+    return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  };
+
+  const lines = text.split("\n");
+  let html = "";
+  let inTable = false;
+  let tableHtml = "";
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+
+    // Check if the line is part of a Markdown table
+    if (line.startsWith("|") && line.endsWith("|")) {
+      if (!inTable) {
+        inTable = true;
+        tableHtml = "<table class='ai-markdown-table'><thead><tr>";
+        const headers = line.split("|").filter(Boolean).map(h => `<th>${parseInline(h.trim())}</th>`);
+        tableHtml += headers.join("") + "</tr></thead><tbody>";
+        i++; // Skip the separator row (|---|---|---|)
+        continue;
+      } else {
+        const cells = line.split("|").filter(Boolean).map(c => `<td>${parseInline(c.trim())}</td>`);
+        tableHtml += `<tr>${cells.join("")}</tr>`;
+        continue;
+      }
+    } else if (inTable) {
+      inTable = false;
+      tableHtml += "</tbody></table>";
+      html += tableHtml;
+    }
+
+    // Process regular text, bullet points, and inline markdown
+    if (line.startsWith("- ") || line.match(/^\d+\.\s/)) {
+      html += `<div>${parseInline(line)}</div>`;
+    } else if (line.length > 0) {
+      html += parseInline(line) + "<br>";
+    } else {
+      html += "<br>";
+    }
+  }
+
+  // Close table if the text ends while still inside a table
+  if (inTable) {
+    tableHtml += "</tbody></table>";
+    html += tableHtml;
+  }
+
+  return html;
+}
+
+function setAITyping(show) {
+  const existing = document.getElementById("aiTyping");
+  if (existing) existing.remove();
+
+  if (!show) return;
+
+  const body = document.getElementById("aiChatBody");
+  const typing = document.createElement("div");
+
+  typing.id = "aiTyping";
+  typing.className = "ai-typing";
+  typing.textContent = "Companorama AI is analyzing...";
+  body.appendChild(typing);
+  body.scrollTop = body.scrollHeight;
+}
+
+
+/* =============================================
+   COMPANORAMA AI — DYNAMIC FIREBASE CONTEXT
+   Requires Firebase compat SDK already initialized.
+   ============================================= */
+
+async function getCompanoramaAIContext() {
+  const db = firebase.database();
+
+  // Read current UI selections instead of hardcoding values.
+  const getSelected = (selector) => {
+    const element = document.querySelector(selector);
+    if (!element) return "";
+
+    const value =
+      "value" in element
+        ? element.value
+        : element.getAttribute("data-value") || element.textContent;
+
+    return String(value || "").trim();
+  };
+
+  const state = window.navState ?? navState;
+
+  const site = String(state?.group ?? "").trim();
+  const factory = String(state?.factory ?? "").trim();
+  const area = String(state?.area ?? "").trim();
+  const selectedMachine = String(state?.machine ?? "").trim();
+
+  console.log("Companorama AI hierarchy:", {
+    level: state?.level,
+    site,
+    factory,
+    area,
+    selectedMachine
+  });
+
+  if (
+    state?.level !== "machine" ||
+    !site ||
+    !factory ||
+    !area ||
+    !selectedMachine
+  ) {
+    throw new Error(
+      "Navigate to a machine dashboard before asking machine-specific questions."
+    );
+  }
+
+  // Firebase key sanitization
+  const cleanKey = value =>
+    value.replace(/[.#$\[\]\/]/g, "_");
+
+  const hierarchy = [site, factory, area, selectedMachine]
+    .map(cleanKey);
+
+  const machine = cleanKey(selectedMachine);
+  const basePath = hierarchy.join("/");
+
+
+  // Fetch the latest available machine settings.
+  const settingsPath = `machine_settings/${basePath}`;
+
+  // Read the selected process's live data.
+  const [settingsSnapshot, eventsSnapshot, statusSnapshot] =
+    await Promise.all([
+      db.ref(settingsPath).once("value"),
+      db.ref(`${basePath}/events`).once("value"),
+      db.ref(`${basePath}/status_logs`).once("value")
+    ]);
+
+  const settings = settingsSnapshot.val() || {};
+  const allEvents = eventsSnapshot.val() || {};
+  const allStatusLogs = statusSnapshot.val() || {};
+
+  // Flatten date-grouped records and retain the source date.
+  const flattenByDate = (collection, dateLimit = 3) =>
+    Object.entries(collection)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, dateLimit)
+      .flatMap(([date, records]) =>
+        Object.entries(records || {}).map(([id, record]) => ({
+          date,
+          id,
+          ...record
+        }))
+      );
+
+  // Keep only events associated with the selected machine.
+  const events = flattenByDate(allEvents)
+    .filter(event => event.machine === selectedMachine)
+    .sort((a, b) =>
+      Number(b.timestamp || 0) - Number(a.timestamp || 0)
+    )
+    .slice(0, 100);
+
+  // Filter logs if their schema includes a machine field.
+  // If logs are process-wide, keep them as process-level data.
+  const statusLogs = flattenByDate(allStatusLogs)
+    .filter(log =>
+      !log.machine || log.machine === selectedMachine
+    )
+    .sort((a, b) =>
+      Number(b.timestamp || 0) - Number(a.timestamp || 0)
+    )
+    .slice(0, 100);
+
+  // Pre-calculate aggregate counts for the AI summary
+  const totalCycles = events.filter(e => e.type === "cycles count").length;
+  const totalRejects = events.filter(e => e.type === "rejected products cycle count").length;
+
+  return {
+    hierarchy: {
+      site,
+      factory,
+      area,
+      machine: selectedMachine
+    },
+    machineSettings: settings,
+    summary: {
+      totalEvents: events.length,
+      totalCycles,
+      totalRejects,
+      goodOutput: Math.max(0, totalCycles - totalRejects),
+    },
+    recentEvents: events.slice(-20).map(r => ({ time: r.timestamp, type: r.type })),
+    statusLogs: statusLogs.slice(-20).map(r => ({ time: r.timestamp, val: r.val }))
+  };
+}
+
+
+async function handleUserSubmit() {
+  if (aiRequestInProgress) return;
+
+  const input = document.getElementById("aiInput");
+  const sendButton = document.getElementById("aiSendButton");
+  const question = input.value.trim();
+
+  if (!question) return;
+
+  if (
+    !COMPANORAMA_AI_ENDPOINT ||
+    COMPANORAMA_AI_ENDPOINT === "YOUR_DEPLOYED_AI_FUNCTION_URL"
+  ) {
+    addAIMessage(
+      "The AI endpoint has not been configured yet. Set COMPANORAMA_AI_ENDPOINT to your deployed Firebase Cloud Function URL."
+    );
+    return;
+  }
+
+  addAIMessage(question, "user");
+  input.value = "";
+
+  aiChatHistory.push({
+    role: "user",
+    content: question
+  });
+
+  aiRequestInProgress = true;
+  sendButton.disabled = true;
+  setAITyping(true);
+
+  try {
+    
+    const context = await getCompanoramaAIContext();
+
+    const currentUser = firebase.auth().currentUser;
+
+    if (!currentUser) {
+      throw new Error("Please sign in to use Companorama AI.");
+    }
+
+    const idToken = await currentUser.getIdToken();
+
+    const response = await fetch(COMPANORAMA_AI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`
+      },
+      body: JSON.stringify({
+        message: question,
+        history: aiChatHistory.slice(-10),
+        context
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "AI request failed.");
+    }
+
+    const answer = data.reply;
+
+    if (typeof answer !== "string" || !answer.trim()) {
+      throw new Error("The AI service returned no answer.");
+    }
+
+    aiChatHistory.push({
+      role: "assistant",
+      content: answer
+    });
+
+    addAIMessage(answer);
+
+  } catch (error) {
+    console.error("Companorama AI error:", error);
+
+    addAIMessage(
+      "I couldn't complete that request. Please check your connection and try again. If the problem continues, check the Firebase Function logs."
+    );
+
+  } finally {
+    setAITyping(false);
+    aiRequestInProgress = false;
+    sendButton.disabled = false;
+    input.focus();
+  }
+}
+
 let events = [], statuses = [], charts = {};
 let params = { hours: 24, speed: 120, cost: 15000, startHour: 8 };
 let dbTree = {};
 let telemetryCache = {}; 
 let autoRefreshTimer = null;
 let navState = { level: "root", group: null, factory: null, area: null, machine: null };
+let managedBatchesState = [];
 
 const $ = id => document.getElementById(id);
 const fmt = (n, d = 0) => Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
 const pct = n => `${fmt(n, 1)}%`;
 const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` };
 
-$("filterDate").value = "2026-10-15";
-$("filterStartDate").value = "2026-10-15";
-$("filterEndDate").value = "2026-10-15";
-$("analysisDate").value = "2026-10-15";
+$("filterDate").value = new Date().toLocaleDateString("en-CA");
+$("filterStartDate").value = new Date().toLocaleDateString("en-CA");
+$("filterEndDate").value = new Date().toLocaleDateString("en-CA");
+$("analysisDate").value = new Date().toLocaleDateString("en-CA");
 
 // --- INACTIVITY & AUDIT LOGGING ---
 function resetInactivityTimer() {
@@ -498,8 +1493,105 @@ function resetInactivityTimer() {
       auth.signOut();
       location.reload();
     }
-  }, 10 * 60 * 1000); // 10 minutes
+  }, 10 * 60 * 1000);
 }
+
+
+function setAIFabVisibility(visible) {
+  const fab = document.getElementById("aiFab");
+  const chatWindow = document.getElementById("aiChatWindow");
+  
+  if (fab) {
+    fab.style.display = visible ? "grid" : "none";
+  }
+  
+  // Close the chat window automatically if navigating away from a machine
+  if (!visible && chatWindow) {
+    chatWindow.classList.remove("open");
+  }
+}
+
+function formatAuditDetails(details) {
+  let data = details;
+
+  // Firebase may store details as a JSON string.
+  if (typeof data === "string") {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      return data || "—";
+    }
+  }
+
+  if (!data || typeof data !== "object") {
+    return String(data ?? "—");
+  }
+
+  // Special formatting for machine Shift Window changes.
+  if (
+    data.configuration === "SHIFT_WINDOW" &&
+    data.machineHierarchy &&
+    data.changes
+  ) {
+    const hierarchy = data.machineHierarchy;
+    const changes = data.changes;
+
+    const labels = {
+      shiftStartDate: "Shift Start Date",
+      shiftStartHour: "Shift Start Hour",
+      shiftDurationHours: "Shift Duration (Hours)",
+      batchInactivityTimeoutMin: "Batch Inactivity Timeout (Min)",
+      nominalSpeedPartsPerMin: "Nominal Speed (Parts/Min)",
+      downtimeCostEgpPerHour: "Downtime Cost (EGP/Hour)"
+    };
+
+    const lines = [
+      "Configuration: Shift Window",
+      "",
+      "Machine:",
+      `  Group: ${hierarchy.group || "—"}`,
+      `  Factory: ${hierarchy.factory || "—"}`,
+      `  Area: ${hierarchy.area || "—"}`,
+      `  Machine: ${hierarchy.machine || "—"}`,
+      "",
+      "Changes:"
+    ];
+
+    const entries = Object.entries(changes);
+
+    if (!entries.length) {
+      lines.push("  No individual changes recorded.");
+    } else {
+      for (const [key, change] of entries) {
+        const label = labels[key] || key;
+
+        // Support the expected {before, after} structure.
+        if (change && typeof change === "object" &&
+            ("before" in change || "after" in change)) {
+          const before = change.before ?? "Not set";
+          const after = change.after ?? "Not set";
+
+          lines.push(`  ${label}: ${before} → ${after}`);
+        } else {
+          // Fallback if a change is stored in another format.
+          lines.push(
+            `  ${label}: ${
+              typeof change === "object"
+                ? JSON.stringify(change)
+                : String(change ?? "Not set")
+            }`
+          );
+        }
+      }
+    }
+
+    return lines.join("\n");
+  }
+
+  // Keep other event types readable without displaying raw JSON on one line.
+  return JSON.stringify(data, null, 2);
+}
+
 
 window.onload = () => {
   ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt => {
@@ -553,18 +1645,18 @@ auth.onAuthStateChanged(async (user) => {
         auth.signOut();
         return;
       }
-      $('authOverlay').style.display = 'none';
-      $('currentUserBadge').textContent = `USER: ${currentUserRecord.email} (${currentUserRecord.role.toUpperCase()})`;
+      $('authOverlay').style.display = 'none';$('currentUserBadge').textContent = `USER: ${currentUserRecord.email} (${currentUserRecord.role.toUpperCase()})`;
       
-      if (currentUserRecord.role === 'admin' || currentUserRecord.role === 'supervisor') {
-        $('openUserMgmtBtn').style.display = 'inline-block';
-        $('openAuditBtn').style.display = 'inline-block';
-        $('openAlertsBtn').style.display = 'inline-block';
-      } else {
-        disableSidebarControls();
-      }
+      // Only admins and supervisors can see management actions.
+      const canManage = isManagementRole();
+      $('openUserMgmtBtn').style.display = canManage ? 'inline-flex' : 'none';
+      $('openAuditBtn').style.display = canManage ? 'inline-flex' : 'none';
+      $('openAlertsBtn').style.display = canManage ? 'inline-flex' : 'none';
+      $('openBatchMgmtBtn').style.display = canManage ? 'inline-flex' : 'none';
+      if (!canManage) disableSidebarControls();
+
       logAuditAction("LOGIN", "User successfully authenticated.");
-      discoverHierarchy();
+      await discoverHierarchy();
     } else {
       $('authError').textContent = "User record profile not found in database.";
     }
@@ -622,7 +1714,7 @@ $("createAdminBtn").onclick = async () => {
     const newUid = cred.user.uid;
     
     await rtdb.ref(`users/${newUid}`).set({
-      email, role: 'admin', group, scope: 'all', active: true
+      email, role: 'admin', group, scope: { level: 'group', target: group }, active: true
     });
     
     await secondaryAuth.signOut();
@@ -641,7 +1733,14 @@ async function loadMasterAuditLogs() {
   snap.forEach(groupSnap => {
     groupSnap.forEach(logSnap => {
       const l = logSnap.val();
-      html += `<div>[<b>${l.timestamp}</b>] <b>${l.user}</b> (${l.role}): ${l.action} - ${l.details}</div><hr style="border-color:var(--line);">`;
+      html += `
+        <div style="padding:12px; margin-bottom:10px; border:1px solid var(--line); border-radius:8px;">
+          <div style="font-weight:bold;">${l.action}</div>
+          <div style="font-size:11px; color:var(--muted); margin:5px 0 10px;">
+            ${l.timestamp} | ${l.user}
+          </div>
+          <pre style="white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; margin:0;">${formatAuditDetails(l.details)}</pre>
+        </div>`;
     });
   });
   $('masterAuditLogsContainer').innerHTML = html || "No audit logs found.";
@@ -649,31 +1748,132 @@ async function loadMasterAuditLogs() {
 
 // --- CLIENT USER MANAGEMENT ---
 function openUserManagement() {
-  if (!currentUserRecord || (currentUserRecord.role !== 'admin' && currentUserRecord.role !== 'supervisor')) return;
+  if (!currentUserRecord || denyManagementAccess()) return;
   $('umGroupSub').textContent = `Managing users for Group: ${currentUserRecord.group}`;
   $('userManagementModal').style.display = 'grid';
+  updateUserTargetOptions();
   loadGroupUsers();
+}
+
+$("newUsrScopeLevel").onchange = () => {
+  updateUserTargetOptions();
+};
+
+function updateUserTargetOptions() {
+  if (!currentUserRecord) return;
+  const scopeLevel = $("newUsrScopeLevel").value;
+  const group = currentUserRecord.group;
+  const select = $("newUsrScopeTarget");
+  select.innerHTML = "";
+
+  if (!dbTree) {
+    const opt = document.createElement("option");
+    opt.value = group || "DefaultGroup";
+    opt.textContent = group || "DefaultGroup";
+    select.appendChild(opt);
+    return;
+  }
+
+  const allowedGroups = (group && group !== 'all') ? [group] : Object.keys(dbTree).filter(k => !k.startsWith(".") && !["users", "audit_trail", "alert_rules", "alert_queue"].includes(k));
+
+  if (scopeLevel === "group") {
+    allowedGroups.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = g;
+      select.appendChild(opt);
+    });
+  } else if (scopeLevel === "factory") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const opt = document.createElement("option");
+          opt.value = f;
+          opt.textContent = `${g} > ${f}`;
+          select.appendChild(opt);
+        });
+      }
+    });
+  } else if (scopeLevel === "area") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const fObj = gObj[f];
+          if (fObj && typeof fObj === 'object') {
+            Object.keys(fObj).forEach(a => {
+              const opt = document.createElement("option");
+              opt.value = a;
+              opt.textContent = `${g} > ${f} > ${a}`;
+              select.appendChild(opt);
+            });
+          }
+        });
+      }
+    });
+  } else if (scopeLevel === "machine") {
+    allowedGroups.forEach(g => {
+      const gObj = dbTree[g];
+      if (gObj && typeof gObj === 'object') {
+        Object.keys(gObj).forEach(f => {
+          const fObj = gObj[f];
+          if (fObj && typeof fObj === 'object') {
+            Object.keys(fObj).forEach(a => {
+              const aObj = fObj[a];
+              if (aObj && typeof aObj === 'object') {
+                Object.keys(aObj).forEach(m => {
+                  const opt = document.createElement("option");
+                  opt.value = m;
+                  opt.textContent = `${g} > ${f} > ${a} > ${m}`;
+                  select.appendChild(opt);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (select.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = group || "Default";
+    opt.textContent = group || "Default";
+    select.appendChild(opt);
+  }
 }
 
 $("createUserBtn").onclick = async () => {
   const email = $("newUsrEmail").value.trim();
   const pass = $("newUsrPass").value;
   const role = $("newUsrRole").value;
-  const scope = $("newUsrScope").value.trim() || 'all';
+  const scopeLevel = $("newUsrScopeLevel").value;
+  const scopeTarget = $("newUsrScopeTarget").value.trim() || currentUserRecord.group;
+  
   if (!email || !pass) { alert("Email and password required"); return; }
   
-  const complexRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+  const complexRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!\%*?&]{8,}$/;
   if (!complexRegex.test(pass)) {
     alert("Password must be at least 8 characters long and contain both letters and numbers.");
     return;
   }
 
   try {
-    const cred = await auth.createUserWithEmailAndPassword(email, pass);
-    await rtdb.ref(`users/${cred.user.uid}`).set({
-      email, role, group: currentUserRecord.group, scope, active: true
+    const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryUserApp");
+    const secondaryAuth = firebase.auth(secondaryApp);
+
+    const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
+    const newUid = cred.user.uid;
+
+    await rtdb.ref(`users/${newUid}`).set({
+      email, role, group: currentUserRecord.group, scope: { level: scopeLevel, target: scopeTarget }, active: true
     });
-    logAuditAction("CREATE_USER", `Created ${role} account for ${email} with scope ${scope}`);
+
+    await secondaryAuth.signOut();
+    await secondaryApp.delete();
+
+    logAuditAction("CREATE_USER", `Created ${role} account for ${email} with scope [${scopeLevel}] ${scopeTarget}`);
     alert("User successfully created!");
     $("newUsrEmail").value = ""; $("newUsrPass").value = "";
     loadGroupUsers();
@@ -687,11 +1887,19 @@ async function loadGroupUsers() {
     const u = child.val();
     const uid = child.key;
     if (uid === auth.currentUser.uid) return;
+    
+    let scopeDisplay = "all";
+    if (typeof u.scope === 'object' && u.scope !== null) {
+      scopeDisplay = `[${u.scope.level.toUpperCase()}] ${u.scope.target}`;
+    } else if (typeof u.scope === 'string') {
+      scopeDisplay = u.scope;
+    }
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${u.email}</td>
       <td>${u.role}</td>
-      <td>${u.scope}</td>
+      <td>${scopeDisplay}</td>
       <td style="color:${u.active ? 'var(--green)' : 'var(--red)'}">${u.active ? 'Active' : 'Inactive'}</td>
       <td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleUserStatus('${uid}', ${!u.active})">${u.active ? 'Inactivate' : 'Activate'}</button></td>
     `;
@@ -699,26 +1907,306 @@ async function loadGroupUsers() {
   });
 }
 
+
 async function toggleUserStatus(uid, newState) {
-  await rtdb.ref(`users/${uid}`).update({ active: newState });
-  logAuditAction("UPDATE_USER_STATUS", `Set user ${uid} active status to ${newState}`);
-  loadGroupUsers();
+  if (!currentUserRecord || !auth.currentUser) {
+    toast("Access denied: Please sign in again.");
+    return;
+  }
+
+  const actorRole = String(currentUserRecord.role || "").toLowerCase();
+
+  // Only admins and supervisors can change user status.
+  if (!["admin", "supervisor"].includes(actorRole)) {
+    toast("Access denied: Insufficient permissions.");
+    return;
+  }
+
+  try {
+    const userRef = rtdb.ref(`users/${uid}`);
+    const userSnap = await userRef.once("value");
+
+    if (!userSnap.exists()) {
+      toast("User record not found.");
+      return;
+    }
+
+    const targetUser = userSnap.val();
+    const previousStatus = targetUser.active === true;
+    const newStatus = newState === true;
+
+    if (previousStatus === newStatus) {
+      toast(`User is already ${newStatus ? "active" : "inactive"}.`);
+      return;
+    }
+
+    // 1. Update the user's status in Firebase.
+    await userRef.update({
+      active: newStatus
+    });
+
+    // 2. Prepare the audit event.
+    const action = newStatus
+      ? "USER_ACTIVATED"
+      : "USER_INACTIVATED";
+
+    const actorEmail =
+      currentUserRecord.email ||
+      auth.currentUser.email ||
+      "Unknown";
+
+    const targetEmail = targetUser.email || "Unknown";
+    const group = currentUserRecord.group || "SYSTEM";
+
+    const details = {
+      targetUid: uid,
+      targetEmail: targetEmail,
+      targetRole: targetUser.role || "Unknown",
+      previousStatus: previousStatus ? "active" : "inactive",
+      newStatus: newStatus ? "active" : "inactive",
+      changedBy: actorEmail,
+      changedByRole: actorRole,
+      group: group,
+      timestamp: new Date().toISOString()
+    };
+
+    // 3. Write the event using the existing audit logger.
+    await logAuditAction(
+      action,
+      `${targetEmail} (${uid}) status changed from ` +
+      `${details.previousStatus} to ${details.newStatus}. ` +
+      `Changed by: ${actorEmail} (${actorRole}).`
+    );
+
+    // 4. Refresh the user table.
+    await loadGroupUsers();
+
+    toast(
+      `${targetEmail} ${newStatus ? "activated" : "inactivated"} successfully.`
+    );
+
+  } catch (error) {
+    console.error("User status update/audit logging failed:", error);
+    toast("Operation failed. Check Firebase permissions and console.");
+  }
 }
 
+
+
+let auditEventsCache = [];
+
 async function openAuditTrail() {
-  $('auditTrailModal').style.display = 'grid';
-  const snap = await rtdb.ref(`audit_trail/${currentUserRecord.group}`).once('value');
-  let html = "";
-  snap.forEach(logSnap => {
-    const l = logSnap.val();
-    html += `<div>[<b>${l.timestamp}</b>] <b>${l.user}</b>: ${l.action} - ${l.details}</div><hr style="border-color:var(--line);">`;
-  });
-  $('auditLogsContainer').innerHTML = html || "No group audit logs found.";
+  if (!currentUserRecord || !currentUserRecord.group) {
+    toast("Unable to determine the current user's group.");
+    return;
+  }
+
+  $("auditTrailModal").style.display = "grid";
+  $("auditLogsContainer").innerHTML =
+    '<tr><td colspan="5" class="audit-empty">Loading audit events...</td></tr>';
+
+  try {
+    const snap = await rtdb
+      .ref(`audit_trail/${currentUserRecord.group}`)
+      .once("value");
+
+    auditEventsCache = [];
+
+    snap.forEach(child => {
+      const event = child.val() || {};
+
+      auditEventsCache.push({
+        id: child.key,
+        timestamp: event.timestamp || "",
+        user: event.user || "Unknown",
+        role: event.role || "Unknown",
+        action: event.action || "UNKNOWN",
+        details: typeof event.details === "string"
+          ? event.details
+          : JSON.stringify(event.details || "")
+      });
+    });
+
+    auditEventsCache.sort((a, b) =>
+      (Date.parse(b.timestamp) || 0) -
+      (Date.parse(a.timestamp) || 0)
+    );
+
+    $("auditTotal").textContent = auditEventsCache.length;
+
+    $("auditUserChanges").textContent =
+      auditEventsCache.filter(e =>
+        ["USER_ACTIVATED", "USER_INACTIVATED"].includes(e.action)
+      ).length;
+
+    $("auditLatest").textContent = auditEventsCache.length
+      ? formatAuditDate(auditEventsCache[0].timestamp, true)
+      : "—";
+
+    filterAuditTable();
+
+  } catch (error) {
+    console.error("Failed to load group audit trail:", error);
+
+    $("auditLogsContainer").innerHTML =
+      '<tr><td colspan="5" class="audit-empty">' +
+      'Unable to load audit events. Check Firebase permissions.' +
+      '</td></tr>';
+
+    toast("Failed to load audit trail.");
+  }
 }
+
+function escapeAuditHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function formatAuditDate(value, short = false) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value || "Unknown";
+  }
+
+  return date.toLocaleString(undefined, short
+    ? {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }
+    : {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }
+  );
+}
+
+function getAuditBadge(action) {
+  const map = {
+    USER_ACTIVATED: ["User Activated", "success"],
+    USER_INACTIVATED: ["User Inactivated", "danger"],
+    LOGIN: ["Login", "info"],
+    AUTO_LOGOUT: ["Auto Logout", "warning"],
+    CONFIG_CHANGE: ["Configuration Change", "warning"]
+  };
+
+  return map[action] || [
+    String(action).replace(/_/g, " "),
+    "info"
+  ];
+}
+
+function filterAuditTable() {
+  const search = ($("auditSearch")?.value || "").toLowerCase().trim();
+  const actionFilter = $("auditActionFilter")?.value || "";
+
+  const filtered = auditEventsCache.filter(event => {
+    const matchesAction =
+      !actionFilter || event.action === actionFilter;
+
+    // Search the original details so filtering still works
+    // even when configuration details are displayed in a formatted way.
+    const searchableText = [
+      event.user,
+      event.role,
+      event.action,
+      event.details,
+      event.timestamp
+    ].join(" ").toLowerCase();
+
+    return matchesAction &&
+      (!search || searchableText.includes(search));
+  });
+
+  const tbody = $("auditLogsContainer");
+
+  if (!filtered.length) {
+    tbody.innerHTML =
+      '<tr><td colspan="5" class="audit-empty">' +
+      'No matching audit events found.' +
+      '</td></tr>';
+  } else {
+    tbody.innerHTML = filtered.map(event => {
+      const [label, badgeClass] = getAuditBadge(event.action);
+
+      // Format the Details field for display.
+      const formattedDetails = formatAuditDetails(event.details);
+
+      return `
+        <tr>
+          <td class="audit-time">
+            ${escapeAuditHtml(formatAuditDate(event.timestamp))}
+          </td>
+
+          <td class="audit-user">
+            ${escapeAuditHtml(event.user)}
+          </td>
+
+          <td class="audit-role">
+            ${escapeAuditHtml(event.role)}
+          </td>
+
+          <td>
+            <span class="audit-badge ${escapeAuditHtml(badgeClass)}">
+              ${escapeAuditHtml(label)}
+            </span>
+          </td>
+
+          <td class="audit-details"
+              style="white-space:pre-wrap; overflow-wrap:anywhere;">
+            ${escapeAuditHtml(formattedDetails)}
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  $("auditResultCount").textContent =
+    `${filtered.length} of ${auditEventsCache.length} events`;
+}
+
+
+
+function updateShiftWindowPermissions() {
+  const canEdit =
+    !!currentUserRecord &&
+    isManagementRole() &&
+    currentUserRecord.active !== false;
+
+  [
+    "analysisDate",
+    "shiftStartHour",
+    "workingHours",
+    "batchTimeoutMin",
+    "nominalSpeed",
+    "downtimeCost"
+  ].forEach(id => {
+    if ($(id)) $(id).disabled = !canEdit;
+  });
+
+  if ($("applyBtn")) {
+    $("applyBtn").disabled = !canEdit;
+    $("applyBtn").title = canEdit
+      ? "Save machine-specific Shift Window settings"
+      : "Only Admins and Supervisors can change these settings";
+  }
+}
+
 
 // --- ALERT RULES MANAGEMENT FUNCTIONS ---
 function openAlertManagement() {
-  if (!currentUserRecord) return;
+  if (!currentUserRecord || denyManagementAccess()) return;
   $('alertManagementModal').style.display = 'grid';
   updateAlertTargetOptions();
   loadAlertRules();
@@ -813,6 +2301,212 @@ function updateAlertTargetOptions() {
   }
 }
 
+
+function getSelectedMachineSettingsPath() {
+  const { group, factory, area, machine } = navState;
+
+  if (!group || !factory || !area || !machine) {
+    throw new Error("Please select a specific machine first.");
+  }
+
+  // Firebase keys cannot contain . # $ [ ] /
+  const safeKey = value => String(value).replace(/[.#$/\[\]]/g, "_");
+
+  return `machine_settings/${safeKey(group)}/${safeKey(factory)}/${safeKey(area)}/${safeKey(machine)}/shift_window`;
+}
+
+
+
+function getShiftWindowFormValues() {
+  return {
+    shiftStartDate: $("analysisDate").value,
+    shiftStartHour: Number($("shiftStartHour").value),
+    shiftDurationHours: Number($("workingHours").value),
+    batchInactivityTimeoutMin: Number($("batchTimeoutMin").value),
+    nominalSpeedPartsPerMin: Number($("nominalSpeed").value),
+    downtimeCostEgpPerHour: Number($("downtimeCost").value)
+  };
+}
+
+function setShiftWindowFormValues(settings) {
+  $("analysisDate").value = settings.shiftStartDate || "";
+  $("shiftStartHour").value = settings.shiftStartHour ?? 8;
+  $("workingHours").value = settings.shiftDurationHours ?? 24;
+  $("batchTimeoutMin").value = settings.batchInactivityTimeoutMin ?? 60;
+  $("nominalSpeed").value = settings.nominalSpeedPartsPerMin ?? 120;
+  $("downtimeCost").value = settings.downtimeCostEgpPerHour ?? 15000;
+
+  // Keep the existing dashboard parameters synchronized.
+  params.startHour = Number($("shiftStartHour").value);
+  params.hours = Number($("workingHours").value);
+  params.speed = Number($("nominalSpeed").value);
+  params.cost = Number($("downtimeCost").value);
+}
+
+
+function validateShiftWindow(settings) {
+  if (
+    !settings.shiftStartDate ||
+    !Number.isFinite(Date.parse(settings.shiftStartDate))
+  ) {
+    throw new Error("Please enter a valid Shift Start Date.");
+  }
+
+  const ranges = [
+    ["Shift Start Hour", settings.shiftStartHour, 0, 23],
+    ["Shift Duration", settings.shiftDurationHours, 0.1, 24],
+    ["Batch Inactivity Timeout", settings.batchInactivityTimeoutMin, 5, 180],
+    ["Nominal Speed", settings.nominalSpeedPartsPerMin, 0.01, 1000000],
+    ["Downtime Cost", settings.downtimeCostEgpPerHour, 0, 100000000]
+  ];
+
+  for (const [label, value, min, max] of ranges) {
+    if (!Number.isFinite(value) || value < min || value > max) {
+      throw new Error(`${label} must be between ${min} and ${max}.`);
+    }
+  }
+}
+
+async function saveMachineShiftWindow() {
+  if (!currentUserRecord || !auth.currentUser) {
+    toast("Please sign in before changing settings.");
+    return;
+  }
+
+  if (!isManagementRole()) {
+    toast("Access denied: only Admins and Supervisors can change settings.");
+    return;
+  }
+
+  if (currentUserRecord.active === false) {
+    toast("Access denied: this account is inactive.");
+    return;
+  }
+
+  let path;
+
+  try {
+    path = getSelectedMachineSettingsPath();
+
+    // Check the user's assigned factory and machine scope.
+    if (
+      typeof canAccessFactory === "function" &&
+      !canAccessFactory(navState.factory)
+    ) {
+      throw new Error("You cannot edit settings for this factory.");
+    }
+
+    if (
+      typeof canAccessMachine === "function" &&
+      !canAccessMachine(navState.machine)
+    ) {
+      throw new Error("You cannot edit settings for this machine.");
+    }
+
+    const newValues = getShiftWindowFormValues();
+    validateShiftWindow(newValues);
+
+    // Read the current settings to identify actual changes.
+    const oldSnapshot = await rtdb.ref(path).once("value");
+    const oldSettings = oldSnapshot.val() || {};
+
+    const changes = {};
+
+    for (const field of Object.keys(newValues)) {
+      const before = oldSettings[field] ?? null;
+      const after = newValues[field];
+
+      if (before !== after) {
+        changes[field] = { before, after };
+      }
+    }
+
+    if (Object.keys(changes).length === 0) {
+      toast("No changes detected. Settings are already up to date.");
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+
+    const updatedSettings = {
+      ...newValues,
+      updatedAt: timestamp,
+      updatedBy: currentUserRecord.email
+    };
+
+    const safeKey = value =>
+      String(value).replace(/[.#$/\[\]]/g, "_");
+
+    const group = safeKey(navState.group || currentUserRecord.group || "SYSTEM");
+    const auditRef = rtdb.ref(`audit_trail/${group}`).push();
+
+    const auditRecord = {
+      user: currentUserRecord.email,
+      role: currentUserRecord.role,
+      action: "CONFIG_CHANGE",
+      timestamp,
+      details: JSON.stringify({
+        configuration: "SHIFT_WINDOW",
+        machineHierarchy: {
+          group: navState.group,
+          factory: navState.factory,
+          area: navState.area,
+          machine: navState.machine
+        },
+        changes
+      })
+    };
+
+    // Write settings and audit entry together.
+    const updates = {};
+    updates[path] = updatedSettings;
+    updates[`audit_trail/${group}/${auditRef.key}`] = auditRecord;
+
+    await rtdb.ref().update(updates);
+
+    // Synchronize the form and calculation parameters.
+    setShiftWindowFormValues(updatedSettings);
+
+    toast("Shift Window saved and audit trail updated.");
+
+    // Refresh the dashboard calculations if this function exists.
+    if (typeof loadMachineTelemetryDashboard === "function") {
+      await loadMachineTelemetryDashboard();
+    }
+
+  } catch (error) {
+    console.error("Failed to save Shift Window:", error);
+    toast(
+      error.message ||
+      "Failed to save settings. Check Firebase permissions."
+    );
+  }
+}
+
+
+
+async function loadMachineShiftWindow() {
+  try {
+    const path = getSelectedMachineSettingsPath();
+    const snapshot = await rtdb.ref(path).once("value");
+    const saved = snapshot.val();
+
+    if (saved) {
+      setShiftWindowFormValues(saved);
+    }
+
+    // If no saved settings exist yet, leave the existing form defaults.
+    // Do not automatically save defaults to Firebase.
+    return saved || null;
+
+  } catch (error) {
+    console.error("Failed to load machine Shift Window:", error);
+    toast("Unable to load saved Shift Window settings.");
+    return null;
+  }
+}
+
+
 $("saveAlertRuleBtn").onclick = async () => {
   const scopeLevel = $("alertScopeLevel").value;
   const targetValue = $("alertTargetValue").value.trim() || currentUserRecord.group;
@@ -877,6 +2571,407 @@ async function deleteAlertRule(ruleId) {
   logAuditAction("DELETE_ALERT_RULE", `Removed rule ID ${ruleId}`);
   toast("Alert rule deleted.");
   loadAlertRules();
+}
+
+// --- BATCH MANAGEMENT MODAL FUNCTIONS ---
+let activeSplittingBatchIndex = null;
+let batchSplitChartInstance = null;
+let currentBatchRawCycles = [];
+
+function openBatchManagement() {
+  if (!currentUserRecord || denyManagementAccess()) return;
+  if (!navState.machine) {
+    alert("Please select a specific machine node from the hierarchy first.");
+    return;
+  }
+  $('bmStartDate').value = $('analysisDate').value || todayISO();
+  $('bmRangeStartDate').value = todayISO();
+  $('bmRangeEndDate').value = todayISO();
+  $('batchManagementModal').style.display = 'grid';
+  loadManagedBatches();
+}
+
+function toggleBMDateMode(sel) {
+  const isRange = sel.value === 'range';
+  $('bmSingleDateGroup').style.display = isRange ? 'none' : 'block';
+  $('bmRangeStartGroup').style.display = isRange ? 'block' : 'none';
+  $('bmRangeEndGroup').style.display = isRange ? 'block' : 'none';
+}
+
+async function loadManagedBatches() {
+  const mode = $('bmFilterMode').value;
+  const startHour = Number($('bmStartHour').value);
+  
+  let dateKeys = [];
+  let startDateObj, endDateObj;
+
+  if (mode === 'single') {
+    const dStr = $('bmStartDate').value || todayISO();
+    startDateObj = new Date(dStr + `T${String(startHour).padStart(2,'0')}:00:00`);
+    endDateObj = new Date(startDateObj.getTime() + 24 * 3600000);
+    dateKeys = [dStr];
+  } else {
+    const sStr = $('bmRangeStartDate').value || todayISO();
+    const eStr = $('bmRangeEndDate').value || todayISO();
+    startDateObj = new Date(sStr + `T${String(startHour).padStart(2,'0')}:00:00`);
+    endDateObj = new Date(eStr + `T23:59:59`);
+    
+    let cur = new Date(startDateObj.getTime());
+    while (cur <= endDateObj) {
+      const yr = cur.getFullYear();
+      const mo = String(cur.getMonth() + 1).padStart(2, "0");
+      const dy = String(cur.getDate()).padStart(2, "0");
+      dateKeys.push(`${yr}-${mo}-${dy}`);
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+
+  const { group: g, factory: f, area: a, machine: m } = navState;
+  let rawEvents = [];
+  for (const dKey of dateKeys) {
+    const eSnap = await rtdb.ref(`${g}/${f}/${a}/${m}/events/${dKey}`).once('value');
+    if (eSnap.exists()) rawEvents.push(...Object.values(eSnap.val()));
+  }
+  
+  const filteredEvents = rawEvents
+    .map(x => ({ ...x, timestamp: parseDate(x.timestamp) }))
+    .filter(x => x.timestamp && x.timestamp >= startDateObj && x.timestamp <= endDateObj);
+
+  const cycleEvents = filteredEvents.filter(x => x.type === "cycles count");
+  const rejectEvents = filteredEvents.filter(x => x.type === "rejected products cycle count");
+  
+  const timeoutMin = Number($("batchTimeoutMin").value) || 60;
+  managedBatchesState = computeBatchesEditable(cycleEvents, rejectEvents, timeoutMin);
+  renderManagedBatchesTable();
+  $('batchSplitPanel').style.display = 'none';
+}
+
+function computeBatchesEditable(cycles, rejects, timeoutMinutes) {
+  if (!cycles.length) return [];
+  const sortedCycles = cycles.slice().sort((a,b) => a.timestamp - b.timestamp);
+  const timeoutMs = timeoutMinutes * 60000;
+  
+  let batches = [];
+  let currentBatchCycles = [sortedCycles[0]];
+
+  for (let i = 1; i < sortedCycles.length; i++) {
+    const delta = sortedCycles[i].timestamp - sortedCycles[i-1].timestamp;
+    if (delta > timeoutMs) {
+      batches.push(createEditableBatchObject(currentBatchCycles, rejects, batches.length + 1));
+      currentBatchCycles = [sortedCycles[i]];
+    } else {
+      currentBatchCycles.push(sortedCycles[i]);
+    }
+  }
+  if (currentBatchCycles.length) {
+    batches.push(createEditableBatchObject(currentBatchCycles, rejects, batches.length + 1));
+  }
+  return batches;
+}
+
+function renderManagedBatchesTable() {
+  const tbody = $('managedBatchesTableBody');
+  tbody.innerHTML = "";
+  
+  if (managedBatchesState.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">No batches found for the selected shift window / date range.</td></tr>`;
+    return;
+  }
+
+  managedBatchesState.forEach((b, idx) => {
+    const runHours = b.durationSec / 3600;
+    const nominalOut = runHours * 60 * b.nominalSpeed;
+    const perf = nominalOut ? Math.min(100, (b.total / nominalOut) * 100) : 0;
+    const qual = b.total ? Math.min(100, (b.good / b.total) * 100) : 100;
+    const av = 100;
+    const oee = (av * perf * qual) / 10000;
+
+    const fmtTime = d => d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "—";
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox" class="batch-select-box" data-index="${idx}"></td>
+      <td style="font-weight:700; color:var(--cyan);">${b.id}</td>
+      <td>${b.startTime.toLocaleDateString()} ${fmtTime(b.startTime)} – ${fmtTime(b.endTime)}</td>
+      <td>${Math.round(b.durationSec / 60)} mins</td>
+      <td><b>${fmt(b.good)}</b> / ${fmt(b.total)}</td>
+      <td class="accent-red">${fmt(b.rejects)}</td>
+      <td><input type="number" value="${b.nominalSpeed}" min="1" step="1" style="width:80px; background:#0b151e; border:1px solid var(--line); color:var(--text); padding:4px 8px; border-radius:6px;" onchange="updateBatchSpeed(${idx}, this.value)"></td>
+      <td class="accent-green"><b>${pct(oee)}</b></td>
+      <td>
+        <button class="btn" style="padding:3px 6px; font-size:10px;" onclick="openBatchSplitInspector(${idx})">✂️ Split</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateBatchSpeed(index, val) {
+  const speed = Number(val);
+  if (!isNaN(speed) && speed > 0) {
+    managedBatchesState[index].nominalSpeed = speed;
+    renderManagedBatchesTable();
+  }
+}
+
+function toggleSelectAllBatches(master) {
+  const checkboxes = document.querySelectorAll('.batch-select-box');
+  checkboxes.forEach(cb => cb.checked = master.checked);
+}
+
+function mergeSelectedBatches() {
+  const checkboxes = document.querySelectorAll('.batch-select-box:checked');
+  if (checkboxes.length < 2) {
+    alert("Please select at least 2 batches to merge.");
+    return;
+  }
+  
+  const indices = Array.from(checkboxes).map(cb => Number(cb.dataset.index)).sort((a,b) => a - b);
+  const firstIdx = indices[0];
+  let target = managedBatchesState[firstIdx];
+
+  for (let i = 1; i < indices.length; i++) {
+    const nextB = managedBatchesState[indices[i]];
+    target.endTime = nextB.endTime;
+    target.durationSec = Math.max(1, (target.endTime - target.startTime) / 1000);
+    target.total += nextB.total;
+    target.good += nextB.good;
+    target.rejects += nextB.rejects;
+    target.cycles = target.cycles.concat(nextB.cycles);
+  }
+
+  for (let i = indices.length - 1; i >= 1; i--) {
+    managedBatchesState.splice(indices[i], 1);
+  }
+
+  managedBatchesState.forEach((b, i) => b.id = `BATCH #${String(i + 1).padStart(3, '0')}`);
+  renderManagedBatchesTable();
+  toast("Selected batches merged successfully.");
+}
+
+function openBatchSplitInspector(index) {
+  activeSplittingBatchIndex = index;
+  const b = managedBatchesState[index];
+  $('splitModalTitle').textContent = `✂️ Velocity Split Inspector for ${b.id}`;
+  $('batchSplitPanel').style.display = 'block';
+
+  const velocityMap = {};
+  b.cycles.forEach(x => {
+    const minKey = String(x.timestamp.getHours()).padStart(2,'0') + ":" + String(x.timestamp.getMinutes()).padStart(2,'0');
+    velocityMap[minKey] = (velocityMap[minKey] || 0) + 1;
+  });
+
+  const labels = [];
+  const dataVals = [];
+  let cursor = new Date(b.startTime.getTime());
+  cursor.setSeconds(0, 0);
+  
+  const endLimit = new Date(b.endTime.getTime());
+
+  while (cursor <= endLimit) {
+    const minKey = String(cursor.getHours()).padStart(2,'0') + ":" + String(cursor.getMinutes()).padStart(2,'0');
+    labels.push(minKey);
+    dataVals.push(velocityMap[minKey] || 0);
+    cursor.setMinutes(cursor.getMinutes() + 1);
+  }
+
+  if (batchSplitChartInstance) batchSplitChartInstance.destroy();
+  batchSplitChartInstance = new Chart($('batchVelocitySplitChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Production Velocity (parts/min)',
+        data: dataVals,
+        borderColor: '#35d4ff',
+        backgroundColor: 'rgba(53,212,255,0.15)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8ca1af', font: { size: 10 } } } },
+      scales: {
+        x: { grid: { color: 'rgba(35,52,65,.35)' }, ticks: { color: '#708493', font: { size: 9 }, maxTicksLimit: 20 } },
+        y: { grid: { color: 'rgba(35,52,65,.35)' }, ticks: { color: '#708493', font: { size: 9 } }, beginAtZero: true }
+      }
+    }
+  });
+
+  if (labels.length > 0) {
+    $('splitTargetTime').value = labels[Math.floor(labels.length / 2)];
+  }
+}
+
+function confirmSplitBatch() {
+  if (activeSplittingBatchIndex === null) return;
+  const timeVal = $('splitTargetTime').value;
+  if (!timeVal) { alert("Please select a valid split timestamp."); return; }
+
+  const [hr, mn] = timeVal.split(':').map(Number);
+  const b = managedBatchesState[activeSplittingBatchIndex];
+  
+  const splitTimestamp = new Date(b.startTime.getTime());
+  splitTimestamp.setHours(hr, mn, 0, 0);
+
+  if (splitTimestamp <= b.startTime || splitTimestamp >= b.endTime) {
+    alert("Split timestamp must be strictly between the batch start and end times.");
+    return;
+  }
+
+  const firstCycles = b.cycles.filter(c => c.timestamp <= splitTimestamp);
+  const secondCycles = b.cycles.filter(c => c.timestamp > splitTimestamp);
+
+  if (firstCycles.length === 0 || secondCycles.length === 0) {
+    alert("Split point resulted in an empty batch segment. Choose a different timestamp.");
+    return;
+  }
+
+  const firstBatchObj = createBatchObjectFromCycles(firstCycles, b.nominalSpeed, b.rejectsList);
+  const secondBatchObj = createBatchObjectFromCycles(secondCycles, b.nominalSpeed, b.rejectsList);
+
+  managedBatchesState.splice(activeSplittingBatchIndex, 1, firstBatchObj, secondBatchObj);
+  managedBatchesState.forEach((item, i) => item.id = `BATCH #${String(i + 1).padStart(3, '0')}`);
+  
+  renderManagedBatchesTable();
+  $('batchSplitPanel').style.display = 'none';
+  toast("Batch successfully split based on velocity timeline!");
+}
+
+function createEditableBatchObject(cycles, rejects, batchNum) {
+  const startTime = cycles[0].timestamp;
+  const endTime = cycles[cycles.length - 1].timestamp;
+  const durationSec = Math.max(1, (endTime - startTime) / 1000);
+  const totalCycles = cycles.length;
+  const batchRejects = rejects.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length;
+  const goodCycles = Math.max(0, totalCycles - batchRejects);
+  const defaultSpeed = Number($("nominalSpeed").value) || 120;
+
+  return {
+    uid: 'batch_' + Math.random().toString(36).substring(2, 9),
+    id: `BATCH #${String(batchNum).padStart(3, '0')}`,
+    startTime,
+    endTime,
+    durationSec,
+    total: totalCycles,
+    good: goodCycles,
+    rejects: batchRejects,
+    nominalSpeed: defaultSpeed,
+    cycles,
+    rejectsList: rejects
+  };
+}
+
+function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList) {
+  const startTime = cycles[0].timestamp;
+  const endTime = cycles[cycles.length - 1].timestamp;
+  const durationSec = Math.max(1, (endTime - startTime) / 1000);
+  const total = cycles.length;
+  
+  const batchRejects = rejectsList ? rejectsList.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length : 0;
+  const good = Math.max(0, total - batchRejects);
+
+  return {
+    uid: 'batch_' + Math.random().toString(36).substring(2, 9),
+    id: '',
+    startTime,
+    endTime,
+    durationSec,
+    total,
+    good,
+    rejects: batchRejects,
+    nominalSpeed,
+    cycles,
+    rejectsList
+  };
+}
+
+async function exportBatchReportCSV() {
+  if (!managedBatchesState || managedBatchesState.length === 0) {
+    alert("No batches loaded to export. Please load batches first.");
+    return;
+  }
+
+  const group = navState.group || "N/A";
+  const factory = navState.factory || "N/A";
+  const area = navState.area || "N/A";
+  const machine = navState.machine || "N/A";
+  
+  const filterMode = $('bmFilterMode').value === 'single' ? 'Single Day' : 'Date Range Period';
+  const startDt = $('bmFilterMode').value === 'single' ? $('bmStartDate').value : $('bmRangeStartDate').value;
+  const endDt = $('bmFilterMode').value === 'single' ? $('bmStartDate').value : $('bmRangeEndDate').value;
+  const shiftStartHour = $('bmStartHour').value;
+  const currentUser = currentUserRecord ? currentUserRecord.email : 'Unknown User';
+  const exportTimestamp = new Date().toISOString();
+
+  const headers = [
+    "Group", "Factory", "Area", "Machine", 
+    "BatchFilterMode", "StartDate", "EndDate", "ShiftStartHour", 
+    "BatchID", "TimeWindowFrom", "TimeWindowTo", "DurationMins", 
+    "GoodUnits", "TotalUnits", "Rejects", "NominalSpeedPartsMin", 
+    "BatchOEE", "ExportedByUser", "ExportTimestamp"
+  ];
+
+  const rows = [];
+  const auditBatchSnapshots = [];
+
+  managedBatchesState.forEach(b => {
+    const runHours = b.durationSec / 3600;
+    const nominalOut = runHours * 60 * b.nominalSpeed;
+    const perf = nominalOut ? Math.min(100, (b.total / nominalOut) * 100) : 0;
+    const qual = b.total ? Math.min(100, (b.good / b.total) * 100) : 100;
+    const oeeVal = (100 * perf * qual) / 10000;
+
+    const timeFrom = b.startTime.toLocaleString();
+    const timeTo = b.endTime.toLocaleString();
+    const durationMins = Math.round(b.durationSec / 60);
+
+    rows.push([
+      group, factory, area, machine,
+      filterMode, startDt, endDt, shiftStartHour,
+      b.id, `"${timeFrom}"`, `"${timeTo}"`, durationMins,
+      b.good, b.total, b.rejects, b.nominalSpeed,
+      `${oeeVal.toFixed(1)}%`, `"${currentUser}"`, `"${exportTimestamp}"`
+    ]);
+
+    auditBatchSnapshots.push({
+      batchId: b.id,
+      timeFrom,
+      timeTo,
+      durationMins,
+      good: b.good,
+      total: b.total,
+      rejects: b.rejects,
+      nominalSpeed: b.nominalSpeed,
+      oee: `${oeeVal.toFixed(1)}%`
+    });
+  });
+
+  const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `companorama_batch_report_${machine}_${startDt}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  await logAuditAction("EXPORT_BATCH_CSV_REPORT", JSON.parse(JSON.stringify({
+    machineHierarchy: { group, factory, area, machine },
+    filterSettings: { filterMode, startDt, endDt, shiftStartHour },
+    exportedBatchCount: managedBatchesState.length,
+    batchesData: auditBatchSnapshots,
+    exportedBy: currentUser,
+    timestamp: exportTimestamp
+  })));
+
+  toast("Batch report CSV exported and audit log recorded successfully!");
+  $('batchManagementModal').style.display = 'none';
 }
 
 // --- STANDARD DASHBOARD & TELEMETRY ENGINE ---
@@ -985,10 +3080,65 @@ async function fetchRaw(path) {
   }
 }
 
+function findFactoryPath(groupName, targetFactory) {
+  const groups = groupName && groupName !== "all" ? [groupName] : Object.keys(dbTree || {});
+  for (const group of groups) {
+    const factories = dbTree?.[group];
+    if (factories && typeof factories === "object" && Object.prototype.hasOwnProperty.call(factories, targetFactory)) {
+      return { group, factory: targetFactory };
+    }
+  }
+  return null;
+}
+
+function findMachinePath(groupName, targetMachine) {
+  const groups = groupName && groupName !== "all" ? [groupName] : Object.keys(dbTree || {});
+  for (const group of groups) {
+    const factories = dbTree?.[group];
+    if (!factories || typeof factories !== "object") continue;
+    for (const factory of Object.keys(factories)) {
+      const areas = factories[factory];
+      if (!areas || typeof areas !== "object") continue;
+      for (const area of Object.keys(areas)) {
+        const machines = areas[area];
+        if (machines && typeof machines === "object" && Object.prototype.hasOwnProperty.call(machines, targetMachine)) {
+          return { group, factory, area, machine: targetMachine };
+        }
+      }
+    }
+  }
+  return null;
+}
+
 async function discoverHierarchy() {
   try {
     dbTree = await fetchRaw("");
-    telemetryCache = {}; 
+    telemetryCache = {};
+
+    if (isMachineScopedOperator()) {
+      const scope = getUserScope();
+      const group = currentUserRecord.group;
+      const found = findMachinePath(group, scope.target);
+      if (!found) {
+        $("drillTitle").textContent = "Assigned machine not found";
+        $("drillGrid").innerHTML = `<div class="card panel">Your assigned machine (${scope.target}) could not be found under group ${group}. Please contact your administrator.</div>`;
+        $("drillBackBtn").style.display = "none";
+        return;
+      }
+      navState = { level: "machine", group: found.group, factory: found.factory, area: found.area, machine: null };
+    } else if (isFactoryScopedUser()) {
+      const scope = getUserScope();
+      const found = findFactoryPath(currentUserRecord.group, scope.target);
+      if (!found) {
+        $("drillTitle").textContent = "Assigned factory not found";
+        $("drillGrid").innerHTML = `<div class="card panel">Your assigned factory (${scope.target}) could not be found under group ${currentUserRecord.group}. Please contact your administrator.</div>`;
+        $("drillBackBtn").style.display = "none";
+        return;
+      }
+      // Start at the assigned factory's areas, never at the all-factories list.
+      navState = { level: "area", group: found.group, factory: found.factory, area: null, machine: null };
+    }
+
     renderCurrentLevel();
     manageAutoRefresh();
   } catch(e) {
@@ -1138,6 +3288,9 @@ async function calculateAggregatedStats({ group, factory, area, machine }) {
 }
 
 async function renderCurrentLevel(silent = false) {
+  // Hide AI button whenever we are navigating the directory hierarchy
+  setAIFabVisibility(false);
+
   const grid = $("drillGrid");
   const loader = $("drillLoading");
   if (!silent) grid.classList.add("transitioning");
@@ -1177,6 +3330,7 @@ async function renderCurrentLevel(silent = false) {
       $("drillBackBtn").onclick = () => navigateToLevel("root");
       if (dbTree[navState.group]) {
         for (const factory of Object.keys(dbTree[navState.group])) {
+          if (!canAccessFactory(factory)) continue;
           const stats = await calculateAggregatedStats({ group: navState.group, factory });
           grid.appendChild(createDrillCard(factory, "Factory", stats, () => {
             navState.level = "area";
@@ -1187,9 +3341,11 @@ async function renderCurrentLevel(silent = false) {
       }
     } else if (navState.level === "area") {
       $("drillTitle").textContent = `Factory: ${navState.factory} — Select Area`;
-      $("drillBackBtn").style.display = "inline-flex";
+      $("drillBackBtn").style.display = isFactoryScopedUser() ? "none" : "inline-flex";
       $("drillBackBtn").onclick = () => navigateToLevel("factory");
-      if (dbTree[navState.group]?.[navState.factory]) {
+      if (!canAccessFactory(navState.factory)) {
+        grid.innerHTML = '<div class="card panel">Access denied: this account is not assigned to this factory.</div>';
+      } else if (dbTree[navState.group]?.[navState.factory]) {
         for (const area of Object.keys(dbTree[navState.group][navState.factory])) {
           const stats = await calculateAggregatedStats({ group: navState.group, factory: navState.factory, area });
           grid.appendChild(createDrillCard(area, "Area", stats, () => {
@@ -1201,13 +3357,21 @@ async function renderCurrentLevel(silent = false) {
       }
     } else if (navState.level === "machine") {
       $("drillTitle").textContent = `Area: ${navState.area} — Select Machine`;
-      $("drillBackBtn").style.display = "inline-flex";
+      $("drillBackBtn").style.display = isMachineScopedOperator() ? "none" : "inline-flex";
       $("drillBackBtn").onclick = () => navigateToLevel("area");
       if (dbTree[navState.group]?.[navState.factory]?.[navState.area]) {
         for (const machine of Object.keys(dbTree[navState.group][navState.factory][navState.area])) {
+          if (!canAccessMachine(machine)) continue;
           const stats = await calculateAggregatedStats({ group: navState.group, factory: navState.factory, area: navState.area, machine });
-          grid.appendChild(createDrillCard(machine, "Machine Node", stats, () => {
+          grid.appendChild(createDrillCard(machine, "Machine Node", stats, async () => {
             navState.machine = machine;
+
+            try {
+                await loadMachineShiftWindow();
+            } catch (err) {
+                console.error("Failed to load machine shift settings:", err);
+            }
+
             openDashboardView();
           }));
         }
@@ -1219,7 +3383,114 @@ async function renderCurrentLevel(silent = false) {
   }, silent ? 0 : 250);
 }
 
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+
+function inlineMd(s) {
+  return s
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>");
+}
+
+function splitTableRow(line) {
+  let t = line.trim();
+  if (t.startsWith("|")) t = t.slice(1);
+  if (t.endsWith("|")) t = t.slice(0, -1);
+  return t.split("|").map(c => c.trim());   // keeps empty cells
+}
+
+function isTableSeparator(line) {
+  return !!line && line.includes("|") && line.includes("-") &&
+    /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(line);
+}
+
+function buildTableHtml(headers, aligns, rows) {
+  const th = headers.map((h, i) =>
+    `<th style="text-align:${aligns[i] || "left"}">${inlineMd(h)}</th>`).join("");
+  const body = rows.map(r =>
+    "<tr>" + headers.map((_, i) =>
+      `<td style="text-align:${aligns[i] || "left"}">${inlineMd(r[i] ?? "")}</td>`
+    ).join("") + "</tr>").join("");
+  return `<div class="ai-table-wrap"><table class="ai-markdown-table">` +
+         `<thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Main entry: detects tables, formats them, and formats the rest of the text.
+function formatAIResponse(text) {
+  if (!text) return "";
+  const lines = escapeHtml(text).replace(/\r\n/g, "\n").split("\n");
+  const out = [];
+  let list = null; // "ul" | "ol" | null
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  const openList = type => {
+    if (list !== type) { closeList(); out.push(`<${type}>`); list = type; }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // 1. Table: header row followed by a separator row
+    if (line.includes("|") && isTableSeparator(lines[i + 1])) {
+      closeList();
+      const headers = splitTableRow(line);
+      const aligns = splitTableRow(lines[i + 1]).map(c =>
+        c.startsWith(":") && c.endsWith(":") ? "center" :
+        c.endsWith(":") ? "right" : "left");
+      const rows = [];
+      i += 2;
+      while (i < lines.length && lines[i].trim() && lines[i].includes("|")) {
+        rows.push(splitTableRow(lines[i]));
+        i++;
+      }
+      i--; // for-loop will advance
+      out.push(buildTableHtml(headers, aligns, rows));
+      continue;
+    }
+
+    // 2. Headings
+    const h = line.match(/^\s*#{1,4}\s+(.*)$/);
+    if (h) { closeList(); out.push(`<strong>${inlineMd(h[1])}</strong><br>`); continue; }
+
+    // 3. Lists
+    const ul = line.match(/^\s*[-*•]\s+(.*)$/);
+    if (ul) { openList("ul"); out.push(`<li>${inlineMd(ul[1])}</li>`); continue; }
+    const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (ol) { openList("ol"); out.push(`<li>${inlineMd(ol[1])}</li>`); continue; }
+
+    // 4. Blank line / paragraph
+    closeList();
+    if (line.trim()) out.push(`<p>${inlineMd(line.trim())}</p>`);
+  }
+  closeList();
+  return out.join("");
+}
+
+
+function openDashboardView() {
+  $("drillDownMain").style.display = "none";
+  $("dashboardMain").style.display = "block";
+  $("currentMachinePath").textContent = `${navState.group} > ${navState.factory} > ${navState.area} > ${navState.machine}`;
+  $("machineHeroTitle").textContent = navState.machine;
+  
+  // Show the AI button exclusively on the machine dashboard view
+  setAIFabVisibility(true);
+
+  loadMachineTelemetryDashboard();
+}
+
 function navigateToLevel(target) {
+  // Prevent manually-triggered navigation from escaping a user's assigned scope.
+  if (isMachineScopedOperator()) return;
+  if (isFactoryScopedUser() && (target === "root" || target === "factory")) {
+    navState = { level: "area", group: currentUserRecord.group, factory: getUserScope().target, area: null, machine: null };
+    renderCurrentLevel();
+    return;
+  }
   if (target === "root") {
     navState = { level: "root", group: null, factory: null, area: null, machine: null };
   } else if (target === "factory") {
@@ -1232,6 +3503,14 @@ function navigateToLevel(target) {
 
 function updateBreadcrumbs() {
   const trail = $("breadcrumbsTrail");
+  if (isMachineScopedOperator()) {
+    trail.textContent = `Companorama / ${navState.group} / ${navState.factory} / ${navState.area} / Machines`;
+    return;
+  }
+  if (isFactoryScopedUser()) {
+    trail.textContent = `Companorama / ${navState.group} / ${navState.factory}` + (navState.area ? ` / ${navState.area}` : "");
+    return;
+  }
   let html = `<span onclick="navigateToLevel('root')">Companorama</span>`;
   if (navState.group) {
     html += ` <span class="separator">/</span> <span onclick="navigateToLevel('factory')">${navState.group}</span>`;
@@ -1290,13 +3569,6 @@ function createDrillCard(title, subtitle, stats, onClick) {
   return card;
 }
 
-function openDashboardView() {
-  $("drillDownMain").style.display = "none";
-  $("dashboardMain").style.display = "block";
-  $("currentMachinePath").textContent = `${navState.group} > ${navState.factory} > ${navState.area} > ${navState.machine}`;
-  $("machineHeroTitle").textContent = navState.machine;
-  loadMachineTelemetryDashboard();
-}
 
 $("returnToDrillBtn").onclick = () => {
   $("dashboardMain").style.display = "none";
@@ -1394,58 +3666,18 @@ async function evaluateAndTriggerAlerts(metrics, targetName) {
   }
 }
 
-
 async function dispatchAlertEmail(payload) {
-  const FUNCTION_URL =
-    "https://us-central1-companorama-5da32.cloudfunctions.net/sendOperationalAlert";
-
+  const FUNCTION_URL = "https://us-central1-companorama-5da32.cloudfunctions.net/sendOperationalAlert"; 
   try {
-    const response = await fetch(FUNCTION_URL, {
+    await fetch(FUNCTION_URL, {
       method: "POST",
-      redirect: "error",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
-    const responseText = await response.text();
-
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch {
-      result = { rawResponse: responseText };
-    }
-
-    if (!response.ok) {
-      console.error("Operational alert failed:", {
-        status: response.status,
-        statusText: response.statusText,
-        response: result
-      });
-      return false;
-    }
-
-    if (!result.success) {
-      console.error("Alert was not confirmed:", result);
-      return false;
-    }
-
-    console.log("Operational alert email accepted:", result);
-    return true;
-
-  } catch (error) {
-    console.error("Operational alert request failed:", {
-      message: error.message,
-      name: error.name,
-      endpoint: FUNCTION_URL
-    });
-
-    return false;
+  } catch (e) {
+    console.error("Alert dispatch network failure:", e);
   }
 }
-
 
 function intervalsForShift(st, start, end) {
   if (!st.length) return [];
@@ -1713,6 +3945,10 @@ function renderQuality(good, reject) {
   });
 }
 
+
+
+
+
 $("applyHierarchyFilterBtn").onclick = () => {
   telemetryCache = {}; 
   renderCurrentLevel();
@@ -1721,15 +3957,7 @@ $("applyHierarchyFilterBtn").onclick = () => {
   toast(isTodayIncluded() ? "Filter applied. Auto-refresh active (every 10s)." : "Filter applied for past dates (one-time fetch).");
 };
 
-$("applyBtn").onclick = () => { 
-  if (currentUserRecord && currentUserRecord.role === 'operator') {
-    toast("Access Denied: Operators cannot modify shift/OEE parameters.");
-    return;
-  }
-  loadMachineTelemetryDashboard(); 
-  logAuditAction("CONFIG_CHANGE", "Updated shift window or OEE parameters.");
-  toast("Shift, Batch & OEE parameters applied"); 
-};
+$("applyBtn").onclick = saveMachineShiftWindow;
 
 $("refreshTelemetryBtn").onclick = () => { loadMachineTelemetryDashboard(); toast("Refreshing machine telemetry…"); };
 $("analysisDate").onchange = loadMachineTelemetryDashboard;
