@@ -2612,21 +2612,14 @@ async function loadManagedBatches() {
     const dStr = $('bmStartDate').value || todayISO();
     startDateObj = new Date(dStr + `T${String(startHour).padStart(2,'0')}:00:00`);
     endDateObj = new Date(startDateObj.getTime() + 24 * 3600000);
-    dateKeys = [dStr];
+    dateKeys = utcDateKeysForWindow(startDateObj, endDateObj);
   } else {
     const sStr = $('bmRangeStartDate').value || todayISO();
     const eStr = $('bmRangeEndDate').value || todayISO();
     startDateObj = new Date(sStr + `T${String(startHour).padStart(2,'0')}:00:00`);
     endDateObj = new Date(eStr + `T23:59:59`);
     
-    let cur = new Date(startDateObj.getTime());
-    while (cur <= endDateObj) {
-      const yr = cur.getFullYear();
-      const mo = String(cur.getMonth() + 1).padStart(2, "0");
-      const dy = String(cur.getDate()).padStart(2, "0");
-      dateKeys.push(`${yr}-${mo}-${dy}`);
-      cur.setDate(cur.getDate() + 1);
-    }
+    dateKeys = utcDateKeysForWindow(startDateObj, endDateObj);
   }
 
   const { group: g, factory: f, area: a, machine: m } = navState;
@@ -2999,6 +2992,19 @@ function toggleBatchAccordion() {
 
 function toast(msg) { $("toast").textContent = msg; $("toast").style.display = "block"; setTimeout(() => $("toast").style.display = "none", 2600); }
 
+// Event folders (events/<date>, status_logs/<date>) are named by the UTC date of the event, but event timestamps
+// and the dashboard windows are local time. Return every UTC-date folder that can hold events of [start, end].
+function utcDateKeysForWindow(start, end) {
+  const keys = [];
+  const cur = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+  const last = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+  while (cur.getTime() <= last) {
+    keys.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return keys;
+}
+
 function parseDate(v) {
   if (!v) return null;
   if (typeof v === 'string' && v.endsWith('Z')) { v = v.slice(0, -1); }
@@ -3041,7 +3047,8 @@ function getActiveDateRange() {
   if (mode === "single") {
     const rawVal = $("filterDate").value;
     const d = rawVal || todayISO();
-    return { start: new Date(d + "T00:00:00"), end: new Date(d + "T23:59:59"), dateKeys: [d] };
+    const start = new Date(d + "T00:00:00"), end = new Date(d + "T23:59:59");
+    return { start, end, dateKeys: utcDateKeysForWindow(start, end) };
   } else {
     const sStr = $("filterStartDate").value || todayISO();
     const eStr = $("filterEndDate").value || todayISO();
@@ -3049,15 +3056,7 @@ function getActiveDateRange() {
     let eDate = new Date(eStr + "T23:59:59");
     if (sDate > eDate) eDate = new Date(sDate);
     
-    const dateKeys = [];
-    let cur = new Date(sDate.getTime());
-    while (cur <= eDate) {
-      const yr = cur.getFullYear();
-      const mo = String(cur.getMonth() + 1).padStart(2, "0");
-      const dy = String(cur.getDate()).padStart(2, "0");
-      dateKeys.push(`${yr}-${mo}-${dy}`);
-      cur.setDate(cur.getDate() + 1);
-    }
+    const dateKeys = utcDateKeysForWindow(sDate, eDate);
     return { start: sDate, end: eDate, dateKeys };
   }
 }
@@ -3162,14 +3161,14 @@ async function fetchMachineTelemetry(g, f, a, m, dateKeys) {
     if (sData) rawStatuses.push(...Object.values(sData));
   }
 
-  const events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
+  const { start, end } = getActiveDateRange();
+  const events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp && x.timestamp >= start && x.timestamp <= end);
   const statuses = rawStatuses.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
 
   const total = events.filter(x => x.type === "cycles count").length;
   const reject = events.filter(x => x.type === "rejected products cycle count").length;
   const good = Math.max(0, total - reject);
 
-  const { start, end } = getActiveDateRange();
   const intervals = intervalsForShiftStatic(statuses, start, end);
   let runSec = 0;
   intervals.forEach(x => { if (normalizeState(x.val) === 'Working') runSec += (x.end - x.start) / 1000; });
@@ -3585,13 +3584,7 @@ async function loadMachineTelemetryDashboard() {
   const { group: g, factory: f, area: a, machine: m } = navState;
   const { start, end } = getShiftWindow();
   
-  const dateKeys = [];
-  let cur = new Date(start.getTime());
-  while (cur < end) {
-    const dStr = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,"0")}-${String(cur.getDate()).padStart(2,"0")}`;
-    if (!dateKeys.includes(dStr)) dateKeys.push(dStr);
-    cur.setDate(cur.getDate() + 1);
-  }
+  const dateKeys = utcDateKeysForWindow(start, end);
 
   try {
     let rawEvents = [], rawStatuses = [];
