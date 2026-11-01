@@ -2806,15 +2806,13 @@ async function loadManagedBatches() {
   }
 
   const { group: g, factory: f, area: a, machine: m } = navState;
-  let rawEvents = [];
-  for (const dKey of dateKeys) {
-    const eSnap = await rtdb.ref(`${g}/${f}/${a}/${m}/events/${dKey}`).once('value');
-    if (eSnap.exists()) rawEvents.push(...Object.values(eSnap.val()));
-  }
-  
-  const filteredEvents = rawEvents
-    .map(x => ({ ...x, timestamp: parseDate(x.timestamp) }))
-    .filter(x => x.timestamp && x.timestamp >= startDateObj && x.timestamp <= endDateObj);
+  // Same cached loader as the machine page: finished days come from this browser (or the minute summaries), the running day only downloads what is new.
+  const folders = await Promise.all(dateKeys.map(d => loadFolder(g, f, a, m, d, true, false)));
+  const filteredEvents = [];
+  folders.forEach(fo => {
+    fo.c.forEach(t => { if (t >= +startDateObj && t <= +endDateObj) filteredEvents.push({ type: "cycles count", timestamp: new Date(t) }); });
+    fo.r.forEach(t => { if (t >= +startDateObj && t <= +endDateObj) filteredEvents.push({ type: "rejected products cycle count", timestamp: new Date(t) }); });
+  });
 
   const cycleEvents = filteredEvents.filter(x => x.type === "cycles count");
   const rejectEvents = filteredEvents.filter(x => x.type === "rejected products cycle count");
@@ -4343,21 +4341,24 @@ function computeBatches(cycleEvents, rejectEvents, timeoutMinutes) {
 }
 
 // ---- Products per stroke: set per batch in the Batch Manager only. The machine counts strokes; products = strokes x products per stroke.
-let ppsEntries = [], ppsLoadedKey = null;
+let ppsEntries = [], ppsLoadedKey = null; const ppsMemo = new Map();
 function ppsPath() { try { return getSelectedMachineSettingsPath().replace(/shift_window$/, "batch_products_per_stroke"); } catch (e) { return null; } }
 function ppsFor(startMs) { let best = null; for (const e of ppsEntries) { if (startMs >= e.from && startMs <= e.to && (!best || e.at >= best.at)) best = e; } return best ? best.pps : 1; }
 async function loadPpsEntries() {
   const path = ppsPath(); if (!path || ppsLoadedKey === path) return false;
   ppsLoadedKey = path; ppsEntries = []; let list = [];
+  if (ppsMemo.has(path)) { ppsEntries = ppsMemo.get(path); return ppsEntries.length > 0; }   // already read this session: no new download
   try { const sn = await rtdb.ref(path).once("value"); if (sn.exists()) list = Object.values(sn.val()); }
   catch (e) { try { list = JSON.parse(localStorage.getItem("pps|" + path) || "[]"); } catch (_) {} }
   ppsEntries = list.filter(e => e && e.pps >= 1 && e.from <= e.to);
+  ppsMemo.set(path, ppsEntries);
   return ppsEntries.length > 0;
 }
 async function savePpsEntry(b) {
   const path = ppsPath(); if (!path) return;
   const e = { from: +b.startTime, to: +b.endTime, pps: b.pps, at: Date.now(), by: currentUserRecord ? currentUserRecord.email : "" };
   ppsEntries = ppsEntries.filter(x => x.from !== e.from); ppsEntries.push(e);
+  ppsMemo.set(path, ppsEntries);
   try { await rtdb.ref(path).child(String(e.from)).set(e); }
   catch (err) { try { localStorage.setItem("pps|" + path, JSON.stringify(ppsEntries)); } catch (_) {} toast("Saved on this browser only (no permission to save for everyone)."); }
 }
