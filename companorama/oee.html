@@ -105,7 +105,12 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .batch-table td{padding:12px 10px;border-bottom:1px solid rgba(32,50,65,.4)}
 .batch-table tr:last-child td{border-bottom:0}
 
-.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:1fr 1fr}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:repeat(2,minmax(0,1fr))}.grid>.card{min-width:0}
+.stops-scroll thead th{position:sticky;top:0;background:#0d1822;z-index:1}
+.stops-scroll{scrollbar-width:thin;scrollbar-color:#2c4152 transparent;color-scheme:dark}
+.stops-scroll::-webkit-scrollbar{width:8px}.stops-scroll::-webkit-scrollbar-track{background:transparent}.stops-scroll::-webkit-scrollbar-thumb{background:#2c4152;border-radius:4px}.stops-scroll::-webkit-scrollbar-thumb:hover{background:#3d586d}
+@media(min-width:1201px){.stops-card{contain:size;display:flex;flex-direction:column;overflow:hidden}.stops-card .stops-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;margin-top:8px}}
+@media(max-width:1200px){.stops-card .stops-scroll{max-height:340px;overflow-y:auto;margin-top:8px}}
 .panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}
 .badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}
 .chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
@@ -513,7 +518,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
       <h2 style="margin:0; font-size:18px; color:var(--cyan);">🔔 Automated Alert & Threshold Rules</h2>
       <button class="back-btn" onclick="$('alertManagementModal').style.display='none'">Close X</button>
     </div>
-    <p style="color:var(--muted); font-size:12px;">Configure operational threshold conditions and target notification email recipients sent from comp11labs@gmail.com.</p>
+    <p style="color:var(--muted); font-size:12px;">Configure alert rules and recipients here. Emails are sent automatically by the server (checked every minute, one email per incident), even when no dashboard is open.</p>
     
     <div style="margin-top:15px; background:#071018; padding:15px; border-radius:12px; border:1px solid var(--line);">
       <h3 style="font-size:13px; margin-top:0;">Create New Alert Rule</h3>
@@ -660,6 +665,8 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <div class="control" id="startDateGroup" style="display:none;"><label>Start Date</label><input id="filterStartDate" type="date"></div>
         <div class="control" id="endDateGroup" style="display:none;"><label>End Date</label><input id="filterEndDate" type="date"></div>
         <button class="btn primary" id="applyHierarchyFilterBtn">Apply Data Filter</button>
+        <button class="btn" id="refreshLevelBtn" title="Read the selected period again from the database, including records that were uploaded late (for example after the machine was offline).">↻ Refresh Telemetry</button>
+        <div id="levelRefreshNote" style="margin-top:10px; font-size:11px; color:var(--muted); line-height:1.45;"></div>
       </aside>
 
       <div class="drill-container">
@@ -690,6 +697,8 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         
         <button class="btn primary" id="applyBtn">Save Shift Window</button>
         <button class="btn" id="refreshTelemetryBtn">↻ Refresh Telemetry</button>
+        <button class="btn" id="buildSummariesBtn" style="display:none" title="Administrators: build the per-minute history summaries used to load the dashboard with very little data.">⚙ Build history summaries</button>
+        <button class="btn" id="clearCacheBtn" title="Delete the history stored in this browser. It is downloaded again when needed.">🗑 Clear local cache</button>
       </aside>
 
       <div>
@@ -759,8 +768,30 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 
         <section class="grid equal">
           <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Output vs Plan</div><div class="panel-desc">Cumulative parts against nominal pace, with the end-of-shift projection at the current average</div></div><span class="badge" id="paceBadge">—</span></div>
+            <div class="chart-wrap" style="height:260px"><canvas id="cumChart"></canvas></div>
+            <div class="stat-grid" style="margin-top:12px">
+              <div class="mini"><div class="v" id="paceNow">—</div><div class="l">Ahead / behind plan</div></div>
+              <div class="mini"><div class="v" id="paceProj">—</div><div class="l">Projected shift output</div></div>
+              <div class="mini"><div class="v" id="paceNeed">—</div><div class="l">Rate needed to reach plan</div></div>
+            </div>
+          </div>
+          <div class="card panel stops-card">
+            <div class="panel-head"><div><div class="panel-title">Stops &amp; Time Without Output</div><div class="panel-desc">Every gap of 1 minute or more between two parts, grouped by length: bars show minutes lost, the line shows how many stops</div></div><span class="badge" id="stopBadge">—</span></div>
+            <div class="chart-wrap" style="height:150px;flex:0 0 auto"><canvas id="stopParetoChart"></canvas></div>
+            <div class="stops-scroll" style="overflow-x:auto;">
+              <table class="batch-table">
+                <thead><tr><th>Start</th><th>End</th><th>Duration</th><th>Machine state</th></tr></thead>
+                <tbody id="stopTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid equal">
+          <div class="card panel">
             <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
-            <div class="chart-wrap short"><canvas id="capacityChart"></canvas></div>
+            <div class="chart-wrap short" style="display:grid; grid-template-columns:1.1fr 1fr; gap:14px;"><div style="position:relative; min-height:0;"><canvas id="capacityChart"></canvas></div><div style="position:relative; min-height:0;"><canvas id="capacityRateChart"></canvas></div></div>
             <div class="stat-grid" style="margin-top:12px">
               <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
               <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
@@ -768,22 +799,33 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
             </div>
           </div>
           <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the planned shift time is being consumed</div></div></div>
+            <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the shift time went: producing, powered but no output (idle), or switched off</div></div></div>
             <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
             <div class="losses" style="margin-top:10px">
               <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
-              <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Standby Ready Idle</div></div>
+              <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Idle: powered, no parts for 1 min or more</div></div>
             </div>
           </div>
         </section>
 
         <section class="card panel" style="margin-bottom:14px">
-          <div class="panel-head"><div><div class="panel-title">Machine Operational State Chronology</div><div class="panel-desc">High-precision timeline distinguishing Machine Off, Machine Idle, and Machine Working</div></div><span class="badge">Millisecond Auditing</span></div>
+          <div class="panel-head"><div><div class="panel-title">Machine Operational State Chronology</div><div class="panel-desc">High-precision timeline distinguishing Machine Off, Idle (powered, no output) and Working</div></div><span class="badge">Millisecond Auditing</span></div>
           <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">Shift Start</span><span id="dayEnd">Shift End</span></div></div>
           <div class="legend">
             <span class="working">Working</span>
             <span class="idle">Idle</span>
             <span class="off">Off</span>
+          </div>
+        </section>
+
+                <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">Minute Heatmap</div><div class="panel-desc">One cell per minute of the shift, coloured by output relative to nominal speed. Stops, slow spells and speed changes show up as dark or dim bands.</div></div><span class="badge">HOVER FOR DETAIL</span></div>
+          <div id="heatWrap" style="position:relative;">
+            <canvas id="heatCanvas" style="width:100%; display:block;"></canvas>
+            <div id="heatTip" style="position:absolute; display:none; pointer-events:none; background:#0b151e; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:11px; color:var(--text); white-space:nowrap; z-index:5;"></div>
+          </div>
+          <div class="legend" style="align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:6px">0 <i id="heatScale" style="display:inline-block;width:150px;height:8px;border-radius:4px"></i> nominal+</span>
           </div>
         </section>
 
@@ -793,7 +835,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
             <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
           </div>
           <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">Quality Mix</div><div class="panel-desc">Good versus rejected output</div></div></div>
+            <div class="panel-head"><div><div class="panel-title">Reject Rate Control Chart</div><div class="panel-desc">Reject % per 15 minutes against the shift average and its 3-sigma limit. Red points are statistically abnormal.</div></div></div>
             <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
           </div>
         </section>
@@ -1005,7 +1047,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 }
 </style>
 
-<button class="ai-fab" id="aiFab" type="button" onclick="toggleAIChat()" aria-label="Open Companorama AI" style="display: grid; place-items: center; padding: 0; overflow: hidden;">
+<button class="ai-fab" id="aiFab" type="button" onclick="toggleAIChat()" aria-label="Open Companorama AI" style="display: none; place-items: center; padding: 0; overflow: hidden;">
   <img src="AI.jpg" alt="Companorama AI" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
 </button>
 
@@ -1251,127 +1293,123 @@ function setAITyping(show) {
    Requires Firebase compat SDK already initialized.
    ============================================= */
 
+// The AI works ONLY from data the dashboard already holds in the browser (memory / local cache).
+// It never reads the database and the cloud function no longer reads it either.
+const AI_MINUTE_ENTRY_BUDGET = 300;    // more active minutes than this -> 5-minute buckets (keeps the request inside the AI model's token limit)
+
 async function getCompanoramaAIContext() {
-  const db = firebase.database();
-
-  // Read current UI selections instead of hardcoding values.
-  const getSelected = (selector) => {
-    const element = document.querySelector(selector);
-    if (!element) return "";
-
-    const value =
-      "value" in element
-        ? element.value
-        : element.getAttribute("data-value") || element.textContent;
-
-    return String(value || "").trim();
-  };
-
   const state = window.navState ?? navState;
-
   const site = String(state?.group ?? "").trim();
   const factory = String(state?.factory ?? "").trim();
   const area = String(state?.area ?? "").trim();
   const selectedMachine = String(state?.machine ?? "").trim();
 
-  console.log("Companorama AI hierarchy:", {
-    level: state?.level,
-    site,
-    factory,
-    area,
-    selectedMachine
-  });
-
-  if (
-    state?.level !== "machine" ||
-    !site ||
-    !factory ||
-    !area ||
-    !selectedMachine
-  ) {
-    throw new Error(
-      "Navigate to a machine dashboard before asking machine-specific questions."
-    );
+  if (state?.level !== "machine" || !site || !factory || !area || !selectedMachine) {
+    throw new Error("Navigate to a machine dashboard before asking machine-specific questions.");
   }
 
-  // Firebase key sanitization
-  const cleanKey = value =>
-    value.replace(/[.#$\[\]\/]/g, "_");
+  const p2 = n => String(n).padStart(2, "0");
+  const dayOf = t => `${t.getFullYear()}-${p2(t.getMonth() + 1)}-${p2(t.getDate())}`;
+  const stampOf = t => `${dayOf(t)} ${p2(t.getHours())}:${p2(t.getMinutes())}:${p2(t.getSeconds())}`;
+  const { start, end } = getShiftWindow();
+  const nowMs = Date.now();
 
-  const hierarchy = [site, factory, area, selectedMachine]
-    .map(cleanKey);
+  // ---- every cycle / reject of the shown shift, grouped by minute: "HH:MM=cycles" or "HH:MM=cycles/rejects" ----
+  const group = resMin => {
+    const days = {};
+    events.forEach(e => {
+      const t = e.timestamp;
+      const day = dayOf(t);
+      const mod = Math.floor((t.getHours() * 60 + t.getMinutes()) / resMin) * resMin;
+      const m = days[day] || (days[day] = new Map());
+      const cell = m.get(mod) || [0, 0];
+      if (e.type === "cycles count") cell[0]++; else cell[1]++;
+      m.set(mod, cell);
+    });
+    const out = {};
+    let n = 0;
+    Object.keys(days).sort().forEach(day => {
+      out[day] = Array.from(days[day].keys()).sort((x, y) => x - y).map(mod => {
+        const [c, r] = days[day].get(mod);
+        n++;
+        return `${p2(Math.floor(mod / 60))}:${p2(mod % 60)}=${c}${r ? "/" + r : ""}`;
+      }).join(",");
+    });
+    return { out, n };
+  };
+  let resolution = 1;
+  let grouped = group(1);
+  if (grouped.n > AI_MINUTE_ENTRY_BUDGET) { resolution = 5; grouped = group(5); }
 
-  const machine = cleanKey(selectedMachine);
-  const basePath = hierarchy.join("/");
+  // ---- ready-made answers: stops, hours and batches (the model should not have to scan minutes for these) ----
+  const md = t => `${p2(t.getMonth() + 1)}-${p2(t.getDate())} ${p2(t.getHours())}:${p2(t.getMinutes())}`;
+  const stopsAll = (lastStops || []).slice();
+  const longest = stopsAll.slice().sort((a, b) => b.dur - a.dur);
+  const stopsList = longest.slice(0, 40).sort((a, b) => a.start - b.start)
+    .map(x => `${md(new Date(x.start))} -> ${x.ongoing ? "now" : md(new Date(x.end))} | ${Math.round(x.dur / 60000)} min | ${stateLabel(x.state)}`);
+  const stopSummary = {
+    note: "A stop is any gap of 1 minute or more between two parts. 'Powered, no output' = status says On but no parts were produced.",
+    count: stopsAll.length,
+    totalMinutes: Math.round(stopsAll.reduce((a, x) => a + x.dur, 0) / 60000),
+    longest: longest[0] ? `${md(new Date(longest[0].start))} -> ${longest[0].ongoing ? "now" : md(new Date(longest[0].end))} (${Math.round(longest[0].dur / 60000)} min)` : null,
+    listedLongestFirst40: stopsList.length < stopsAll.length ? stopsList.length : "all"
+  };
+  const hourly = [];
+  const hoursShown = Math.min(Math.ceil(Math.max(0, Math.min(nowMs, +end) - +start) / 3600000), 36);
+  for (let h = 0; h < hoursShown; h++) {
+    const a = +start + h * 3600000, b = a + 3600000;
+    let c = 0, r = 0;
+    events.forEach(e => { const t = +e.timestamp; if (t >= a && t < b) { if (e.type === "cycles count") c++; else r++; } });
+    let stopped = 0;
+    stopsAll.forEach(x => { const lo = Math.max(a, x.start), hi = Math.min(b, x.ongoing ? nowMs : x.end); if (hi > lo) stopped += hi - lo; });
+    hourly.push(`${p2(new Date(a).getHours())}:00 cycles=${c} rejects=${r} noOutputMin=${Math.round(stopped / 60000)}`);
+  }
+  const batchList = (lastBatches || []).slice(0, 25).map(b => `${b.id} ${b.startStr}-${b.endStr} ${b.durationFormatted} total=${b.total} rejects=${b.rejects}`);
 
+  // ---- machine state changes (the last one before the shift is included) ----
+  const st = statuses.slice().sort((x, y) => x.timestamp - y.timestamp);
+  let priorIdx = -1;
+  st.forEach((x, i) => { if (x.timestamp <= start) priorIdx = i; });
+  const statusChanges = st.slice(Math.max(0, priorIdx)).slice(-60).map(x => ({ t: stampOf(x.timestamp), state: x.val }));
 
-  // Fetch the latest available machine settings.
-  const settingsPath = `machine_settings/${basePath}`;
+  // ---- other days already stored in this browser (memory or local cache): daily totals only ----
+  const cachedDays = [];
+  const base = `${site}/${factory}/${area}/${selectedMachine}`;
+  const baseDay = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+  for (let i = 0; i <= 10; i++) {
+    const dKey = new Date(baseDay - i * 86400000).toISOString().slice(0, 10);
+    const key = `${base}|${dKey}`;
+    const entry = folderMem.get(key) || await localCache.get("folders", key);
+    if (!entry) continue;
+    let lo = Infinity, hi = -Infinity;
+    for (const arr of [entry.c, entry.r]) for (let i = 0; i < arr.length; i++) { if (arr[i] < lo) lo = arr[i]; if (arr[i] > hi) hi = arr[i]; }
+    cachedDays.push({
+      utcDateFolder: dKey,
+      cycles: entry.c.length, rejects: entry.r.length, stateChanges: entry.s.length,
+      firstEvent: lo < Infinity ? stampOf(new Date(lo)) : null,
+      lastEvent: hi > -Infinity ? stampOf(new Date(hi)) : null
+    });
+  }
 
-  // Read the selected process's live data.
-  const [settingsSnapshot, eventsSnapshot, statusSnapshot] =
-    await Promise.all([
-      db.ref(settingsPath).once("value"),
-      db.ref(`${basePath}/events`).once("value"),
-      db.ref(`${basePath}/status_logs`).once("value")
-    ]);
-
-  const settings = settingsSnapshot.val() || {};
-  const allEvents = eventsSnapshot.val() || {};
-  const allStatusLogs = statusSnapshot.val() || {};
-
-  // Flatten date-grouped records and retain the source date.
-  const flattenByDate = (collection, dateLimit = 3) =>
-    Object.entries(collection)
-      .sort(([a], [b]) => b.localeCompare(a))
-      .slice(0, dateLimit)
-      .flatMap(([date, records]) =>
-        Object.entries(records || {}).map(([id, record]) => ({
-          date,
-          id,
-          ...record
-        }))
-      );
-
-  // Keep only events associated with the selected machine.
-  const events = flattenByDate(allEvents)
-    .filter(event => event.machine === selectedMachine)
-    .sort((a, b) =>
-      Number(b.timestamp || 0) - Number(a.timestamp || 0)
-    )
-    .slice(0, 100);
-
-  // Filter logs if their schema includes a machine field.
-  // If logs are process-wide, keep them as process-level data.
-  const statusLogs = flattenByDate(allStatusLogs)
-    .filter(log =>
-      !log.machine || log.machine === selectedMachine
-    )
-    .sort((a, b) =>
-      Number(b.timestamp || 0) - Number(a.timestamp || 0)
-    )
-    .slice(0, 100);
-
-  // Pre-calculate aggregate counts for the AI summary
   const totalCycles = events.filter(e => e.type === "cycles count").length;
   const totalRejects = events.filter(e => e.type === "rejected products cycle count").length;
 
   return {
-    hierarchy: {
-      site,
-      factory,
-      area,
-      machine: selectedMachine
-    },
-    machineSettings: settings,
-    summary: {
-      totalEvents: events.length,
-      totalCycles,
-      totalRejects,
-      goodOutput: Math.max(0, totalCycles - totalRejects),
-    },
-    recentEvents: events.slice(-20).map(r => ({ time: r.timestamp, type: r.type })),
-    statusLogs: statusLogs.slice(-20).map(r => ({ time: r.timestamp, val: r.val }))
+    hierarchy: { site, factory, area, machine: selectedMachine },
+    source: "browser memory / local cache (no database read)",
+    now: stampOf(new Date(nowMs)),
+    window: { shiftStart: stampOf(start), shiftEnd: stampOf(end), elapsedHoursSoFar: +(Math.max(0, Math.min(nowMs, end.getTime()) - start.getTime()) / 3600000).toFixed(3) },
+    settings: getShiftWindowFormValues(),
+    kpis: lastKpis,
+    summary: { totalEvents: events.length, totalCycles, totalRejects, goodOutput: Math.max(0, totalCycles - totalRejects) },
+    stopSummary,
+    stops: stopsList,
+    hourly,
+    batches: batchList,
+    minuteResolution: resolution,
+    minuteData: grouped.out,
+    statusChanges,
+    cachedDays
   };
 }
 
@@ -1435,7 +1473,10 @@ async function handleUserSubmit() {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "AI request failed.");
+      const e = new Error(data.error || "AI request failed.");
+      e.detail = data.detail || "";
+      e.status = response.status;
+      throw e;
     }
 
     const answer = data.reply;
@@ -1454,8 +1495,10 @@ async function handleUserSubmit() {
   } catch (error) {
     console.error("Companorama AI error:", error);
 
+    const why = error && (error.detail || error.message) ? String(error.detail || error.message).slice(0, 220) : "";
     addAIMessage(
-      "I couldn't complete that request. Please check your connection and try again. If the problem continues, check the Firebase Function logs."
+      "I couldn't complete that request." + (why ? ` Reason: ${why}` : "") +
+      " Please try again. If the problem continues, check the Firebase Function logs."
     );
 
   } finally {
@@ -1467,6 +1510,7 @@ async function handleUserSubmit() {
 }
 
 let events = [], statuses = [], charts = {};
+let lastKpis = null, lastStops = [], lastBatches = [];
 let params = { hours: 24, speed: 120, cost: 15000, startHour: 8 };
 let dbTree = {};
 let telemetryCache = {}; 
@@ -1485,17 +1529,46 @@ $("filterEndDate").value = new Date().toLocaleDateString("en-CA");
 $("analysisDate").value = new Date().toLocaleDateString("en-CA");
 
 // --- INACTIVITY & AUDIT LOGGING ---
+// The idle time is measured from timestamps (not from one long timer), so it stays correct when the computer sleeps,
+// the tab is in the background, or several tabs are open. Activity in any tab counts for all of them.
+const INACTIVITY_MS = 10 * 60 * 1000;
+const ACTIVITY_KEY = "companorama_last_activity";
+let lastActivityAt = Date.now(), inactivityArmedFor = null, inactivityLoggingOut = false;
 function resetInactivityTimer() {
-  if (inactivityTimer) clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    if (currentUserRecord) {
-      logAuditAction("AUTO_LOGOUT", "User automatically logged out due to 10 minutes of inactivity.");
-      auth.signOut();
-      location.reload();
-    }
-  }, 10 * 60 * 1000);
+  const n = Date.now();
+  if (n - lastActivityAt < 1000) return;                 // mouse moves arrive hundreds of times per second
+  lastActivityAt = n;
+  try { localStorage.setItem(ACTIVITY_KEY, String(n)); } catch (e) { /* storage blocked: this tab still works alone */ }
 }
-
+function getLastActivity() {
+  let v = lastActivityAt;
+  try { const s = Number(localStorage.getItem(ACTIVITY_KEY)); if (s > v) v = s; } catch (e) { /* ignore */ }
+  return v;
+}
+async function checkInactivity() {
+  if (!currentUserRecord) { inactivityArmedFor = null; inactivityLoggingOut = false; return; }
+  if (inactivityArmedFor !== currentUserRecord.email) {  // a new sign-in starts a fresh 10 minutes
+    inactivityArmedFor = currentUserRecord.email;
+    lastActivityAt = 0; resetInactivityTimer();
+    return;
+  }
+  if (inactivityLoggingOut || Date.now() - getLastActivity() < INACTIVITY_MS) return;
+  inactivityLoggingOut = true;
+  try {   // write the audit entry first (while still signed in), but never wait more than 4 seconds for it
+    await Promise.race([
+      logAuditAction("AUTO_LOGOUT", "User automatically logged out due to 10 minutes of inactivity."),
+      new Promise(r => setTimeout(r, 4000))
+    ]);
+  } catch (e) { /* the sign-out must happen even if the log could not be written */ }
+  try { await auth.signOut(); } catch (e) { /* ignore */ }
+  location.reload();
+}
+['mousemove', 'mousedown', 'keydown', 'click', 'scroll', 'wheel', 'touchstart', 'pointerdown'].forEach(evt =>
+  window.addEventListener(evt, resetInactivityTimer, { capture: true, passive: true }));   // capture: also sees scrolling inside panels
+setInterval(checkInactivity, 15000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkInactivity(); });
+window.addEventListener("focus", checkInactivity);
+window.addEventListener("pageshow", checkInactivity);
 
 function setAIFabVisibility(visible) {
   const fab = document.getElementById("aiFab");
@@ -1593,11 +1666,6 @@ function formatAuditDetails(details) {
 }
 
 
-window.onload = () => {
-  ['mousemove', 'keydown', 'click', 'scroll'].forEach(evt => {
-    window.addEventListener(evt, resetInactivityTimer);
-  });
-};
 
 async function logAuditAction(actionType, details) {
   if (!currentUserRecord) return;
@@ -3032,10 +3100,37 @@ function isTodayIncluded() {
   }
 }
 
+let levelBusySince = 0;
+let levelForce = false;                 // set by "↻ Refresh Telemetry" on the hierarchy levels
+const levelForcedDone = new Set();      // machines already re-read during this forced refresh
+
+// A machine page refreshes by itself only while its shift is running (plus 2 minutes after it ends, to catch the last
+// events). A finished shift never changes, so it is not polled: use "Refresh Telemetry" to look for late uploads.
+function machineShiftIsLive() {
+  const { start, end } = getShiftWindow();
+  const n = Date.now();
+  return n >= start.getTime() && n <= end.getTime() + 2 * 60000;
+}
+function shouldAutoRefreshNow() {
+  if (document.hidden) return false;                                  // nobody is looking
+  if (navState.machine && $("dashboardMain").style.display !== "none") return machineShiftIsLive();
+  // group / factory / area / machine lists: only while the selected day or period includes today.
+  // A finished period does not change; "↻ Refresh Telemetry" re-reads it for records that were uploaded late.
+  return isTodayIncluded();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || !autoRefreshTimer || !shouldAutoRefreshNow()) return;
+  telemetryCache = {};
+  if (navState.machine) { loadMachineTelemetryDashboard(); } else { renderCurrentLevel(true); }
+});
+
 function manageAutoRefresh() {
   if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
-  if (isTodayIncluded()) {
+  {
     autoRefreshTimer = setInterval(() => {
+      if (!shouldAutoRefreshNow()) return;                          // hidden tab or finished shift: no download
+      if (levelBusySince && Date.now() - levelBusySince < 120000) return;   // previous refresh still running
       telemetryCache = {}; 
       if (navState.machine) { loadMachineTelemetryDashboard(); } else { renderCurrentLevel(true); }
     }, 10000);
@@ -3068,6 +3163,273 @@ function getShiftWindow() {
   const start = new Date(y, m - 1, d, startHour, 0, 0, 0);
   const end = new Date(start.getTime() + durationHours * 3600000);
   return { start, end };
+}
+
+
+// =====================================================================================================
+// V10 data layer - saves Firebase downloads without changing any number shown on the dashboard
+//   * Finished UTC-day folders are downloaded once, then kept in memory and in the browser (IndexedDB).
+//   * The running day is read incrementally (only events newer than the last one already held), with a
+//     full re-read every RESYNC_MS to pick up late/out-of-order uploads.
+//   * Statistics of finished periods are stored as tiny results and never recalculated.
+// =====================================================================================================
+const CACHE_VERSION = 1;               // raise this number to discard every locally stored result
+const FINAL_GRACE_HOURS = 6;           // a UTC day folder is final this long after that day has ended
+const RESYNC_MS = 5 * 60 * 1000;       // full re-read of a running day at most this often
+const FOLDER_MEM_LIMIT = 120;          // day folders kept in memory at once
+const HIERARCHY_SKIP_ROOTS = ["users", "machine_settings", "audit_trail", "alert_rules", "alert_state", "alert_queue", "event_summaries", "summary_state"];
+
+const folderMem = new Map();           // "g/f/a/m|YYYY-MM-DD" -> { c:[ms], r:[ms], s:[[ms,val]], eKey, sKey, fullAt }
+const folderInflight = {};
+const statsFinal = {};                 // finished-period results (also stored in IndexedDB)
+
+const localCache = (() => {
+  let dbp = null, dbUid = null;
+  function open() {
+    const uid = auth.currentUser && auth.currentUser.uid;
+    if (!uid || typeof indexedDB === "undefined") return Promise.resolve(null);
+    if (dbp && dbUid === uid) return dbp;
+    dbUid = uid;
+    dbp = new Promise(resolve => {
+      try {
+        const rq = indexedDB.open(`companorama_cache_v${CACHE_VERSION}_${uid}`, 1);
+        rq.onupgradeneeded = () => { const d = rq.result; d.createObjectStore("folders"); d.createObjectStore("stats"); };
+        rq.onsuccess = () => resolve(rq.result);
+        rq.onerror = () => resolve(null);
+        rq.onblocked = () => resolve(null);
+      } catch (e) { resolve(null); }
+    });
+    return dbp;
+  }
+  async function get(store, key) {
+    const d = await open();
+    if (!d) return null;
+    return new Promise(resolve => {
+      try {
+        const rq = d.transaction(store, "readonly").objectStore(store).get(key);
+        rq.onsuccess = () => resolve(rq.result || null);
+        rq.onerror = () => resolve(null);
+      } catch (e) { resolve(null); }
+    });
+  }
+  async function put(store, key, val) {
+    const d = await open();
+    if (!d) return;
+    try { d.transaction(store, "readwrite").objectStore(store).put(val, key); } catch (e) { /* storage full or blocked: ignore */ }
+  }
+  async function deleteByPrefix(store, prefix) {
+    const d = await open();
+    if (!d) return;
+    try { d.transaction(store, "readwrite").objectStore(store).delete(IDBKeyRange.bound(prefix, prefix + "\uffff")); } catch (e) { /* ignore */ }
+  }
+  async function wipe() {
+    try { if (dbp) { const d = await dbp; if (d) d.close(); } } catch (e) {}
+    dbp = null; dbUid = null;
+    try {
+      const list = indexedDB.databases ? await indexedDB.databases() : [];
+      list.forEach(x => { if (x.name && x.name.startsWith("companorama_cache_")) indexedDB.deleteDatabase(x.name); });
+    } catch (e) { /* ignore */ }
+  }
+  return { get, put, wipe, deleteByPrefix };
+})();
+
+async function clearLocalCache() {
+  folderMem.clear();
+  Object.keys(statsFinal).forEach(k => delete statsFinal[k]);
+  telemetryCache = {};
+  statusLookbackCache = {};
+  machineSettingsCache = {};
+  await localCache.wipe();
+}
+
+// signing out removes everything stored for the user on this browser
+auth.onAuthStateChanged(u => { if (!u) clearLocalCache(); });
+
+function folderCloseAt(dKey) {
+  return Date.parse(dKey + "T00:00:00Z") + 86400000 + FINAL_GRACE_HOURS * 3600000;
+}
+
+function ingestEvents(entry, snap) {
+  snap.forEach(ch => {
+    entry.eKey = ch.key;
+    const v = ch.val();
+    if (!v) return;
+    const ts = parseDate(v.timestamp);
+    if (!ts) return;
+    if (v.type === "cycles count") entry.c.push(ts.getTime());
+    else if (v.type === "rejected products cycle count") entry.r.push(ts.getTime());
+  });
+}
+
+function ingestStatuses(entry, snap) {
+  snap.forEach(ch => {
+    entry.sKey = ch.key;
+    const v = ch.val();
+    if (!v) return;
+    const ts = parseDate(v.timestamp);
+    if (!ts) return;
+    entry.s.push([ts.getTime(), v.val]);
+  });
+}
+
+function rememberFolder(key, entry) {
+  folderMem.delete(key);
+  folderMem.set(key, entry);
+  while (folderMem.size > FOLDER_MEM_LIMIT) folderMem.delete(folderMem.keys().next().value);
+}
+
+
+// ---- Minute summaries (written by the cloud function): one small record per minute instead of every raw event ----
+// event_summaries/<machine>/<day>/h/<YYYY-MM-DDTHH> = "mm|cycles|rejects|firstCycleMs|lastCycleMs|rejectMs,..;mm|..."
+// meta.eKey = last raw event key already included. Raw events newer than that key are read directly, so the result
+// is always exact and live. Returns null when there is no usable summary (the caller then reads the raw events).
+async function readEventsViaSummary(base, dKey, eRef) {
+  try {
+    const sn = await rtdb.ref(`event_summaries/${base}/${dKey}`).once("value");
+    const sum = sn.val();
+    if (!sum || !sum.meta || !sum.meta.eKey) return null;
+    const out = { c: [], r: [], eKey: sum.meta.eKey };
+    const hours = sum.h || {};
+    Object.keys(hours).forEach(hk => {
+      const hourDate = parseDate(`${hk}:00:00`);
+      if (!hourDate) return;
+      const h0 = hourDate.getTime();
+      String(hours[hk]).split(";").forEach(part => {
+        if (!part) return;
+        const f = part.split("|");
+        const m0 = h0 + Number(f[0]) * 60000;
+        const c = Number(f[1]) || 0, r = Number(f[2]) || 0;
+        if (c > 0) {
+          const cf = Number(f[3]), cl = Number(f[4]);
+          if (Number.isFinite(cf) && Number.isFinite(cl)) {
+            out.c.push(m0 + cf);
+            if (c >= 2) {
+              out.c.push(m0 + cl);
+              for (let i = 1; i <= c - 2; i++) out.c.push(m0 + cf + Math.round(((cl - cf) * i) / (c - 1)));
+            }
+          } else { for (let i = 0; i < c; i++) out.c.push(m0); }
+        }
+        if (r > 0) {
+          const rs = f[5] ? f[5].split(",").map(Number).filter(Number.isFinite) : [];
+          for (let i = 0; i < r; i++) out.r.push(m0 + (i < rs.length ? rs[i] : (rs.length ? rs[rs.length - 1] : 0)));
+        }
+      });
+    });
+    const first = out.eKey;
+    const tail = await eRef.orderByKey().startAt(first).once("value");
+    tail.forEach(ch => {
+      if (ch.key === first) return;
+      out.eKey = ch.key;
+      const v = ch.val();
+      if (!v) return;
+      const ts = parseDate(v.timestamp);
+      if (!ts) return;
+      if (v.type === "cycles count") out.c.push(ts.getTime());
+      else if (v.type === "rejected products cycle count") out.r.push(ts.getTime());
+    });
+    return out;
+  } catch (e) {
+    console.warn("Minute summary not available, reading raw events:", e);
+    return null;
+  }
+}
+
+// Returns the reduced content of one UTC-day folder of a machine. persist=true also stores finished days in IndexedDB.
+function loadFolder(g, f, a, m, dKey, persist, force) {
+  const base = `${g}/${f}/${a}/${m}`;
+  const key = `${base}|${dKey}`;
+  const ikey = force ? key + "|force" : key;
+  if (folderInflight[ikey]) return folderInflight[ikey];
+  const p = (async () => {
+    const closeAt = folderCloseAt(dKey);
+    let entry = force ? null : folderMem.get(key);          // force: ignore the saved copy and read the day again
+    if (!entry && persist && !force) {
+      const saved = await localCache.get("folders", key);
+      if (saved && saved.fullAt > closeAt) entry = saved;
+    }
+    if (entry && entry.fullAt > closeAt) { rememberFolder(key, entry); return entry; }   // finished day: never downloaded again
+
+    const now = Date.now();
+    const closed = now > closeAt;
+    const eRef = rtdb.ref(`${base}/events/${dKey}`), sRef = rtdb.ref(`${base}/status_logs/${dKey}`);
+    if (!entry || closed || now - entry.fullAt > RESYNC_MS) {
+      const viaSummary = await readEventsViaSummary(base, dKey, eRef);
+      const [es, ss] = await Promise.all([viaSummary ? Promise.resolve(null) : eRef.once("value"), sRef.once("value")]);
+      const fresh = { c: [], r: [], s: [], eKey: null, sKey: null, fullAt: now };
+      if (viaSummary) { fresh.c = viaSummary.c; fresh.r = viaSummary.r; fresh.eKey = viaSummary.eKey; }
+      else ingestEvents(fresh, es);
+      ingestStatuses(fresh, ss);
+      rememberFolder(key, fresh);
+      if (closed && persist) localCache.put("folders", key, fresh);
+      return fresh;
+    }
+    // running day: only what is newer than the last record already held
+    const [es, ss] = await Promise.all([
+      entry.eKey ? eRef.orderByKey().startAt(entry.eKey).once("value") : eRef.once("value"),
+      entry.sKey ? sRef.orderByKey().startAt(entry.sKey).once("value") : sRef.once("value")
+    ]);
+    const lastE = entry.eKey, lastS = entry.sKey;
+    const eAdd = { c: entry.c, r: entry.r, eKey: lastE };
+    es.forEach(ch => {                       // the first child returned is the one we already hold
+      if (ch.key === lastE) return;
+      const v = ch.val(); eAdd.eKey = ch.key;
+      if (!v) return;
+      const ts = parseDate(v.timestamp);
+      if (!ts) return;
+      if (v.type === "cycles count") entry.c.push(ts.getTime());
+      else if (v.type === "rejected products cycle count") entry.r.push(ts.getTime());
+    });
+    entry.eKey = eAdd.eKey;
+    ss.forEach(ch => {
+      if (ch.key === lastS) return;
+      entry.sKey = ch.key;
+      const v = ch.val();
+      if (!v) return;
+      const ts = parseDate(v.timestamp);
+      if (!ts) return;
+      entry.s.push([ts.getTime(), v.val]);
+    });
+    rememberFolder(key, entry);
+    return entry;
+  })();
+  folderInflight[ikey] = p;
+  const done = () => { delete folderInflight[ikey]; };
+  p.then(done, done);
+  return p;
+}
+
+// ---- Hierarchy (group > factory > area > machine) from key names only: shallow reads, no data is downloaded ----
+async function fetchShallow(path) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No authenticated Firebase user.");
+  const token = await user.getIdToken();
+  const p = path ? path.split("/").map(encodeURIComponent).join("/") : "";
+  const res = await fetch(`${firebaseConfig.databaseURL}/${p}.json?shallow=true&auth=${encodeURIComponent(token)}`);
+  if (!res.ok) throw new Error(`Shallow read of "${path || "/"}" failed (${res.status})`);
+  return res.json();
+}
+
+async function shallowTree(path, depth) {
+  const sh = await fetchShallow(path);
+  if (!sh || typeof sh !== "object") return null;
+  const keys = Object.keys(sh);
+  const out = {};
+  if (depth === 0) { keys.forEach(k => { out[k] = {}; }); return out; }
+  const subs = await Promise.all(keys.map(k => shallowTree(`${path}/${k}`, depth - 1)));
+  keys.forEach((k, i) => { if (subs[i]) out[k] = subs[i]; });
+  return out;
+}
+
+async function buildHierarchyShallow() {
+  const root = await fetchShallow("");
+  if (!root || typeof root !== "object") return {};
+  let groups = Object.keys(root).filter(k => !k.startsWith(".") && !HIERARCHY_SKIP_ROOTS.includes(k));
+  const own = currentUserRecord && currentUserRecord.group;
+  if (own && own !== "all" && groups.includes(own)) groups = [own];
+  const subs = await Promise.all(groups.map(gk => shallowTree(gk, 2)));
+  const tree = {};
+  groups.forEach((gk, i) => { if (subs[i]) tree[gk] = subs[i]; });
+  return tree;
 }
 
 async function fetchRaw(path) {
@@ -3114,7 +3476,12 @@ function findMachinePath(groupName, targetMachine) {
 
 async function discoverHierarchy() {
   try {
-    dbTree = await fetchRaw("");
+    try {
+      dbTree = await buildHierarchyShallow();
+    } catch (shallowErr) {
+      console.warn("Shallow hierarchy read failed, falling back to a full read:", shallowErr);
+      dbTree = await fetchRaw("");
+    }
     telemetryCache = {};
 
     if (isMachineScopedOperator()) {
@@ -3149,46 +3516,129 @@ async function discoverHierarchy() {
   }
 }
 
-async function fetchMachineTelemetry(g, f, a, m, dateKeys) {
-  const cacheKey = `${g}/${f}/${a}/${m}_${dateKeys.join(",")}`;
-  if (telemetryCache[cacheKey]) return telemetryCache[cacheKey];
+// ---- Per-machine settings (shift start, duration, nominal speed) so every level uses the same rules as the machine page ----
+let machineSettingsCache = {};
+const settingsKey = v => String(v).replace(/[.#$/\[\]]/g, "_");
+async function getMachineShiftSettings(g, f, a, m) {
+  let c = machineSettingsCache[g];
+  if (!c || Date.now() - c.at > 5 * 60 * 1000) {
+    c = machineSettingsCache[g] = {
+      at: Date.now(),
+      p: rtdb.ref(`machine_settings/${settingsKey(g)}`).once("value").then(sn => sn.val() || {}).catch(() => ({}))
+    };
+  }
+  const tree = await c.p;
+  const w = tree?.[settingsKey(f)]?.[settingsKey(a)]?.[settingsKey(m)]?.shift_window || {};
+  const sh = Number(w.shiftStartHour);
+  return {
+    startHour: Number.isFinite(sh) ? sh : 8,
+    hours: Number(w.shiftDurationHours) || 24,
+    speed: Number(w.nominalSpeedPartsPerMin) || 120
+  };
+}
 
-  let rawEvents = [], rawStatuses = [];
-  for (const dKey of dateKeys) {
-    const eData = await fetchRaw(`${g}/${f}/${a}/${m}/events/${dKey}`);
-    const sData = await fetchRaw(`${g}/${f}/${a}/${m}/status_logs/${dKey}`);
-    if (eData) rawEvents.push(...Object.values(eData));
-    if (sData) rawStatuses.push(...Object.values(sData));
+// One shift window per selected day, built like the machine page builds it (start hour + duration of that machine).
+// If today is selected and today's shift has not started yet, the shift that began yesterday (still running) is used.
+function shiftWindowsForFilter(cfg) {
+  const iso = d => d.toLocaleDateString("en-CA");
+  const single = $("filterModeSelect").value === "single";
+  let d1, d2;
+  if (single) { d1 = d2 = $("filterDate").value || todayISO(); }
+  else {
+    d1 = $("filterStartDate").value || todayISO();
+    d2 = $("filterEndDate").value || todayISO();
+    if (d1 > d2) d2 = d1;
+  }
+  const [y, mo, d] = d1.split("-").map(Number);
+  const mk = day => {
+    const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), cfg.startHour, 0, 0, 0);
+    return { start, end: new Date(start.getTime() + cfg.hours * 3600000) };
+  };
+  const wins = [];
+  for (let i = 0; i < 400; i++) {
+    const day = new Date(y, mo - 1, d + i);
+    if (iso(day) > d2) break;
+    wins.push(mk(day));
+  }
+  if (single && d1 === todayISO() && wins.length && Date.now() < wins[0].start.getTime()) {
+    wins[0] = mk(new Date(y, mo - 1, d - 1));
+  }
+  return wins;
+}
+
+async function fetchMachineTelemetry(g, f, a, m, dateKeys) {
+  const cfg = await getMachineShiftSettings(g, f, a, m);
+  const wins = shiftWindowsForFilter(cfg);
+  if (!wins.length) return { total: 0, good: 0, reject: 0, runHours: 0, availability: 0, performance: 0, quality: 100, oee: 0, isOnline: false };
+
+  const rangeId = `${wins[0].start.getTime()}_${wins[wins.length - 1].start.getTime()}_${wins.length}`;
+  const cacheKey = `${g}/${f}/${a}/${m}|${rangeId}|h${cfg.startHour}_d${cfg.hours}_s${cfg.speed}|v3`;   // v3: idle (powered, no output) is no longer counted as working
+  const force = levelForce && !levelForcedDone.has(cacheKey);
+  if (force) {
+    levelForcedDone.add(cacheKey);
+    const pre = `${g}/${f}/${a}/${m}|`;
+    Object.keys(statusLookbackCache).forEach(k => { if (k.startsWith(pre)) delete statusLookbackCache[k]; });
+  }
+  if (!force && telemetryCache[cacheKey]) return telemetryCache[cacheKey];
+  if (!force && statsFinal[cacheKey]) return statsFinal[cacheKey];
+
+  const keys = utcDateKeysForWindow(wins[0].start, wins[wins.length - 1].end);
+  // a period that is completely over never changes: use the stored result
+  const nowCheck = Date.now();
+  const rangeClosed = wins[wins.length - 1].end.getTime() < nowCheck && keys.every(d => nowCheck > folderCloseAt(d));
+  if (rangeClosed && !force) {
+    const saved = await localCache.get("stats", cacheKey);
+    if (saved) { statsFinal[cacheKey] = saved; return saved; }
   }
 
-  const { start, end } = getActiveDateRange();
-  const events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp && x.timestamp >= start && x.timestamp <= end);
-  const statuses = rawStatuses.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
+  const folders = await Promise.all(keys.map(d => loadFolder(g, f, a, m, d, force, force)));
+  const allStatuses = [];
+  folders.forEach(fo => fo.s.forEach(x => allStatuses.push({ timestamp: new Date(x[0]), val: x[1] })));
 
-  const total = events.filter(x => x.type === "cycles count").length;
-  const reject = events.filter(x => x.type === "rejected products cycle count").length;
-  const good = Math.max(0, total - reject);
+  const nowMs = Date.now();
+  let totalS = 0, rejectS = 0, runSecS = 0, elapsedS = 0, nominalS = 0;
+  let lastList = allStatuses;
+  for (const w of wins) {
+    const sMs = w.start.getTime(), eMs = w.end.getTime();
+    if (sMs > nowMs) continue;                               // shift not started yet: nothing to count
+    const cyc = [];
+    let rej = 0;
+    folders.forEach(fo => {
+      fo.c.forEach(t => { if (t >= sMs && t < eMs) cyc.push(t); });
+      fo.r.forEach(t => { if (t >= sMs && t < eMs) rej++; });
+    });
+    let stList = allStatuses;
+    if (!stList.some(x => x.timestamp <= w.start)) {
+      try {
+        const prior = await fetchLastStatusBefore(g, f, a, m, w.start);
+        if (prior) stList = stList.concat([prior]);
+      } catch (e) { /* no earlier state available */ }
+    }
+    if (!stList.length && cyc.length) stList = inferStatusesFromCycles(cyc.map(t => ({ timestamp: new Date(t) })), nowMs);
+    lastList = stList;
 
-  const intervals = intervalsForShiftStatic(statuses, start, end);
-  let runSec = 0;
-  intervals.forEach(x => { if (normalizeState(x.val) === 'Working') runSec += (x.end - x.start) / 1000; });
+    const effEnd = new Date(Math.min(eMs, Math.max(nowMs, sMs)));
+    const cycSorted = cyc.slice().sort((p, q) => p - q);
+    const intervals = splitWorkingByOutput(intervalsForShift(stList, w.start, effEnd), outputGaps(cycSorted, +w.start, +effEnd));
+    let runSec = 0;
+    intervals.forEach(x => { if (normalizeState(x.val) === 'Working') runSec += (x.end - x.start) / 1000; });
+    totalS += cyc.length; rejectS += rej; runSecS += runSec;
+    elapsedS += Math.max(0, (effEnd - w.start) / 1000);
+    nominalS += (runSec / 3600) * 60 * cfg.speed;
+  }
 
-  const totalDurationSec = (end - start) / 1000;
-  const runHours = runSec / 3600;
-  const totalHours = totalDurationSec ? totalDurationSec / 3600 : 24;
-  const availability = totalHours ? Math.min(100, (runHours / totalHours) * 100) : 0;
-  
-  const nominalSpeed = 120;
-  const nominalOutput = runHours * 60 * nominalSpeed;
-  const performance = nominalOutput ? Math.min(100, (total / nominalOutput) * 100) : 0;
+  const total = totalS, reject = rejectS, good = Math.max(0, total - reject);
+  const runHours = runSecS / 3600;
+  const availability = elapsedS ? Math.min(100, (runSecS / elapsedS) * 100) : 0;
+  const performance = nominalS ? Math.min(100, (total / nominalS) * 100) : 0;
   const quality = total ? Math.min(100, (good / total) * 100) : 100;
   const oee = (availability * performance * quality) / 10000;
-
-  const latest = statuses.slice().sort((a,b) => a.timestamp - b.timestamp).at(-1);
+  const latest = lastList.slice().sort((x, y) => x.timestamp - y.timestamp).at(-1);
   const isOnline = normalizeState(latest?.val) === 'Working' || normalizeState(latest?.val) === 'Idle';
 
   const result = { total, good, reject, runHours, availability, performance, quality, oee, isOnline };
-  telemetryCache[cacheKey] = result;
+  if (rangeClosed) { statsFinal[cacheKey] = result; localCache.put("stats", cacheKey, result); }
+  else telemetryCache[cacheKey] = result;
   return result;
 }
 
@@ -3263,17 +3713,21 @@ async function calculateAggregatedStats({ group, factory, area, machine }) {
   let onlineCount = 0;
   let sumOee = 0, sumAv = 0, sumPerf = 0, sumQual = 0;
 
-  for (const item of machinesList) {
-    try {
-      const stats = await fetchMachineTelemetry(item.g, item.f, item.a, item.m, dateKeys);
-      if (stats.isOnline) onlineCount++;
-      sumOee += stats.oee;
-      sumAv += stats.availability;
-      sumPerf += stats.performance;
-      sumQual += stats.quality;
-    } catch(e) {
-      onlineCount++;
-      sumOee += 85; sumAv += 90; sumPerf += 95; sumQual += 99;
+  for (let i = 0; i < machinesList.length; i += 5) {
+    const chunk = machinesList.slice(i, i + 5);
+    const results = await Promise.all(chunk.map(item =>
+      fetchMachineTelemetry(item.g, item.f, item.a, item.m, dateKeys).catch(() => null)));
+    for (const stats of results) {
+      if (stats) {
+        if (stats.isOnline) onlineCount++;
+        sumOee += stats.oee;
+        sumAv += stats.availability;
+        sumPerf += stats.performance;
+        sumQual += stats.quality;
+      } else {
+        onlineCount++;
+        sumOee += 85; sumAv += 90; sumPerf += 95; sumQual += 99;
+      }
     }
   }
 
@@ -3299,6 +3753,8 @@ async function renderCurrentLevel(silent = false) {
   loader.style.display = "inline";
 
   setTimeout(async () => {
+    levelBusySince = Date.now();
+    updateLevelRefreshNote();
     grid.innerHTML = "";
     updateBreadcrumbs();
 
@@ -3380,6 +3836,8 @@ async function renderCurrentLevel(silent = false) {
       }
     }
 
+    levelBusySince = 0;
+    levelForce = false;
     loader.style.display = "none";
     if (!silent) grid.classList.remove("transitioning");
   }, silent ? 0 : 250);
@@ -3579,27 +4037,43 @@ $("returnToDrillBtn").onclick = () => {
   renderCurrentLevel();
 };
 
-async function loadMachineTelemetryDashboard() {
+async function loadMachineTelemetryDashboard(opts) {
   if (!navState.machine) return;
+  const force = !!(opts && opts.force === true);
   const { group: g, factory: f, area: a, machine: m } = navState;
+  if (force) {                                   // forget everything saved for this machine so late uploads are picked up
+    const prefix = `${g}/${f}/${a}/${m}|`;
+    Object.keys(statsFinal).forEach(k => { if (k.startsWith(prefix)) delete statsFinal[k]; });
+    Object.keys(statusLookbackCache).forEach(k => { if (k.startsWith(prefix)) delete statusLookbackCache[k]; });
+    telemetryCache = {};
+    localCache.deleteByPrefix("stats", prefix);
+  }
   const { start, end } = getShiftWindow();
   
   const dateKeys = utcDateKeysForWindow(start, end);
 
   try {
-    let rawEvents = [], rawStatuses = [];
-    for (const dKey of dateKeys) {
-      const eData = await fetchRaw(`${g}/${f}/${a}/${m}/events/${dKey}`);
-      const sData = await fetchRaw(`${g}/${f}/${a}/${m}/status_logs/${dKey}`);
-      if (eData) rawEvents.push(...Object.values(eData));
-      if (sData) rawStatuses.push(...Object.values(sData));
+    const folders = await Promise.all(dateKeys.map(d => loadFolder(g, f, a, m, d, true, force)));
+    const sMs = start.getTime(), eMs = end.getTime();
+    const evs = [], sts = [];
+    folders.forEach(fo => {
+      fo.c.forEach(t => { if (t >= sMs && t < eMs) evs.push({ type: "cycles count", timestamp: new Date(t) }); });
+      fo.r.forEach(t => { if (t >= sMs && t < eMs) evs.push({ type: "rejected products cycle count", timestamp: new Date(t) }); });
+      fo.s.forEach(x => sts.push({ timestamp: new Date(x[0]), val: x[1] }));
+    });
+    events = evs;
+    statuses = sts;
+    if (!statuses.some(x => x.timestamp <= start)) {
+      try {
+        const prior = await fetchLastStatusBefore(g, f, a, m, start);
+        if (prior) statuses.push(prior);
+      } catch (e) { console.warn("Status look-back failed:", e); }
     }
 
-    events = rawEvents.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp && x.timestamp >= start && x.timestamp < end);
-    statuses = rawStatuses.map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp);
-
     $("liveDot").classList.remove("off", "idle");
-    $("connectionText").textContent = "Telemetry connected";
+    const nowT = Date.now();
+    $("connectionText").textContent = machineShiftIsLive() ? "Telemetry connected"
+      : (nowT < start.getTime() ? "Shift has not started yet" : "Finished shift - auto-refresh off (↻ Refresh Telemetry checks for late uploads)");
     $("lastRefresh").textContent = "Updated " + new Date().toLocaleTimeString();
     renderDashboard();
   } catch(err) {
@@ -3609,70 +4083,47 @@ async function loadMachineTelemetryDashboard() {
   }
 }
 
-async function evaluateAndTriggerAlerts(metrics, targetName) {
-  if (!currentUserRecord || !currentUserRecord.group) return;
-  const group = currentUserRecord.group;
-
-  try {
-    const snap = await rtdb.ref(`alert_rules/${group}`).once('value');
-    if (!snap.exists()) return;
-
-    snap.forEach(childSnap => {
-      const rule = childSnap.val();
-      let triggered = false;
-      let conditionDesc = "";
-
-      if (rule.scopeLevel === 'machine' && rule.targetValue !== targetName) return;
-
-      if (rule.conditionType === 'speed_below') {
-        const currentSpeed = metrics.actualRate || 0;
-        if (currentSpeed < rule.thresholdVal) {
-          triggered = true;
-          conditionDesc = `Cycle rate dropped to ${currentSpeed.toFixed(1)} parts/min (below threshold ${rule.thresholdVal})`;
-        }
-      } else if (rule.conditionType === 'speed_above') {
-        const currentSpeed = metrics.actualRate || 0;
-        if (currentSpeed > rule.thresholdVal) {
-          triggered = true;
-          conditionDesc = `Cycle rate surged to ${currentSpeed.toFixed(1)} parts/min (above threshold ${rule.thresholdVal})`;
-        }
-      } else if (rule.conditionType === 'quality_below') {
-        const currentQual = metrics.quality || 100;
-        if (currentQual < rule.thresholdVal) {
-          triggered = true;
-          conditionDesc = `Quality percentage dropped to ${currentQual.toFixed(1)}% (below threshold ${rule.thresholdVal}%)`;
-        }
-      } else if (rule.conditionType === 'state_off' && !metrics.isOnline) {
-        triggered = true;
-        conditionDesc = `Machine offline condition met for target scope.`;
-      }
-
-      if (triggered) {
-        dispatchAlertEmail({
-          recipients: rule.recipients,
-          ruleName: rule.conditionType,
-          target: targetName,
-          condition: conditionDesc,
-          threshold: rule.thresholdVal
-        });
-      }
-    });
-  } catch (err) {
-    console.error("Failed to evaluate alert rules:", err);
+// ---- Machine state helpers ----------------------------------------------------------------
+// If the node sent no Machine On/Off events (the state only changes when the signal changes, so a machine that was
+// already On at boot and never switched stays silent), estimate the state from the cycle pulses: the machine counts
+// as Working while pulses keep arriving less than INFER_GAP_SEC apart.
+const INFER_GAP_SEC = 120;
+function inferStatusesFromCycles(cycles, nowMs) {
+  const t = cycles.map(c => +c.timestamp).filter(Number.isFinite).sort((a, b) => a - b);
+  if (!t.length) return [];
+  const gap = INFER_GAP_SEC * 1000;
+  const out = [];
+  let runStart = t[0], prev = t[0];
+  for (let i = 1; i < t.length; i++) {
+    if (t[i] - prev > gap) {
+      out.push({ timestamp: new Date(runStart), val: "Machine On" });
+      out.push({ timestamp: new Date(prev + gap), val: "Machine Off" });
+      runStart = t[i];
+    }
+    prev = t[i];
   }
+  out.push({ timestamp: new Date(runStart), val: "Machine On" });
+  if (nowMs - prev > gap) out.push({ timestamp: new Date(prev + gap), val: "Machine Off" });
+  return out;
 }
 
-async function dispatchAlertEmail(payload) {
-  const FUNCTION_URL = "https://us-central1-companorama-5da32.cloudfunctions.net/sendOperationalAlert"; 
-  try {
-    await fetch(FUNCTION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } catch (e) {
-    console.error("Alert dispatch network failure:", e);
+// Last known state BEFORE the shift started (a machine that has been On since yesterday has no event inside today's folder)
+let statusLookbackCache = {};
+async function fetchLastStatusBefore(g, f, a, m, start) {
+  const key = `${g}/${f}/${a}/${m}|${start.getTime()}`;
+  if (key in statusLookbackCache) return statusLookbackCache[key];
+  let found = null;
+  const base = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+  for (let i = 1; i <= 14 && !found; i++) {
+    const dKey = new Date(base - i * 86400000).toISOString().slice(0, 10);
+    const snap = await rtdb.ref(`${g}/${f}/${a}/${m}/status_logs/${dKey}`).orderByKey().limitToLast(5).once("value");
+    const v = snap.val();
+    if (!v) continue;
+    const arr = Object.values(v).map(x => ({ ...x, timestamp: parseDate(x.timestamp) })).filter(x => x.timestamp && x.timestamp <= start);
+    if (arr.length) found = arr.sort((p, q) => p.timestamp - q.timestamp).at(-1);
   }
+  statusLookbackCache[key] = found;
+  return found;
 }
 
 function intervalsForShift(st, start, end) {
@@ -3688,6 +4139,36 @@ function intervalsForShift(st, start, end) {
   for (let i = 0; i < points.length; i++) {
     const a = points[i].timestamp, b = i + 1 < points.length ? points[i+1].timestamp : end;
     if (b > a) out.push({ start: a, end: b, val: points[i].val });
+  }
+  return out;
+}
+
+// A machine that is powered but has produced no part for STOP_MIN_MS or longer is Idle, not Working.
+// The same rule is used by the Stops panel, the Loss Structure ring, Availability and the group/factory/area cards.
+function outputGaps(times, sMs, eMs) {
+  const gaps = [];
+  const add = (a, b) => { if (b - a >= STOP_MIN_MS) gaps.push([a, b]); };
+  if (!times.length) { add(sMs, eMs); return gaps; }
+  add(sMs, times[0]);
+  for (let i = 1; i < times.length; i++) add(times[i - 1], times[i]);
+  add(times[times.length - 1], eMs);
+  return gaps;
+}
+function splitWorkingByOutput(intervals, gaps) {
+  if (!gaps.length) return intervals;
+  const out = [];
+  for (const x of intervals) {
+    if (normalizeState(x.val) !== "Working") { out.push(x); continue; }
+    let cur = +x.start; const e = +x.end;
+    for (const [a, b] of gaps) {
+      if (b <= cur) continue;
+      if (a >= e) break;
+      const gs = Math.max(a, cur), ge = Math.min(b, e);
+      if (gs > cur) out.push({ start: new Date(cur), end: new Date(gs), val: x.val });
+      out.push({ start: new Date(gs), end: new Date(ge), val: "Idle (no output)" });
+      cur = ge;
+    }
+    if (cur < e) out.push({ start: new Date(cur), end: new Date(e), val: x.val });
   }
   return out;
 }
@@ -3759,7 +4240,15 @@ function renderDashboard() {
   const reject = rejectEvents.length;
   const good = Math.max(0, total - reject);
 
-  const intervals = intervalsForShift(statuses, start, end);
+  // OEE is calculated up to NOW while the shift is still running (not up to the end of the shift)
+  const nowMs = Date.now();
+  const effEnd = new Date(Math.min(end.getTime(), Math.max(nowMs, start.getTime())));
+  const elapsedSec = Math.max(0, (effEnd - start) / 1000);
+  let stList = statuses, statusInferred = false;
+  if (!stList.length && cycleEvents.length) { stList = inferStatusesFromCycles(cycleEvents, nowMs); statusInferred = true; }
+  const rawIntervals = intervalsForShift(stList, start, effEnd);
+  const cycTimes = cycleEvents.map(x => +x.timestamp).filter(v => v >= +start && v <= +effEnd).sort((a, b) => a - b);
+  const intervals = splitWorkingByOutput(rawIntervals, outputGaps(cycTimes, +start, +effEnd));
   let runSec = 0, idleSec = 0;
   intervals.forEach(x => { 
     const norm = normalizeState(x.val);
@@ -3768,7 +4257,7 @@ function renderDashboard() {
   });
 
   const shiftHours = Number($("workingHours").value) || 24;
-  const availableSec = shiftHours * 3600;
+  const availableSec = elapsedSec;
   const runHours = runSec / 3600;
   const availability = availableSec ? Math.min(100, (runSec / availableSec) * 100) : 0;
   
@@ -3780,7 +4269,8 @@ function renderDashboard() {
   const quality = total ? Math.min(100, (good / total) * 100) : 100;
   const oee = (availability * performance * quality) / 10000;
 
-  const downtimeHours = Math.max(0, shiftHours - runHours);
+  const elapsedHours = elapsedSec / 3600;
+  const downtimeHours = Math.max(0, elapsedHours - runHours);
   const loss = downtimeHours * params.cost;
   const actualRate = runHours ? total / (runHours * 60) : 0;
 
@@ -3801,19 +4291,29 @@ function renderDashboard() {
   $("nominalCapacity").textContent = fmt(nominalOutput);
   $("actualRate").textContent = fmt(actualRate, 1);
   $("speedGap").textContent = fmt(Math.max(0, params.speed - actualRate), 1) + " /min";
-  $("plannedTime").textContent = fmt(shiftHours, 2) + " h";
+  $("plannedTime").textContent = nowMs < end.getTime() ? `${fmt(elapsedHours, 2)} h (so far, of ${fmt(shiftHours, 0)} h)` : fmt(shiftHours, 2) + " h";
   $("idleTime").textContent = fmt(idleSec / 3600, 2) + " h";
   $("speedBadge").textContent = fmt(actualRate, 1) + " parts/min avg";
 
-  const latest = statuses.slice().sort((a,b) => a.timestamp - b.timestamp).at(-1);
+  const latest = stList.slice().sort((a,b) => a.timestamp - b.timestamp).at(-1);
   const rawStatus = latest?.val || "Off";
   const normStatus = normalizeState(rawStatus);
-  $("machineStatus").textContent = `● ${rawStatus.toUpperCase()}`;
+  $("machineStatus").textContent = `● ${rawStatus.toUpperCase()}${statusInferred ? " (estimated from cycles)" : ""}`;
   $("machineStatus").style.color = normStatus === 'Working' ? "var(--green)" : (normStatus === 'Idle' ? "var(--amber)" : "var(--red)");
   $("liveDot").className = "dot " + (normStatus === 'Working' ? '' : (normStatus === 'Idle' ? 'idle' : 'off'));
 
+  lastKpis = {
+    oeePct: +oee.toFixed(2), availabilityPct: +availability.toFixed(2), performancePct: +performance.toFixed(2), qualityPct: +quality.toFixed(2),
+    totalCycles: total, goodOutput: good, rejects: reject,
+    runHours: +runHours.toFixed(3), idleHours: +(idleSec / 3600).toFixed(3), elapsedHoursSoFar: +elapsedHours.toFixed(3),
+    shiftDurationHours: shiftHours, nominalSpeedPartsPerMin: params.speed, nominalOutput: Math.round(nominalOutput),
+    actualRatePartsPerMinWhileRunning: +actualRate.toFixed(2), downtimeLossEgp: Math.round(loss),
+    currentState: rawStatus, stateEstimatedFromCycles: statusInferred
+  };
+
   const timeoutMin = Number($("batchTimeoutMin").value) || 60;
   const batches = computeBatches(cycleEvents, rejectEvents, timeoutMin);
+  lastBatches = batches;
   $("batchCountBadge").textContent = `${batches.length} Batches Detected`;
   
   const tbody = $("batchTableBody"); tbody.innerHTML = "";
@@ -3835,56 +4335,81 @@ function renderDashboard() {
     });
   }
 
-  renderVelocity(events, start, end);
+  renderVelocity(events, start, end, params.speed);
   renderCapacity(total, nominalOutput, actualRate, params.speed);
-  renderLoss(shiftHours, runHours, downtimeHours);
+  renderLoss(elapsedHours, runHours, idleSec / 3600);
   renderTimeline(intervals, start, end);
   renderHourly(events, start, shiftHours);
-  renderQuality(good, reject);
+  renderAnalysis(events, start, end, effEnd, rawIntervals, params.speed, nowMs);
   $("footerTime").textContent = "Calculated " + new Date().toLocaleString();
-  const isOnline = normStatus === 'Working' || normStatus === 'Idle';
-  evaluateAndTriggerAlerts({ actualRate, quality, isOnline }, navState.machine);
 }
 
-function renderVelocity(ev, start, end) {
+function renderVelocity(ev, start, end, speed) {
   const map = {};
   ev.filter(x => x.type === "cycles count").forEach(x => {
     const k = x.timestamp.getHours() + ":" + String(x.timestamp.getMinutes()).padStart(2, "0");
     map[k] = (map[k] || 0) + 1;
   });
+  const stopAt = Math.min(end.getTime(), Date.now());          // no empty minutes in the future
   const labels = [], vals = [];
   let cursor = new Date(start.getTime());
-  while (cursor < end) {
+  while (cursor.getTime() < stopAt) {
     const k = cursor.getHours() + ":" + String(cursor.getMinutes()).padStart(2, "0");
     labels.push(k); vals.push(map[k] || 0);
     cursor.setMinutes(cursor.getMinutes() + 1);
   }
+  const avg5 = vals.map((_, i) => { const lo = Math.max(0, i - 4); let t = 0; for (let j = lo; j <= i; j++) t += vals[j]; return +(t / (i - lo + 1)).toFixed(2); });
   destroy("velocityChart");
   charts.velocityChart = new Chart($("velocityChart"), {
     type: "line",
-    data: { labels, datasets: [{ label: "Parts / min", data: vals, borderColor: "#35d4ff", backgroundColor: "rgba(53,212,255,.12)", fill: true }] },
-    options: { ...commonOpts, elements: { line: { tension: 0.35, borderWidth: 2 }, point: { radius: 1 } } }
+    data: { labels, datasets: [
+      { label: "Parts / min", data: vals, borderColor: "rgba(53,212,255,.55)", backgroundColor: "rgba(53,212,255,.10)", fill: true, borderWidth: 1, pointRadius: 0, tension: 0.2 },
+      { label: "5-min average", data: avg5, borderColor: "#38e08f", borderWidth: 2.2, pointRadius: 0, tension: 0.35, fill: false },
+      { label: "Nominal speed", data: labels.map(() => speed), borderColor: "rgba(255,191,91,.9)", borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, fill: false }
+    ] },
+    options: { ...commonOpts, interaction: { mode: "index", intersect: false }, elements: { line: { tension: 0.35 } } }
   });
 }
 
 function renderCapacity(total, nominal, actual, speed) {
-  destroy("capacityChart");
-  charts.capacityChart = new Chart($("capacityChart"), {
-    type: "bar",
-    data: { labels: ["Output / shift", "Rate / min"], datasets: [
-      { label: "Actual", data: [total, actual], backgroundColor: ["#35d4ff", "#9b7cff"], borderRadius: 7 },
-      { label: "Nominal", data: [nominal, speed], backgroundColor: ["rgba(129,147,162,.25)", "rgba(129,147,162,.25)"], borderRadius: 7 }
-    ]},
-    options: { ...commonOpts, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
-  });
+  // Output (thousands) and rate (tens) differ by orders of magnitude, so each gets its own chart and its own scale.
+  const mk = (id, name, aVal, nVal, aColor, unit) => {
+    destroy(id);
+    const pctOfNominal = nVal ? Math.min(999, (aVal / nVal) * 100) : 0;
+    charts[id] = new Chart($(id), {
+      type: "bar",
+      data: { labels: ["Actual", "Nominal"], datasets: [{
+        data: [aVal, nVal],
+        backgroundColor: [aColor, "rgba(129,147,162,.30)"],
+        borderRadius: 7, maxBarThickness: 64
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: `${name}  •  ${fmt(pctOfNominal, 0)}% of nominal`, color: "#8ca1af", font: { size: 11, weight: "600" } },
+          tooltip: { callbacks: { label: c => `${fmt(c.parsed.y, unit ? 1 : 0)}${unit}` } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#708493", font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } }
+        }
+      }
+    });
+  };
+  mk("capacityChart", "Output this shift", total, nominal, "#35d4ff", "");
+  mk("capacityRateChart", "Rate (parts / min)", actual, speed, "#9b7cff", " /min");
 }
 
-function renderLoss(available, run, downtime) {
+function renderLoss(available, run, idle) {
   destroy("lossChart");
+  const off = Math.max(0, available - run - idle);
   charts.lossChart = new Chart($("lossChart"), {
     type: "doughnut",
-    data: { labels: ["Active Working", "Idle / Standby", "Off / Unpowered"], datasets: [{ data: [run, downtime, Math.max(0, available - run - downtime)], backgroundColor: ["#38e08f", "#ffbf5b", "#ff5d6c"], borderWidth: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } } } }
+    data: { labels: ["Active Working", "Idle (powered, no output)", "Off / Unpowered"], datasets: [{ data: [run, idle, off], backgroundColor: ["#38e08f", "#ffbf5b", "#ff5d6c"], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "70%",
+      plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => `${c.label}: ${fmt(c.parsed, 2)} h` } } } }
   });
 }
 
@@ -3932,30 +4457,306 @@ function renderHourly(ev, start, hours) {
   });
 }
 
-function renderQuality(good, reject) {
+// ================= V15 analysis panels (all calculated from the data already on screen) =================
+const STOP_MIN_MS = 60000;                       // a gap of at least 1 minute between two parts counts as a stop
+const fmtDurMs = ms => {
+  const sec = Math.round(ms / 1000);
+  if (sec < 120) return `${sec} s`;
+  const m = Math.floor(sec / 60);
+  return m < 120 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`;
+};
+const hhmm = ms => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const stateLabel = st => st === "Working" ? "Powered, no output" : (st === "Idle" ? "Standby" : "Machine off");
+
+function findStops(ev, start, effEnd, intervals, nowMs) {
+  const sMs = +start, eMs = +effEnd;
+  const t = ev.filter(x => x.type === "cycles count").map(x => +x.timestamp).filter(v => v >= sMs && v <= eMs).sort((a, b) => a - b);
+  const stateAt = ms => { const iv = intervals.find(x => ms >= +x.start && ms < +x.end); return iv ? normalizeState(iv.val) : "Off"; };
+  const stops = [];
+  const add = (a, b, ongoing) => { if (b - a >= STOP_MIN_MS) stops.push({ start: a, end: b, dur: b - a, state: stateAt((a + b) / 2), ongoing }); };
+  const live = eMs >= nowMs - 1000;
+  if (!t.length) { add(sMs, eMs, live); return stops; }
+  add(sMs, t[0], false);
+  for (let i = 1; i < t.length; i++) add(t[i - 1], t[i], false);
+  add(t[t.length - 1], eMs, live);
+  return stops;
+}
+
+function renderStops(ev, start, effEnd, intervals, nowMs) {
+  const stops = findStops(ev, start, effEnd, intervals, nowMs);
+  lastStops = stops;
+  const totalMs = stops.reduce((a, x) => a + x.dur, 0);
+  const elapsed = Math.max(1, effEnd - start);
+  $("stopBadge").textContent = stops.length
+    ? `${stops.length} stops • ${fmtDurMs(totalMs)} (${fmt((totalMs / elapsed) * 100, 0)}% of time)`
+    : "no stops";
+
+  const buckets = [["1–2 min", 60e3, 120e3], ["2–5 min", 120e3, 300e3], ["5–15 min", 300e3, 900e3], ["15–60 min", 900e3, 3600e3], ["> 1 h", 3600e3, Infinity]];
+  const mins = buckets.map(([, lo, hi]) => stops.filter(x => x.dur >= lo && x.dur < hi).reduce((a, x) => a + x.dur / 60000, 0));
+  const counts = buckets.map(([, lo, hi]) => stops.filter(x => x.dur >= lo && x.dur < hi).length);
+  destroy("stopParetoChart");
+  const axisTxt = { color: "#708493", font: { size: 9 } };
+  charts.stopParetoChart = new Chart($("stopParetoChart"), {
+    type: "bar",
+    data: {
+      // two-line labels: the length group, then how many stops fell in it
+      labels: buckets.map((x, i) => [x[0], `${counts[i]} stop${counts[i] === 1 ? "" : "s"}`]),
+      datasets: [
+        { type: "bar", label: "Minutes lost", data: mins.map(v => +v.toFixed(1)), yAxisID: "y", order: 2,
+          backgroundColor: ["#ffbf5b", "#ff9f5b", "#ff7c5b", "#ff5d6c", "#d6336c"], borderRadius: 5 },
+        { type: "line", label: "Number of stops", data: counts, yAxisID: "y1", order: 1,
+          borderColor: "#35d4ff", backgroundColor: "#35d4ff", borderWidth: 1.6, pointRadius: 4, pointHoverRadius: 5, tension: 0 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: "top", align: "end", labels: { color: "#8ca1af", boxWidth: 10, font: { size: 9 } } },
+        tooltip: { callbacks: { label: c => c.dataset.yAxisID === "y1"
+          ? `${c.parsed.y} stop(s)`
+          : `${fmt(c.parsed.y, 1)} min lost in ${counts[c.dataIndex]} stop(s)` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: axisTxt },
+        y: { beginAtZero: true, position: "left", title: { display: true, text: "minutes lost", color: "#708493", font: { size: 9 } }, grid: { color: "rgba(35,52,65,.35)" }, ticks: axisTxt },
+        y1: { beginAtZero: true, position: "right", title: { display: true, text: "number of stops", color: "#35d4ff", font: { size: 9 } }, grid: { drawOnChartArea: false },
+              ticks: { ...axisTxt, color: "#35d4ff", precision: 0, stepSize: 1 } }
+      } }
+  });
+
+  const body = $("stopTableBody");
+  const top = stops.slice().sort((a, b) => b.dur - a.dur).slice(0, 30);
+  body.innerHTML = top.length ? "" : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;">No gaps of 1 minute or more between parts.</td></tr>`;
+  top.forEach(x => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${hhmm(x.start)}</td><td>${x.ongoing ? "now" : hhmm(x.end)}</td><td><b>${fmtDurMs(x.dur)}</b>${x.ongoing ? " (ongoing)" : ""}</td><td>${stateLabel(x.state)}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+function renderCumulative(cyc, start, end, speed, nowMs) {
+  const sMs = +start, endMs = +end;
+  const totalMin = Math.max(1, Math.round((endMs - sMs) / 60000));
+  const elapsedMin = Math.max(0, Math.min(totalMin, (nowMs - sMs) / 60000));
+  const step = totalMin > 720 ? 10 : 5;
+  const labels = [], actual = [], plan = [], proj = [];
+  const cum = []; let run = 0;
+  cyc.forEach(v => { run += v; cum.push(run); });
+  const total = run;
+  const avg = elapsedMin > 0 ? total / elapsedMin : 0;
+  for (let m = 0; m <= totalMin; m += step) {
+    labels.push(hhmm(sMs + m * 60000));
+    plan.push(+(speed * m).toFixed(0));
+    if (m <= elapsedMin) actual.push(m === 0 ? 0 : (cum[Math.min(cum.length, m) - 1] ?? total));
+    else actual.push(null);
+    proj.push(m >= elapsedMin - step ? +(total + avg * Math.max(0, m - elapsedMin)).toFixed(0) : null);
+  }
+  const live = nowMs < endMs && nowMs >= sMs;
+  const planNow = speed * elapsedMin;
+  const gap = total - planNow;
+  const projEnd = total + avg * Math.max(0, totalMin - elapsedMin);
+  const planEnd = speed * totalMin;
+  $("paceNow").textContent = (gap >= 0 ? "+" : "−") + fmt(Math.abs(gap));
+  $("paceNow").style.color = gap >= 0 ? "var(--green)" : "var(--red)";
+  $("paceProj").textContent = fmt(projEnd);
+  const remainMin = Math.max(0, totalMin - elapsedMin);
+  $("paceNeed").textContent = live && remainMin > 0 ? `${fmt(Math.max(0, (planEnd - total) / remainMin), 1)} /min` : "—";
+  $("paceBadge").textContent = planNow ? `${fmt((total / planNow) * 100, 0)}% of plan so far` : "—";
+
+  destroy("cumChart");
+  charts.cumChart = new Chart($("cumChart"), {
+    type: "line",
+    data: { labels, datasets: [
+      { label: "Actual", data: actual, borderColor: "#35d4ff", backgroundColor: "rgba(53,212,255,.12)", fill: true, borderWidth: 2.2, pointRadius: 0, tension: 0.2, spanGaps: false },
+      { label: "Plan (nominal pace)", data: plan, borderColor: "rgba(255,191,91,.9)", borderDash: [6, 4], borderWidth: 1.4, pointRadius: 0, fill: false },
+      { label: "Projection", data: live ? proj : proj.map(() => null), borderColor: "#9b7cff", borderDash: [2, 4], borderWidth: 1.6, pointRadius: 0, fill: false }
+    ] },
+    options: { ...commonOpts, interaction: { mode: "index", intersect: false } }
+  });
+}
+
+function renderRejectControl(cyc, rej, start) {
+  const B = 15;                                              // minutes per point
+  const nb = Math.ceil(cyc.length / B);
+  const n = Array(nb).fill(0), k = Array(nb).fill(0);
+  cyc.forEach((v, i) => { n[Math.floor(i / B)] += v; });
+  rej.forEach((v, i) => { k[Math.floor(i / B)] += v; });
+  const N = n.reduce((a, b) => a + b, 0), K = k.reduce((a, b) => a + b, 0);
+  const p = N ? K / N : 0;
+  const labels = [], rate = [], ucl = [], center = [], colors = [];
+  for (let i = 0; i < nb; i++) {
+    labels.push(hhmm(+start + i * B * 60000));
+    center.push(+(p * 100).toFixed(2));
+    if (n[i] >= 20) {
+      const r = k[i] / n[i], lim = p + 3 * Math.sqrt((p * (1 - p)) / n[i]);
+      rate.push(+(r * 100).toFixed(2)); ucl.push(+(lim * 100).toFixed(2));
+      colors.push(r > lim ? "#ff5d6c" : "#38e08f");
+    } else { rate.push(null); ucl.push(null); colors.push("#38e08f"); }
+  }
   destroy("qualityChart");
   charts.qualityChart = new Chart($("qualityChart"), {
-    type: "doughnut",
-    data: { labels: ["Good", "Reject"], datasets: [{ data: [good, reject], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: "64%", plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } } } }
+    type: "line",
+    data: { labels, datasets: [
+      { label: "Reject % (15 min)", data: rate, borderColor: "#35d4ff", borderWidth: 1.6, pointRadius: 3.5, pointBackgroundColor: colors, pointBorderColor: colors, tension: 0, spanGaps: true, fill: false },
+      { label: `Shift average (${fmt(p * 100, 2)}%)`, data: center, borderColor: "rgba(255,191,91,.9)", borderDash: [6, 4], borderWidth: 1.3, pointRadius: 0, fill: false },
+      { label: "Upper control limit", data: ucl, borderColor: "rgba(255,93,108,.85)", borderDash: [2, 3], borderWidth: 1.3, pointRadius: 0, fill: false, spanGaps: true }
+    ] },
+    options: { ...commonOpts, interaction: { mode: "index", intersect: false } }
   });
+}
+
+// minute heatmap drawn directly on a canvas (hours down, minutes across)
+function heatColor(r) {
+  const stops = [[0, [12, 24, 34]], [0.35, [18, 70, 94]], [0.7, [53, 212, 255]], [1, [56, 224, 143]], [1.25, [155, 124, 255]]];
+  const x = Math.max(0, Math.min(1.25, r));
+  for (let i = 1; i < stops.length; i++) {
+    if (x <= stops[i][0]) {
+      const [a, ca] = stops[i - 1], [b, cb] = stops[i], f = (x - a) / (b - a);
+      return `rgb(${ca.map((c, j) => Math.round(c + (cb[j] - c) * f)).join(",")})`;
+    }
+  }
+  return "rgb(155,124,255)";
+}
+
+function renderHeatmap(cyc, start, end, speed) {
+  const cv = $("heatCanvas"), wrap = $("heatWrap"), tip = $("heatTip");
+  const totalMin = Math.max(1, Math.round((+end - +start) / 60000));
+  const rows = Math.ceil(totalMin / 60);
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(320, wrap.clientWidth), labelW = 52, topH = 18, rowH = 20, gap = 1;
+  const H = topH + rows * rowH + 2;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + "px";
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+  const cw = (W - labelW) / 60;
+  g.font = "10px sans-serif"; g.textBaseline = "middle";
+  g.fillStyle = "#708493";
+  for (let c = 0; c < 60; c += 10) { g.textAlign = "left"; g.fillText(":" + String(c).padStart(2, "0"), labelW + c * cw + 1, topH / 2); }
+  const nowMin = (Date.now() - +start) / 60000;
+  for (let r = 0; r < rows; r++) {
+    g.textAlign = "right"; g.fillStyle = "#708493";
+    g.fillText(hhmm(+start + r * 3600000), labelW - 6, topH + r * rowH + rowH / 2);
+    for (let c = 0; c < 60; c++) {
+      const idx = r * 60 + c;
+      if (idx >= totalMin) continue;
+      g.fillStyle = idx >= nowMin ? "rgba(20,34,46,.55)" : heatColor(speed ? (cyc[idx] || 0) / speed : 0);
+      g.fillRect(labelW + c * cw, topH + r * rowH, Math.max(1, cw - gap), rowH - gap);
+    }
+  }
+  const sc = $("heatScale");
+  if (sc) sc.style.background = `linear-gradient(90deg, ${[0, 0.35, 0.7, 1, 1.25].map(v => heatColor(v)).join(",")})`;
+  cv.onmousemove = ev => {
+    const rc = cv.getBoundingClientRect();
+    const x = ev.clientX - rc.left, y = ev.clientY - rc.top;
+    const c = Math.floor((x - labelW) / cw), r = Math.floor((y - topH) / rowH);
+    const idx = r * 60 + c;
+    if (c < 0 || c > 59 || r < 0 || r >= rows || idx >= totalMin || idx >= nowMin) { tip.style.display = "none"; return; }
+    const v = cyc[idx] || 0;
+    tip.innerHTML = `<b>${hhmm(+start + idx * 60000)}</b> &nbsp; ${v} parts/min` + (speed ? ` &nbsp; (${fmt((v / speed) * 100, 0)}% of nominal)` : "");
+    tip.style.display = "block";
+    tip.style.left = Math.min(W - 180, Math.max(0, x + 12)) + "px";
+    tip.style.top = Math.max(0, y - 34) + "px";
+  };
+  cv.onmouseleave = () => { tip.style.display = "none"; };
+}
+
+let lastHeatArgs = null;
+window.addEventListener("resize", () => { clearTimeout(window.__heatT); window.__heatT = setTimeout(() => { if (lastHeatArgs) renderHeatmap(...lastHeatArgs); }, 200); });
+
+function renderAnalysis(ev, start, end, effEnd, intervals, speed, nowMs) {
+  const sMs = +start;
+  const n = Math.max(0, Math.ceil((+effEnd - sMs) / 60000));
+  const cyc = new Array(n).fill(0), rej = new Array(n).fill(0);
+  ev.forEach(x => {
+    const i = Math.floor((x.timestamp - sMs) / 60000);
+    if (i < 0 || i >= n) return;
+    if (x.type === "cycles count") cyc[i]++; else if (x.type === "rejected products cycle count") rej[i]++;
+  });
+  renderCumulative(cyc, start, end, speed, nowMs);
+  renderStops(ev, start, effEnd, intervals, nowMs);
+  renderRejectControl(cyc, rej, start);
+  lastHeatArgs = [cyc, start, end, speed];
+  renderHeatmap(cyc, start, end, speed);
 }
 
 
 
 
 
+function updateLevelRefreshNote() {
+  const el = $("levelRefreshNote"); if (!el) return;
+  el.textContent = isTodayIncluded()
+    ? "Auto-refresh is on (every 10 seconds while this tab is open)."
+    : "Auto-refresh is off: this period is finished, so its data does not change. Use ↻ Refresh Telemetry to pick up records that were uploaded late.";
+}
+$("filterModeSelect").addEventListener("change", updateLevelRefreshNote);
+["filterDate", "filterStartDate", "filterEndDate"].forEach(id => $(id).addEventListener("change", updateLevelRefreshNote));
 $("applyHierarchyFilterBtn").onclick = () => {
   telemetryCache = {}; 
   renderCurrentLevel();
   manageAutoRefresh();
+  updateLevelRefreshNote();
   logAuditAction("CONFIG_CHANGE", "Applied hierarchy data filter range.");
-  toast(isTodayIncluded() ? "Filter applied. Auto-refresh active (every 10s)." : "Filter applied for past dates (one-time fetch).");
+  toast(isTodayIncluded() ? "Filter applied. Auto-refresh active (every 10s)." : "Filter applied for a finished period: no auto-refresh. Use ↻ Refresh Telemetry for late uploads.");
+};
+$("refreshLevelBtn").onclick = () => {
+  levelForce = true; levelForcedDone.clear();       // every machine of this level is re-read once, ignoring saved copies
+  const path = [navState.group, navState.factory, navState.area].filter(Boolean).join("/");
+  Object.keys(statsFinal).forEach(k => { if (k.startsWith(path)) delete statsFinal[k]; });
+  localCache.deleteByPrefix("stats", path);
+  telemetryCache = {};
+  renderCurrentLevel(true);
+  toast("Re-reading the selected period from the database…");
 };
 
-$("applyBtn").onclick = saveMachineShiftWindow;
+$("applyBtn").onclick = async () => { await saveMachineShiftWindow(); machineSettingsCache = {}; telemetryCache = {}; };
 
-$("refreshTelemetryBtn").onclick = () => { loadMachineTelemetryDashboard(); toast("Refreshing machine telemetry…"); };
+
+// The AI button is shown ONLY on a machine's page: not on the login screen, the group/factory/area/machine lists,
+// or while a pop-up (users, audit, alerts, batches...) is open.
+function syncAIFab() {
+  const fab = $("aiFab");
+  if (!fab) return;
+  const dash = $("dashboardMain");
+  const modalOpen = Array.from(document.querySelectorAll(".modal-overlay")).some(el => getComputedStyle(el).display !== "none");
+  const authEl = $("authOverlay");
+  const authOpen = !!authEl && getComputedStyle(authEl).display !== "none";
+  const show = !!(auth.currentUser && dash && dash.style.display !== "none" && navState.level === "machine" && navState.machine && !modalOpen && !authOpen);
+  fab.style.display = show ? "grid" : "none";
+  if (!show) { const w = $("aiChatWindow"); if (w) w.classList.remove("open"); }
+  const sb = $("buildSummariesBtn");
+  if (sb) { const r = String(currentUserRecord?.role || "").toLowerCase(); sb.style.display = (r === "admin" || r === "comp11_master") ? "" : "none"; }
+}
+setInterval(syncAIFab, 400);
+
+// Address of the backfillMinuteSummaries cloud function (shown in the deploy output / Firebase console if it differs)
+const SUMMARY_BACKFILL_URL = "https://backfillminutesummaries-zrghone4lq-uc.a.run.app";
+$("buildSummariesBtn").onclick = async () => {
+  const days = Number(prompt("Build summaries for how many past days? (1-120)\nDays 0-1 are kept up to date automatically by the cloud function.", "30"));
+  if (!days) return;
+  const rebuild = confirm("Rebuild from scratch?\n\nOK = delete and rebuild these days (use only after deleting events by script).\nCancel = just add what is missing.") ? ("r" + Date.now().toString(36)) : null;
+  try {
+    for (let round = 1; round <= 30; round++) {
+      toast(`Building summaries… (round ${round})`);
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch(SUMMARY_BACKFILL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ days, rebuild })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      toast(`Summaries: ${data.folders} machine-days checked, ${data.events} events added${data.done ? " - finished" : " - continuing…"}`);
+      if (data.done) { await clearLocalCache(); return; }
+    }
+    toast("Still running - press the button again to continue.");
+  } catch (e) {
+    console.error(e);
+    toast("Summary build failed: " + e.message);
+  }
+};
+$("clearCacheBtn").onclick = async () => { await clearLocalCache(); toast("Local cache cleared. Data will be downloaded again."); loadMachineTelemetryDashboard(); };
+$("refreshTelemetryBtn").onclick = () => { loadMachineTelemetryDashboard({ force: true }); toast("Re-reading this shift from the database…"); };
 $("analysisDate").onchange = loadMachineTelemetryDashboard;
 $("shiftStartHour").onchange = loadMachineTelemetryDashboard;
 </script>
