@@ -122,6 +122,17 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .pillars{display:grid;gap:14px}.pillar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}.pillar label{font-size:11px;color:#9bb0bd}.bar{height:8px;background:#172731;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;border-radius:inherit}.pillar b{font-size:12px;text-align:right}
 .formula{margin-top:16px;padding:10px 12px;border-radius:10px;background:#0a141d;border:1px solid #1d303d;color:#8096a4;font-size:10px;line-height:1.5}
 
+.sec{margin-bottom:14px;scroll-margin-top:150px}
+.sec-bar{display:flex;align-items:center;gap:16px;padding:14px 18px;border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:12px;background:linear-gradient(145deg,rgba(16,31,43,.96),rgba(10,20,28,.96));cursor:pointer;transition:.15s}
+.sec-bar:hover{background:linear-gradient(145deg,rgba(22,40,55,.98),rgba(13,25,35,.98))}
+.sec-title{font-weight:800;font-size:15px;white-space:nowrap}
+.sec-sum{font-size:12px;color:#8ca1af;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-chev{color:var(--cyan);font-size:11px;transition:transform .2s;transform:rotate(180deg)}
+.sec.closed .sec-chev{transform:none}.sec.closed .sec-body{display:none}.sec-body{padding-top:14px}
+.sec-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px;position:sticky;top:74px;z-index:15;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(7,16,24,.94);backdrop-filter:blur(10px)}
+.sec-nav .pills,.sec-nav .acts{display:flex;gap:8px;flex-wrap:wrap}
+.sec-nav a{font-size:12px;color:var(--muted);cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:7px 16px;background:rgba(13,24,34,.7);user-select:none}.sec-nav a:hover{color:var(--text);border-color:var(--cyan)}
+#sec-batches .batch-accordion{border:0;box-shadow:none;background:none;margin:0}#sec-batches .batch-accordion-header{display:none}#sec-batches .batch-accordion-content{display:block;padding:0}
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.mini{padding:13px;background:#0a151e;border:1px solid #1c303d;border-radius:12px}.mini .v{font-size:19px;font-weight:800}.mini .l{font-size:9px;text-transform:uppercase;color:#6f8492;letter-spacing:.1em;margin-top:5px}
 .losses{display:grid;grid-template-columns:1fr 1fr;gap:10px}.loss{padding:14px;border:1px solid #243542;background:#0a151e;border-radius:12px}.loss .num{font-size:20px;font-weight:800}.loss .label{font-size:9px;color:#718695;text-transform:uppercase;letter-spacing:.1em;margin-top:5px}
 
@@ -553,7 +564,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
       <h2 style="margin:0; font-size:18px; color:var(--cyan);">📦 Production Batch Manager & Velocity Splitter</h2>
       <button class="back-btn" onclick="$('batchManagementModal').style.display='none'">Close X</button>
     </div>
-    <p style="color:var(--muted); font-size:12px;">Inspect auto-detected batches, configure date modes, merge/split runs using velocity profiles, and define custom nominal speeds per batch.</p>
+    <p style="color:var(--muted); font-size:12px;">Inspect auto-detected batches, configure date modes, merge/split runs using velocity profiles, and define custom nominal speeds per batch. The machine counts <b>strokes</b>; set the <b>products per stroke</b> of each batch and the product counts, rejects, report and audit trail follow it. Nominal speed here is in strokes per minute.</p>
     
     <!-- Shift Window & Date Mode Controls -->
     <div style="margin-top:15px; background:#071018; padding:15px; border-radius:12px; border:1px solid var(--line); display:grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap:10px; align-items:end;">
@@ -582,9 +593,11 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
               <th>Batch ID</th>
               <th>Time Window</th>
               <th>Duration</th>
-              <th>Good / Total</th>
-              <th>Rejects</th>
-              <th>Nominal Speed</th>
+              <th>Strokes</th>
+              <th>Products / stroke</th>
+              <th>Good / Total products</th>
+              <th>Rejected products</th>
+              <th>Nominal speed (strokes/min)</th>
               <th>Batch OEE</th>
               <th>Actions</th>
             </tr>
@@ -707,42 +720,15 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           <div class="status"><strong id="machineStatus">● Waiting for telemetry</strong><span id="statusDetail">Reading machine state from Realtime Database</span></div>
         </section>
 
-        <section class="kpis">
+                <nav class="sec-nav"><div class="pills"><a onclick="gotoSec('sec-overview')">Overview</a><a onclick="gotoSec('sec-production')">Production</a><a onclick="gotoSec('sec-stops')">Stops &amp; Time</a><a onclick="gotoSec('sec-quality')">Quality</a><a onclick="gotoSec('sec-batches')">Batches</a></div><div class="acts"><a onclick="setAllSecs(true)">Collapse all</a><a onclick="setAllSecs(false)">Expand all</a></div></nav>
+        <div class="sec" id="sec-overview"><div class="sec-bar" onclick="toggleSec('sec-overview')" role="button" tabindex="0"><span class="sec-title">Overview</span><span class="sec-sum" id="sec-overview-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
+<section class="kpis">
           <div class="card kpi"><div class="label">Total output</div><div class="value accent-cyan" id="totalOutput">—</div><div class="sub">cycle pulses captured</div></div>
           <div class="card kpi"><div class="label">Good output</div><div class="value accent-green" id="goodOutput">—</div><div class="sub">derived (Total − Rejects)</div></div>
           <div class="card kpi"><div class="label">Rejects</div><div class="value accent-red" id="rejectOutput">—</div><div class="sub">reject sensor pulses</div></div>
           <div class="card kpi"><div class="label">Run time</div><div class="value" id="runTime">—</div><div class="sub" id="availabilitySub">availability —</div></div>
           <div class="card kpi"><div class="label">Downtime loss</div><div class="value accent-amber" id="lossValue">—</div><div class="sub" id="lossSub">—</div></div>
         </section>
-
-        <!-- Collapsible Batch History Table (Accordion) -->
-        <div class="batch-accordion" id="batchAccordion">
-          <div class="batch-accordion-header" onclick="toggleBatchAccordion()">
-            <div class="batch-accordion-title">
-              <span>📦 Detected Production Batches</span>
-              <span class="badge" id="batchCountBadge">0 Batches</span>
-            </div>
-            <span style="font-size:12px; color:var(--cyan);" id="accordionToggleIcon">▼ Expand</span>
-          </div>
-          <div class="batch-accordion-content">
-            <div style="overflow-x:auto;">
-              <table class="batch-table">
-                <thead>
-                  <tr>
-                    <th>Batch ID</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Duration</th>
-                    <th>Good / Total</th>
-                    <th>Rejects</th>
-                    <th>OEE</th>
-                  </tr>
-                </thead>
-                <tbody id="batchTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
 
         <section class="grid">
           <div class="card panel">
@@ -766,7 +752,58 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           </div>
         </section>
 
-        <section class="grid equal">
+        <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">OEE Loss Waterfall</div><div class="panel-desc">Time view: planned hours down to effective hours, with the cost of each loss. Parts view: the same losses as parts, ending at good parts.</div></div><div style="display:flex;gap:8px;align-items:center"><div id="wfModeBtns" style="display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden"><button type="button" data-wf="time" class="wf-on" style="background:#163042;color:var(--text);border:0;padding:5px 12px;font-size:12px;cursor:pointer">Time</button><button type="button" data-wf="parts" style="background:transparent;color:var(--muted);border:0;padding:5px 12px;font-size:12px;cursor:pointer">Parts</button></div><span class="badge" id="wfBadge">—</span></div></div>
+          <div class="chart-wrap short" style="height:320px"><canvas id="waterfallChart"></canvas></div>
+          <div class="stat-grid" style="margin-top:12px">
+            <div class="mini"><div class="v" id="wfEffective">—</div><div class="l" id="wfL1">Effective time (OEE × planned time)</div></div>
+            <div class="mini"><div class="v" id="wfLossTotal">—</div><div class="l" id="wfL2">Total time lost</div></div>
+            <div class="mini"><div class="v" id="wfBiggest">—</div><div class="l">Biggest loss</div></div>
+          </div>
+        </section>
+        
+        </div></div>
+        <div class="sec" id="sec-production"><div class="sec-bar" onclick="toggleSec('sec-production')" role="button" tabindex="0"><span class="sec-title">Production</span><span class="sec-sum" id="sec-production-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
+<section class="grid equal">
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
+            <div class="chart-wrap short" style="display:grid; grid-template-columns:1.1fr 1fr; gap:14px;"><div style="position:relative; min-height:0;"><canvas id="capacityChart"></canvas></div><div style="position:relative; min-height:0;"><canvas id="capacityRateChart"></canvas></div></div>
+            <div class="stat-grid" style="margin-top:12px">
+              <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
+              <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
+              <div class="mini"><div class="v" id="speedGap">—</div><div class="l">Speed gap</div></div>
+            </div>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the shift time went: producing, powered but no output (idle), or switched off</div></div></div>
+            <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
+            <div class="losses" style="margin-top:10px">
+              <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
+              <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Idle: powered, no parts for 1 min or more</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by shift hour</div></div></div>
+          <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
+        </section>
+
+        <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">Minute Heatmap</div><div class="panel-desc">One cell per minute of the shift, coloured by output relative to nominal speed. Stops, slow spells and speed changes show up as dark or dim bands.</div></div><span class="badge">HOVER FOR DETAIL</span></div>
+          <div id="heatWrap" style="position:relative;">
+            <canvas id="heatCanvas" style="width:100%; display:block;"></canvas>
+            <div id="heatTip" style="position:absolute; display:none; pointer-events:none; background:#0b151e; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:11px; color:var(--text); white-space:nowrap; z-index:5;"></div>
+          </div>
+          <div class="legend" style="align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:6px">0 <i id="heatScale" style="display:inline-block;width:150px;height:8px;border-radius:4px"></i> nominal+</span>
+          </div>
+        </section>
+
+        
+        </div></div>
+        <div class="sec" id="sec-stops"><div class="sec-bar" onclick="toggleSec('sec-stops')" role="button" tabindex="0"><span class="sec-title">Stops &amp; Time</span><span class="sec-sum" id="sec-stops-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
+<section class="grid equal">
           <div class="card panel">
             <div class="panel-head"><div><div class="panel-title">Output vs Plan</div><div class="panel-desc">Cumulative parts against nominal pace, with the end-of-shift projection at the current average</div></div><span class="badge" id="paceBadge">—</span></div>
             <div class="chart-wrap" style="height:260px"><canvas id="cumChart"></canvas></div>
@@ -788,26 +825,6 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           </div>
         </section>
 
-        <section class="grid equal">
-          <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
-            <div class="chart-wrap short" style="display:grid; grid-template-columns:1.1fr 1fr; gap:14px;"><div style="position:relative; min-height:0;"><canvas id="capacityChart"></canvas></div><div style="position:relative; min-height:0;"><canvas id="capacityRateChart"></canvas></div></div>
-            <div class="stat-grid" style="margin-top:12px">
-              <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
-              <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
-              <div class="mini"><div class="v" id="speedGap">—</div><div class="l">Speed gap</div></div>
-            </div>
-          </div>
-          <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the shift time went: producing, powered but no output (idle), or switched off</div></div></div>
-            <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
-            <div class="losses" style="margin-top:10px">
-              <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
-              <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Idle: powered, no parts for 1 min or more</div></div>
-            </div>
-          </div>
-        </section>
-
         <section class="card panel" style="margin-bottom:14px">
           <div class="panel-head"><div><div class="panel-title">Machine Operational State Chronology</div><div class="panel-desc">High-precision timeline distinguishing Machine Off, Idle (powered, no output) and Working</div></div><span class="badge">Millisecond Auditing</span></div>
           <div class="timeline"><div class="timeline-track" id="timelineTrack"></div><div class="timeline-label"><span id="dayStart">Shift Start</span><span id="dayEnd">Shift End</span></div></div>
@@ -818,27 +835,77 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           </div>
         </section>
 
-                <section class="card panel" style="margin-bottom:14px">
-          <div class="panel-head"><div><div class="panel-title">Minute Heatmap</div><div class="panel-desc">One cell per minute of the shift, coloured by output relative to nominal speed. Stops, slow spells and speed changes show up as dark or dim bands.</div></div><span class="badge">HOVER FOR DETAIL</span></div>
-          <div id="heatWrap" style="position:relative;">
-            <canvas id="heatCanvas" style="width:100%; display:block;"></canvas>
-            <div id="heatTip" style="position:absolute; display:none; pointer-events:none; background:#0b151e; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:11px; color:var(--text); white-space:nowrap; z-index:5;"></div>
+                
+        </div></div>
+        <div class="sec" id="sec-quality"><div class="sec-bar" onclick="toggleSec('sec-quality')" role="button" tabindex="0"><span class="sec-title">Quality</span><span class="sec-sum" id="sec-quality-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
+<section class="grid equal">
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Quality at a Glance</div><div class="panel-desc">Good against rejected output for the selected period</div></div><span class="badge" id="qgBadge">—</span></div>
+            <div class="chart-wrap short" style="height:230px"><canvas id="qualityGlanceChart"></canvas></div>
+            <div class="stat-grid" style="margin-top:12px">
+              <div class="mini"><div class="v" id="qgRejects">—</div><div class="l">Rejected</div></div>
+              <div class="mini"><div class="v" id="qgRate">—</div><div class="l">Reject rate</div></div>
+              <div class="mini"><div class="v" id="qgWorst">—</div><div class="l">Worst hour</div></div>
+            </div>
           </div>
-          <div class="legend" style="align-items:center">
-            <span style="display:inline-flex;align-items:center;gap:6px">0 <i id="heatScale" style="display:inline-block;width:150px;height:8px;border-radius:4px"></i> nominal+</span>
+          <div class="card panel">
+            <div class="panel-head"><div><div class="panel-title">Rejected Products per Hour</div><div class="panel-desc">Bars: rejected products in each shift hour. Line: reject rate of that hour.</div></div><span class="badge" id="rphBadge">—</span></div>
+            <div class="chart-wrap short" style="height:230px"><canvas id="rejectHourChart"></canvas></div>
+            <div class="panel-desc" id="rphNote" style="margin-top:10px">—</div>
           </div>
         </section>
-
         <section class="grid equal">
           <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">Hourly Output Profile</div><div class="panel-desc">Total and good production by shift hour</div></div></div>
-            <div class="chart-wrap tall"><canvas id="hourChart"></canvas></div>
+            <div class="panel-head"><div><div class="panel-title">Rejects by Batch</div><div class="panel-desc">Rejected products in each detected batch, with the reject rate of the batch</div></div><span class="badge" id="rbbBadge">—</span></div>
+            <div class="chart-wrap short" style="height:230px"><canvas id="rejectBatchChart"></canvas></div>
+            <div class="panel-desc" id="rbbNote" style="margin-top:10px">—</div>
           </div>
           <div class="card panel">
-            <div class="panel-head"><div><div class="panel-title">Reject Rate Control Chart</div><div class="panel-desc">Reject % per 15 minutes against the shift average and its 3-sigma limit. Red points are statistically abnormal.</div></div></div>
-            <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
+            <div class="panel-head"><div><div class="panel-title">Rejects After a Restart</div><div class="panel-desc">Reject rate by time since the machine last restarted after a stop of 1 minute or more</div></div><span class="badge" id="rarBadge">—</span></div>
+            <div class="chart-wrap short" style="height:230px"><canvas id="rejectRestartChart"></canvas></div>
+            <div class="panel-desc" id="rarNote" style="margin-top:10px">—</div>
           </div>
         </section>
+        <section class="card panel" style="margin-bottom:14px">
+          <div class="panel-head"><div><div class="panel-title">Reject Rate Control Chart</div><div class="panel-desc">Reject % per 15 minutes against the shift average and its 3-sigma limit. Red points are statistically abnormal.</div></div></div>
+          <div class="chart-wrap tall"><canvas id="qualityChart"></canvas></div>
+        </section>
+
+        </div></div>
+        <div class="sec" id="sec-batches"><div class="sec-bar" onclick="toggleSec('sec-batches')" role="button" tabindex="0"><span class="sec-title">Batches</span><span class="sec-sum" id="sec-batches-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
+<!-- Collapsible Batch History Table (Accordion) -->
+        <div class="batch-accordion" id="batchAccordion">
+          <div class="batch-accordion-header" onclick="toggleBatchAccordion()">
+            <div class="batch-accordion-title">
+              <span>📦 Detected Production Batches</span>
+              <span class="badge" id="batchCountBadge">0 Batches</span>
+            </div>
+            <span style="font-size:12px; color:var(--cyan);" id="accordionToggleIcon">▼ Expand</span>
+          </div>
+          <div class="batch-accordion-content">
+            <div style="overflow-x:auto;">
+              <table class="batch-table">
+                <thead>
+                  <tr>
+                    <th>Batch ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration</th>
+                    <th>Strokes</th>
+                    <th>Products / stroke</th>
+                    <th>Good / Total products</th>
+                    <th>Rejected products</th>
+                    <th>OEE</th>
+                  </tr>
+                </thead>
+                <tbody id="batchTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        
+        </div></div>
       </div>
     </div>
   </main>
@@ -1364,7 +1431,7 @@ async function getCompanoramaAIContext() {
     stopsAll.forEach(x => { const lo = Math.max(a, x.start), hi = Math.min(b, x.ongoing ? nowMs : x.end); if (hi > lo) stopped += hi - lo; });
     hourly.push(`${p2(new Date(a).getHours())}:00 cycles=${c} rejects=${r} noOutputMin=${Math.round(stopped / 60000)}`);
   }
-  const batchList = (lastBatches || []).slice(0, 25).map(b => `${b.id} ${b.startStr}-${b.endStr} ${b.durationFormatted} total=${b.total} rejects=${b.rejects}`);
+  const batchList = (lastBatches || []).slice(0, 25).map(b => `${b.id} ${b.startStr}-${b.endStr} ${b.durationFormatted} strokes=${b.strokes} products/stroke=${b.pps} total products=${b.total} rejected products=${b.rejects}`);
 
   // ---- machine state changes (the last one before the shift is included) ----
   const st = statuses.slice().sort((x, y) => x.timestamp - y.timestamp);
@@ -2705,6 +2772,7 @@ async function loadManagedBatches() {
   const rejectEvents = filteredEvents.filter(x => x.type === "rejected products cycle count");
   
   const timeoutMin = Number($("batchTimeoutMin").value) || 60;
+  await loadPpsEntries();
   managedBatchesState = computeBatchesEditable(cycleEvents, rejectEvents, timeoutMin);
   renderManagedBatchesTable();
   $('batchSplitPanel').style.display = 'none';
@@ -2738,14 +2806,14 @@ function renderManagedBatchesTable() {
   tbody.innerHTML = "";
   
   if (managedBatchesState.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">No batches found for the selected shift window / date range.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:var(--muted); padding:20px;">No batches found for the selected shift window / date range.</td></tr>`;
     return;
   }
 
   managedBatchesState.forEach((b, idx) => {
     const runHours = b.durationSec / 3600;
     const nominalOut = runHours * 60 * b.nominalSpeed;
-    const perf = nominalOut ? Math.min(100, (b.total / nominalOut) * 100) : 0;
+    const perf = nominalOut ? Math.min(100, (b.strokes / nominalOut) * 100) : 0;
     const qual = b.total ? Math.min(100, (b.good / b.total) * 100) : 100;
     const av = 100;
     const oee = (av * perf * qual) / 10000;
@@ -2758,6 +2826,8 @@ function renderManagedBatchesTable() {
       <td style="font-weight:700; color:var(--cyan);">${b.id}</td>
       <td>${b.startTime.toLocaleDateString()} ${fmtTime(b.startTime)} – ${fmtTime(b.endTime)}</td>
       <td>${Math.round(b.durationSec / 60)} mins</td>
+      <td>${fmt(b.strokes)}</td>
+      <td><input type="number" value="${b.pps}" min="1" max="100" step="1" style="width:64px; background:#0b151e; border:1px solid var(--line); color:var(--text); padding:4px 8px; border-radius:6px;" onchange="updateBatchPps(${idx}, this.value)"></td>
       <td><b>${fmt(b.good)}</b> / ${fmt(b.total)}</td>
       <td class="accent-red">${fmt(b.rejects)}</td>
       <td><input type="number" value="${b.nominalSpeed}" min="1" step="1" style="width:80px; background:#0b151e; border:1px solid var(--line); color:var(--text); padding:4px 8px; border-radius:6px;" onchange="updateBatchSpeed(${idx}, this.value)"></td>
@@ -2768,6 +2838,21 @@ function renderManagedBatchesTable() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+async function updateBatchPps(index, val) {
+  const n = Math.round(Number(val));
+  if (!(n >= 1 && n <= 100)) { toast("Products per stroke must be a whole number from 1 to 100."); renderManagedBatchesTable(); return; }
+  const b = managedBatchesState[index]; const old = b.pps;
+  if (n === old) { renderManagedBatchesTable(); return; }
+  b.pps = n; applyPps(b); renderManagedBatchesTable();
+  await savePpsEntry(b);
+  await logAuditAction("BATCH_PRODUCTS_PER_STROKE", JSON.parse(JSON.stringify({
+    machineHierarchy: { group: navState.group, factory: navState.factory, area: navState.area, machine: navState.machine },
+    batchId: b.id, timeFrom: b.startTime.toLocaleString(), timeTo: b.endTime.toLocaleString(),
+    previousProductsPerStroke: old, productsPerStroke: n, strokes: b.strokes, totalProducts: b.total, rejectedProducts: b.rejects
+  })));
+  toast(`${b.id}: ${n} product${n > 1 ? "s" : ""} per stroke saved.`);
 }
 
 function updateBatchSpeed(index, val) {
@@ -2791,6 +2876,10 @@ function mergeSelectedBatches() {
   }
   
   const indices = Array.from(checkboxes).map(cb => Number(cb.dataset.index)).sort((a,b) => a - b);
+  if (new Set(indices.map(i => managedBatchesState[i].pps)).size > 1) {
+    alert("These batches have different products per stroke. Set the same value on all of them before merging.");
+    return;
+  }
   const firstIdx = indices[0];
   let target = managedBatchesState[firstIdx];
 
@@ -2798,9 +2887,9 @@ function mergeSelectedBatches() {
     const nextB = managedBatchesState[indices[i]];
     target.endTime = nextB.endTime;
     target.durationSec = Math.max(1, (target.endTime - target.startTime) / 1000);
-    target.total += nextB.total;
-    target.good += nextB.good;
-    target.rejects += nextB.rejects;
+    target.strokes += nextB.strokes;
+    target.rejectStrokes += nextB.rejectStrokes;
+    applyPps(target);
     target.cycles = target.cycles.concat(nextB.cycles);
   }
 
@@ -2894,8 +2983,8 @@ function confirmSplitBatch() {
     return;
   }
 
-  const firstBatchObj = createBatchObjectFromCycles(firstCycles, b.nominalSpeed, b.rejectsList);
-  const secondBatchObj = createBatchObjectFromCycles(secondCycles, b.nominalSpeed, b.rejectsList);
+  const firstBatchObj = createBatchObjectFromCycles(firstCycles, b.nominalSpeed, b.rejectsList, b.pps);
+  const secondBatchObj = createBatchObjectFromCycles(secondCycles, b.nominalSpeed, b.rejectsList, b.pps);
 
   managedBatchesState.splice(activeSplittingBatchIndex, 1, firstBatchObj, secondBatchObj);
   managedBatchesState.forEach((item, i) => item.id = `BATCH #${String(i + 1).padStart(3, '0')}`);
@@ -2911,7 +3000,7 @@ function createEditableBatchObject(cycles, rejects, batchNum) {
   const durationSec = Math.max(1, (endTime - startTime) / 1000);
   const totalCycles = cycles.length;
   const batchRejects = rejects.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length;
-  const goodCycles = Math.max(0, totalCycles - batchRejects);
+  const pps = ppsFor(+startTime);
   const defaultSpeed = Number($("nominalSpeed").value) || 120;
 
   return {
@@ -2920,23 +3009,26 @@ function createEditableBatchObject(cycles, rejects, batchNum) {
     startTime,
     endTime,
     durationSec,
-    total: totalCycles,
-    good: goodCycles,
-    rejects: batchRejects,
+    strokes: totalCycles,
+    rejectStrokes: batchRejects,
+    pps,
+    total: totalCycles * pps,
+    good: Math.max(0, totalCycles - batchRejects) * pps,
+    rejects: batchRejects * pps,
     nominalSpeed: defaultSpeed,
     cycles,
     rejectsList: rejects
   };
 }
 
-function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList) {
+function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList, pps = 1) {
   const startTime = cycles[0].timestamp;
   const endTime = cycles[cycles.length - 1].timestamp;
   const durationSec = Math.max(1, (endTime - startTime) / 1000);
   const total = cycles.length;
   
   const batchRejects = rejectsList ? rejectsList.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length : 0;
-  const good = Math.max(0, total - batchRejects);
+  const good = Math.max(0, total - batchRejects) * pps;
 
   return {
     uid: 'batch_' + Math.random().toString(36).substring(2, 9),
@@ -2944,9 +3036,12 @@ function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList) {
     startTime,
     endTime,
     durationSec,
-    total,
+    strokes: total,
+    rejectStrokes: batchRejects,
+    pps,
+    total: total * pps,
     good,
-    rejects: batchRejects,
+    rejects: batchRejects * pps,
     nominalSpeed,
     cycles,
     rejectsList
@@ -2975,7 +3070,7 @@ async function exportBatchReportCSV() {
     "Group", "Factory", "Area", "Machine", 
     "BatchFilterMode", "StartDate", "EndDate", "ShiftStartHour", 
     "BatchID", "TimeWindowFrom", "TimeWindowTo", "DurationMins", 
-    "GoodUnits", "TotalUnits", "Rejects", "NominalSpeedPartsMin", 
+    "TotalStrokes", "ProductsPerStroke", "GoodProducts", "TotalProducts", "RejectedProducts", "NominalSpeedStrokesPerMin", 
     "BatchOEE", "ExportedByUser", "ExportTimestamp"
   ];
 
@@ -2985,7 +3080,7 @@ async function exportBatchReportCSV() {
   managedBatchesState.forEach(b => {
     const runHours = b.durationSec / 3600;
     const nominalOut = runHours * 60 * b.nominalSpeed;
-    const perf = nominalOut ? Math.min(100, (b.total / nominalOut) * 100) : 0;
+    const perf = nominalOut ? Math.min(100, (b.strokes / nominalOut) * 100) : 0;
     const qual = b.total ? Math.min(100, (b.good / b.total) * 100) : 100;
     const oeeVal = (100 * perf * qual) / 10000;
 
@@ -2997,7 +3092,7 @@ async function exportBatchReportCSV() {
       group, factory, area, machine,
       filterMode, startDt, endDt, shiftStartHour,
       b.id, `"${timeFrom}"`, `"${timeTo}"`, durationMins,
-      b.good, b.total, b.rejects, b.nominalSpeed,
+      b.strokes, b.pps, b.good, b.total, b.rejects, b.nominalSpeed,
       `${oeeVal.toFixed(1)}%`, `"${currentUser}"`, `"${exportTimestamp}"`
     ]);
 
@@ -3006,10 +3101,13 @@ async function exportBatchReportCSV() {
       timeFrom,
       timeTo,
       durationMins,
+      strokes: b.strokes,
+      productsPerStroke: b.pps,
       good: b.good,
       total: b.total,
       rejects: b.rejects,
       nominalSpeed: b.nominalSpeed,
+      nominalSpeedStrokesPerMin: b.nominalSpeed,
       oee: `${oeeVal.toFixed(1)}%`
     });
   });
@@ -4196,6 +4294,27 @@ function computeBatches(cycleEvents, rejectEvents, timeoutMinutes) {
   return batches;
 }
 
+// ---- Products per stroke: set per batch in the Batch Manager only. The machine counts strokes; products = strokes x products per stroke.
+let ppsEntries = [], ppsLoadedKey = null;
+function ppsPath() { try { return getSelectedMachineSettingsPath().replace(/shift_window$/, "batch_products_per_stroke"); } catch (e) { return null; } }
+function ppsFor(startMs) { let best = null; for (const e of ppsEntries) { if (startMs >= e.from && startMs <= e.to && (!best || e.at >= best.at)) best = e; } return best ? best.pps : 1; }
+async function loadPpsEntries() {
+  const path = ppsPath(); if (!path || ppsLoadedKey === path) return false;
+  ppsLoadedKey = path; ppsEntries = []; let list = [];
+  try { const sn = await rtdb.ref(path).once("value"); if (sn.exists()) list = Object.values(sn.val()); }
+  catch (e) { try { list = JSON.parse(localStorage.getItem("pps|" + path) || "[]"); } catch (_) {} }
+  ppsEntries = list.filter(e => e && e.pps >= 1 && e.from <= e.to);
+  return ppsEntries.length > 0;
+}
+async function savePpsEntry(b) {
+  const path = ppsPath(); if (!path) return;
+  const e = { from: +b.startTime, to: +b.endTime, pps: b.pps, at: Date.now(), by: currentUserRecord ? currentUserRecord.email : "" };
+  ppsEntries = ppsEntries.filter(x => x.from !== e.from); ppsEntries.push(e);
+  try { await rtdb.ref(path).child(String(e.from)).set(e); }
+  catch (err) { try { localStorage.setItem("pps|" + path, JSON.stringify(ppsEntries)); } catch (_) {} toast("Saved on this browser only (no permission to save for everyone)."); }
+}
+function applyPps(b) { b.total = b.strokes * b.pps; b.rejects = b.rejectStrokes * b.pps; b.good = Math.max(0, b.total - b.rejects); }
+
 function finalizeBatch(cycles, rejects, batchNum) {
   const startTime = cycles[0].timestamp;
   const endTime = cycles[cycles.length - 1].timestamp;
@@ -4203,6 +4322,7 @@ function finalizeBatch(cycles, rejects, batchNum) {
   const totalCycles = cycles.length;
   
   const batchRejects = rejects.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length;
+  const pps = ppsFor(+startTime);
   const goodCycles = Math.max(0, totalCycles - batchRejects);
   
   const nominalSpeed = Number($("nominalSpeed").value) || 120;
@@ -4221,9 +4341,10 @@ function finalizeBatch(cycles, rejects, batchNum) {
     startStr: fmtTime(startTime),
     endStr: fmtTime(endTime),
     durationFormatted: `${durMin} mins`,
-    total: totalCycles,
-    good: goodCycles,
-    rejects: batchRejects,
+    strokes: totalCycles, pps, rejectStrokes: batchRejects, startMs: +startTime, endMs: +endTime,
+    total: totalCycles * pps,
+    good: goodCycles * pps,
+    rejects: batchRejects * pps,
     oee: pct(oee)
   };
 }
@@ -4233,6 +4354,7 @@ const commonOpts = { responsive: true, maintainAspectRatio: false, plugins: { le
 
 function renderDashboard() {
   const { start, end } = getShiftWindow();
+  if (ppsPath() && ppsLoadedKey !== ppsPath()) loadPpsEntries().then(has => { if (has) renderDashboard(); });
   const cycleEvents = events.filter(x => x.type === "cycles count");
   const rejectEvents = events.filter(x => x.type === "rejected products cycle count");
   
@@ -4318,7 +4440,7 @@ function renderDashboard() {
   
   const tbody = $("batchTableBody"); tbody.innerHTML = "";
   if (batches.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">No completed batches found within the selected period.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:20px;">No completed batches found within the selected period.</td></tr>`;
   } else {
     batches.forEach(b => {
       const tr = document.createElement("tr");
@@ -4327,6 +4449,8 @@ function renderDashboard() {
         <td>${b.startStr}</td>
         <td>${b.endStr}</td>
         <td>${b.durationFormatted}</td>
+        <td>${fmt(b.strokes)}</td>
+        <td>${b.pps}</td>
         <td><b>${fmt(b.good)}</b> / ${fmt(b.total)}</td>
         <td class="accent-red">${fmt(b.rejects)}</td>
         <td class="accent-green"><b>${b.oee}</b></td>
@@ -4336,11 +4460,14 @@ function renderDashboard() {
   }
 
   renderVelocity(events, start, end, params.speed);
-  renderCapacity(total, nominalOutput, actualRate, params.speed);
+  renderCapacity(total, nominalOutput, actualRate, params.speed, elapsedHours);
   renderLoss(elapsedHours, runHours, idleSec / 3600);
+  renderWaterfall(elapsedHours, runHours, idleSec / 3600, performance, quality, params.cost, params.speed, total, good);
   renderTimeline(intervals, start, end);
   renderHourly(events, start, shiftHours);
+  renderQualitySection(events, start, shiftHours, batches);
   renderAnalysis(events, start, end, effEnd, rawIntervals, params.speed, nowMs);
+  updateSectionSummaries();
   $("footerTime").textContent = "Calculated " + new Date().toLocaleString();
 }
 
@@ -4371,24 +4498,30 @@ function renderVelocity(ev, start, end, speed) {
   });
 }
 
-function renderCapacity(total, nominal, actual, speed) {
+function renderCapacity(total, nominal, actual, speed, plannedHours) {
   // Output (thousands) and rate (tens) differ by orders of magnitude, so each gets its own chart and its own scale.
-  const mk = (id, name, aVal, nVal, aColor, unit) => {
+  const potential = (plannedHours || 0) * 60 * speed;          // 100% speed for the whole planned time so far
+  const mk = (id, name, aVal, nVal, aColor, unit, pVal) => {
     destroy(id);
     const pctOfNominal = nVal ? Math.min(999, (aVal / nVal) * 100) : 0;
+    const withPot = pVal != null;
+    const title = [`${name}  •  ${fmt(pctOfNominal, 0)}% of nominal`];
+    if (withPot) title.push(`${fmt(pVal ? Math.min(999, (aVal / pVal) * 100) : 0, 0)}% of full-time potential`);
     charts[id] = new Chart($(id), {
       type: "bar",
-      data: { labels: ["Actual", "Nominal"], datasets: [{
-        data: [aVal, nVal],
-        backgroundColor: [aColor, "rgba(129,147,162,.30)"],
+      data: { labels: withPot ? ["Actual", "Nominal", "Full-time potential"] : ["Actual", "Nominal"], datasets: [{
+        data: withPot ? [aVal, nVal, pVal] : [aVal, nVal],
+        backgroundColor: withPot ? [aColor, "rgba(129,147,162,.30)", "rgba(56,224,143,.28)"] : [aColor, "rgba(129,147,162,.30)"],
         borderRadius: 7, maxBarThickness: 64
       }]},
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: `${name}  •  ${fmt(pctOfNominal, 0)}% of nominal`, color: "#8ca1af", font: { size: 11, weight: "600" } },
-          tooltip: { callbacks: { label: c => `${fmt(c.parsed.y, unit ? 1 : 0)}${unit}` } }
+          title: { display: true, text: title, color: "#8ca1af", font: { size: 11, weight: "600" } },
+          tooltip: { callbacks: {
+            label: c => `${fmt(c.parsed.y, unit ? 1 : 0)}${unit}`,
+            afterLabel: c => c.dataIndex === 1 ? "Nominal speed × time the machine was producing" : (c.dataIndex === 2 ? "Nominal speed × all planned time so far (100% availability and performance)" : "") } }
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: "#708493", font: { size: 10 } } },
@@ -4397,8 +4530,8 @@ function renderCapacity(total, nominal, actual, speed) {
       }
     });
   };
-  mk("capacityChart", "Output this shift", total, nominal, "#35d4ff", "");
-  mk("capacityRateChart", "Rate (parts / min)", actual, speed, "#9b7cff", " /min");
+  mk("capacityChart", "Output this shift", total, nominal, "#35d4ff", "", potential);
+  mk("capacityRateChart", "Rate (parts / min)", actual, speed, "#9b7cff", " /min", null);
 }
 
 function renderLoss(available, run, idle) {
@@ -4410,6 +4543,74 @@ function renderLoss(available, run, idle) {
     options: { responsive: true, maintainAspectRatio: false, cutout: "70%",
       plugins: { legend: { position: "bottom", labels: { color: "#8ca1af", font: { size: 10 } } },
         tooltip: { callbacks: { label: c => `${c.label}: ${fmt(c.parsed, 2)} h` } } } }
+  });
+}
+
+
+// Waterfall. Time view: planned time -> off -> idle -> speed loss -> quality loss -> effective time (= OEE x planned time).
+// Parts view: the same losses converted at nominal speed: potential parts -> off -> idle -> speed loss -> rejected -> good parts.
+let wfMode = "time", wfLast = null;
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("#wfModeBtns button"); if (!b) return;
+  wfMode = b.dataset.wf;
+  document.querySelectorAll("#wfModeBtns button").forEach(x => { const on = x === b; x.style.background = on ? "#163042" : "transparent"; x.style.color = on ? "var(--text)" : "var(--muted)"; });
+  if (wfLast) renderWaterfall(...wfLast);
+});
+function renderWaterfall(planned, run, idle, perfPct, qualPct, costPerHour, nominalSpeed, totalParts, goodParts) {
+  wfLast = [planned, run, idle, perfPct, qualPct, costPerHour, nominalSpeed, totalParts, goodParts];
+  destroy("waterfallChart");
+  if (!(planned > 0)) { $("wfBadge").textContent = "—"; return; }
+  const parts = wfMode === "parts";
+  const perf = Math.max(0, Math.min(1, perfPct / 100)), qual = Math.max(0, Math.min(1, qualPct / 100));
+  const off = Math.max(0, planned - run - idle);
+  const speedLoss = run * (1 - perf);
+  const qualityLoss = run * perf * (1 - qual);
+  const effective = run * perf * qual;
+  const k = parts ? 60 * (nominalSpeed || 0) : 1;            // hours -> parts at nominal speed
+  const unit = parts ? "parts" : "h", dec = parts ? 0 : 2;
+  const V = h => h * k;
+  const top = V(planned);
+  let cur = top;
+  const step = v => { const hi = cur; cur -= v; return [Math.max(0, cur), hi]; };
+  const bars = [
+    { name: parts ? "Potential parts" : "Planned time", range: [0, top], v: top, color: "#35d4ff", loss: false },
+    { name: "Off", v: V(off), color: "#ff5d6c", loss: true },
+    { name: "Idle (no output)", v: V(idle), color: "#ffbf5b", loss: true },
+    { name: "Speed loss", v: V(speedLoss), color: "#9b7cff", loss: true },
+    { name: parts ? "Rejected parts" : "Quality loss", v: V(qualityLoss), color: "#ff7c5b", loss: true },
+    { name: parts ? "Good parts" : "Effective time", range: [0, V(effective)], v: V(effective), color: "#38e08f", loss: false }
+  ];
+  bars.forEach(b => { if (b.loss) b.range = step(b.v); });
+  const lossTotal = bars.filter(b => b.loss).reduce((a, b) => a + b.v, 0);
+  const worst = bars.filter(b => b.loss).slice().sort((a, b) => b.v - a.v)[0];
+  $("wfBadge").textContent = `OEE ${fmt(planned ? (effective / planned) * 100 : 0, 1)}%`;
+  $("wfL1").textContent = parts ? "Good parts (counted by the machine)" : "Effective time (OEE × planned time)";
+  $("wfL2").textContent = parts ? "Parts not made or rejected" : "Total time lost";
+  $("wfEffective").textContent = `${fmt(bars[5].v, dec)} ${unit}`;
+  $("wfLossTotal").textContent = parts ? `${fmt(lossTotal, 0)} parts` : `${fmt(lossTotal, 2)} h • EGP ${fmt(lossTotal * costPerHour)}`;
+  $("wfBiggest").textContent = worst && worst.v > (parts ? 0.5 : 0.005) ? `${worst.name}: ${fmt(worst.v, dec)} ${unit}` : "none";
+  const labelPlugin = {
+    id: "wfLabels",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart; const meta = chart.getDatasetMeta(0);
+      ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "#cfe0ec"; ctx.font = "600 11px sans-serif";
+      meta.data.forEach((bar, i) => {
+        const b = bars[i];
+        ctx.fillText(`${b.loss ? "−" : ""}${fmt(b.v, dec)} ${unit}`, bar.x, bar.y - (b.loss && !parts ? 20 : 8));
+        if (b.loss && !parts) { ctx.fillStyle = "#8ca1af"; ctx.font = "10px sans-serif"; ctx.fillText(`EGP ${fmt(b.v * costPerHour)}`, bar.x, bar.y - 7); ctx.fillStyle = "#cfe0ec"; ctx.font = "600 11px sans-serif"; }
+      });
+      ctx.restore();
+    }
+  };
+  charts.waterfallChart = new Chart($("waterfallChart"), {
+    type: "bar",
+    data: { labels: bars.map(b => b.name), datasets: [{ data: bars.map(b => b.range), backgroundColor: bars.map(b => b.color), borderRadius: 5, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => { const b = bars[c.dataIndex]; return b.loss ? (parts ? `${fmt(b.v, 0)} parts lost` : `${fmt(b.v, 2)} h lost • EGP ${fmt(b.v * costPerHour)}`) : `${fmt(b.v, dec)} ${unit}`; } } } },
+      scales: { x: { grid: { display: false }, ticks: { color: "#8ca1af", font: { size: 10 } } },
+                y: { beginAtZero: true, max: parts ? Math.ceil(top * 1.12) || 1 : +(top * 1.12).toFixed(2) || 1, title: { display: true, text: parts ? "parts" : "hours", color: "#708493", font: { size: 9 } }, grid: { color: "rgba(35,52,65,.35)" }, ticks: { color: "#708493", font: { size: 9 } } } } },
+    plugins: [labelPlugin]
   });
 }
 
@@ -4454,6 +4655,135 @@ function renderHourly(ev, start, hours) {
       { label: "Good", data: good, backgroundColor: "#38e08f", borderRadius: 4 }
     ]},
     options: commonOpts
+  });
+}
+
+
+// ---- Collapsible sections ----
+function saveSecs() { try { localStorage.setItem("secClosed", JSON.stringify([...document.querySelectorAll(".sec.closed")].map(e => e.id))); } catch (e) {} }
+function toggleSec(id, force) {
+  const el = document.getElementById(id); if (!el) return;
+  const close = force === undefined ? !el.classList.contains("closed") : force;
+  el.classList.toggle("closed", close); saveSecs();
+  if (!close) setTimeout(() => { window.dispatchEvent(new Event("resize")); try { if (lastHeatArgs) renderHeatmap(...lastHeatArgs); } catch (e) {} }, 40);
+}
+function setAllSecs(close) { document.querySelectorAll(".sec").forEach(e => toggleSec(e.id, close)); }
+function gotoSec(id) { toggleSec(id, false); setTimeout(() => document.getElementById(id).scrollIntoView({ behavior: "smooth", block: "start" }), 60); }
+(function restoreSecs() { try { JSON.parse(localStorage.getItem("secClosed") || "[]").forEach(id => { const e = document.getElementById(id); if (e) e.classList.add("closed"); }); } catch (e) {} })();
+function updateSectionSummaries() {
+  const t = id => { const e = document.getElementById(id); return e ? e.textContent.trim() : "—"; };
+  const set = (id, v) => { const e = document.getElementById(id + "-sum"); if (e) e.textContent = v; };
+  set("sec-overview", `OEE ${t("oeeValue")} • Availability ${t("avValue")} • Performance ${t("perfValue")} • Quality ${t("qualValue")}`);
+  set("sec-production", `Output ${t("totalOutput")} • ${t("paceBadge")} • Actual rate ${t("actualRate")} parts/min`);
+  set("sec-stops", `${t("stopBadge")} • Run ${t("runTime")} • Idle ${t("idleTime")}`);
+  set("sec-quality", `${t("qgBadge")} • ${t("qgRejects")} rejected • reject rate ${t("qgRate")}`);
+  set("sec-batches", t("batchCountBadge"));
+}
+
+// ================= V23 Quality section =================
+function renderQualitySection(ev, start, hours, batches) {
+  const sMs = +start;
+  const cyc = Array(hours).fill(0), rej = Array(hours).fill(0);
+  const cycT = [], rejT = [];
+  ev.forEach(x => {
+    const t = +x.timestamp, h = Math.floor((t - sMs) / 3600000);
+    const isC = x.type === "cycles count", isR = x.type === "rejected products cycle count";
+    if (isC) cycT.push(t); if (isR) rejT.push(t);
+    if (h >= 0 && h < hours) { if (isC) cyc[h]++; if (isR) rej[h]++; }
+  });
+  const totalC = cycT.length, totalR = rejT.length, goodC = Math.max(0, totalC - totalR);
+  const rate = totalC ? (totalR / totalC) * 100 : 0;
+  const hourLabel = i => String(new Date(sMs + i * 3600000).getHours()).padStart(2, "0") + ":00";
+  const ink = "#8ca1af", grid = "rgba(35,52,65,.35)";
+
+  // 1) Quality at a glance
+  destroy("qualityGlanceChart");
+  $("qgBadge").textContent = `Quality ${fmt(totalC ? (goodC / totalC) * 100 : 100, 1)}%`;
+  $("qgRejects").textContent = fmt(totalR);
+  $("qgRate").textContent = fmt(rate, 2) + "%";
+  let worstH = -1, worstR = 0;
+  for (let i = 0; i < hours; i++) { if (cyc[i] >= 20) { const r = rej[i] / cyc[i]; if (r > worstR) { worstR = r; worstH = i; } } }
+  $("qgWorst").textContent = worstH >= 0 && worstR > 0 ? `${hourLabel(worstH)} • ${fmt(worstR * 100, 1)}%` : "none";
+  const centre = { id: "qgCentre", afterDraw(ch) {
+    const { ctx, chartArea: a } = ch; const cx = (a.left + a.right) / 2, cy = (a.top + a.bottom) / 2;
+    ctx.save(); ctx.textAlign = "center"; ctx.fillStyle = "#e8f1f7"; ctx.font = "800 26px sans-serif";
+    ctx.fillText(fmt(totalC ? (goodC / totalC) * 100 : 100, 1) + "%", cx, cy + 4);
+    ctx.fillStyle = "#8ca1af"; ctx.font = "10px sans-serif"; ctx.fillText("GOOD", cx, cy + 20); ctx.restore(); } };
+  charts.qualityGlanceChart = new Chart($("qualityGlanceChart"), {
+    type: "doughnut",
+    data: { labels: ["Good", "Rejected"], datasets: [{ data: [goodC, totalR], backgroundColor: ["#38e08f", "#ff5d6c"], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "72%",
+      plugins: { legend: { position: "right", labels: { color: ink, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => `${c.label}: ${fmt(c.parsed)} (${fmt(totalC ? (c.parsed / totalC) * 100 : 0, 2)}%)` } } } },
+    plugins: [centre]
+  });
+
+  // 2) Rejected products per hour
+  destroy("rejectHourChart");
+  const ratePH = cyc.map((c, i) => c ? +((rej[i] / c) * 100).toFixed(2) : null);
+  $("rphBadge").textContent = `${fmt(totalR)} rejected`;
+  $("rphNote").textContent = worstH >= 0 && worstR > 0 ? `Highest reject rate: ${hourLabel(worstH)} with ${fmt(rej[worstH])} rejected of ${fmt(cyc[worstH])} (${fmt(worstR * 100, 1)}%). Hours with fewer than 20 parts are ignored for this comparison.` : "No hour with a meaningful reject rate yet.";
+  charts.rejectHourChart = new Chart($("rejectHourChart"), {
+    data: { labels: cyc.map((_, i) => hourLabel(i)), datasets: [
+      { type: "bar", label: "Rejected products", data: rej, backgroundColor: "#ff5d6c", borderRadius: 4, yAxisID: "y", order: 2 },
+      { type: "line", label: "Reject rate %", data: ratePH, borderColor: "#ffbf5b", backgroundColor: "#ffbf5b", pointRadius: 2, tension: .25, spanGaps: false, yAxisID: "y1", order: 1 } ] },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { color: ink, boxWidth: 10, font: { size: 10 } } } },
+      scales: { x: { grid: { color: grid }, ticks: { color: "#708493", font: { size: 9 }, maxTicksLimit: 12 } },
+        y: { beginAtZero: true, grid: { color: grid }, ticks: { color: "#708493", font: { size: 9 }, precision: 0 }, title: { display: true, text: "products", color: "#708493", font: { size: 9 } } },
+        y1: { position: "right", beginAtZero: true, grid: { display: false }, ticks: { color: "#ffbf5b", font: { size: 9 }, callback: v => v + "%" } } } }
+  });
+
+  // 3) Rejects by batch (products: strokes x products per stroke, as set in the Batch Manager)
+  destroy("rejectBatchChart");
+  const bl = (batches || []).slice(0, 40);
+  $("rbbBadge").textContent = `${bl.length} batch${bl.length === 1 ? "" : "es"}`;
+  const brate = bl.map(b => b.total ? +((b.rejects / b.total) * 100).toFixed(2) : 0);
+  const wb = bl.length ? bl.reduce((m, b, i) => brate[i] > brate[m] ? i : m, 0) : -1;
+  $("rbbNote").textContent = wb >= 0 && brate[wb] > 0 ? `Worst batch: ${bl[wb].id} with ${fmt(bl[wb].rejects)} rejected products (${fmt(brate[wb], 2)}%).` : (bl.length ? "No rejects in any batch." : "No batches detected in this period.");
+  charts.rejectBatchChart = new Chart($("rejectBatchChart"), {
+    data: { labels: bl.map(b => "#" + b.id.replace(/\D/g, "")), datasets: [
+      { type: "bar", label: "Rejected products", data: bl.map(b => b.rejects), backgroundColor: "#ff7c5b", borderRadius: 4, yAxisID: "y", order: 2 },
+      { type: "line", label: "Reject rate %", data: brate, borderColor: "#ffbf5b", backgroundColor: "#ffbf5b", pointRadius: 3, showLine: bl.length > 1, yAxisID: "y1", order: 1 } ] },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { labels: { color: ink, boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { title: it => bl[it[0].dataIndex] ? `${bl[it[0].dataIndex].id} • ${bl[it[0].dataIndex].startStr}–${bl[it[0].dataIndex].endStr}` : "",
+          afterBody: it => { const b = bl[it[0].dataIndex]; return b ? `${fmt(b.total)} products (${fmt(b.strokes)} strokes × ${b.pps})` : ""; } } } },
+      scales: { x: { grid: { display: false }, ticks: { color: "#708493", font: { size: 9 } } },
+        y: { beginAtZero: true, grid: { color: grid }, ticks: { color: "#708493", font: { size: 9 }, precision: 0 }, title: { display: true, text: "products", color: "#708493", font: { size: 9 } } },
+        y1: { position: "right", beginAtZero: true, grid: { display: false }, ticks: { color: "#ffbf5b", font: { size: 9 }, callback: v => v + "%" } } } }
+  });
+
+  // 4) Rejects after a restart: reject rate by minutes since the last restart (first part, or first part after a stop >= STOP_MIN_MS)
+  destroy("rejectRestartChart");
+  cycT.sort((a, b) => a - b); rejT.sort((a, b) => a - b);
+  const restarts = []; let prev = null;
+  cycT.forEach(t => { if (prev === null || t - prev >= STOP_MIN_MS) restarts.push(t); prev = t; });
+  const edges = [0, 5, 15, 30, 60, Infinity], names = ["0–5 min", "5–15 min", "15–30 min", "30–60 min", "60+ min"];
+  const bc = Array(5).fill(0), br = Array(5).fill(0);
+  const bucket = (t, ri) => { const m = (t - restarts[ri]) / 60000; for (let k = 0; k < 5; k++) if (m < edges[k + 1]) return k; return 4; };
+  let ri = -1;
+  cycT.forEach(t => { while (ri + 1 < restarts.length && restarts[ri + 1] <= t) ri++; if (ri >= 0) bc[bucket(t, ri)]++; });
+  ri = -1;
+  rejT.forEach(t => { while (ri + 1 < restarts.length && restarts[ri + 1] <= t) ri++; if (ri >= 0) br[bucket(t, ri)]++; });
+  const brate2 = bc.map((c, i) => c ? +((br[i] / c) * 100).toFixed(2) : null);
+  const earlyC = bc[0] + bc[1], earlyR = br[0] + br[1], laterC = bc[2] + bc[3] + bc[4], laterR = br[2] + br[3] + br[4];
+  const earlyRate = earlyC ? earlyR / earlyC * 100 : null, laterRate = laterC ? laterR / laterC * 100 : null;
+  $("rarBadge").textContent = `${restarts.length} restart${restarts.length === 1 ? "" : "s"}`;
+  let note = "Not enough data yet.";
+  if (earlyRate !== null && laterRate !== null) {
+    note = `First 15 min after a restart: ${fmt(earlyRate, 2)}% rejected (${fmt(earlyR)} of ${fmt(earlyC)}). Later in the run: ${fmt(laterRate, 2)}% (${fmt(laterR)} of ${fmt(laterC)}).`;
+    if (earlyR >= 5 && laterRate > 0 ? earlyRate > laterRate * 1.5 : (earlyR >= 5 && earlyRate > 0)) note += " Rejects are higher right after restarts: check warm-up and set-up.";
+    else if (earlyR + laterR > 0) note += " No clear restart effect.";
+  } else if (earlyRate !== null) note = `First 15 min after a restart: ${fmt(earlyRate, 2)}% rejected. No later part of the run yet.`;
+  $("rarNote").textContent = note;
+  charts.rejectRestartChart = new Chart($("rejectRestartChart"), {
+    type: "bar",
+    data: { labels: names, datasets: [{ data: brate2, backgroundColor: ["#ff5d6c", "#ff7c5b", "#ffbf5b", "#8fd6b0", "#38e08f"], borderRadius: 6, maxBarThickness: 56 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.parsed.y === null ? "no parts" : fmt(c.parsed.y, 2) + "%"} rejected`, afterLabel: c => `${fmt(br[c.dataIndex])} of ${fmt(bc[c.dataIndex])} parts` } } },
+      scales: { x: { grid: { display: false }, ticks: { color: "#708493", font: { size: 10 } }, title: { display: true, text: "time since the machine restarted", color: "#708493", font: { size: 9 } } },
+        y: { beginAtZero: true, grid: { color: grid }, ticks: { color: "#708493", font: { size: 9 }, callback: v => v + "%" } } } }
   });
 }
 
