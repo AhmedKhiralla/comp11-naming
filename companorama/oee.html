@@ -114,6 +114,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .panel{padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}.panel-title{font-size:13px;font-weight:750}.panel-desc{font-size:10px;color:#718594;margin-top:4px}
 .badge{font-size:10px;padding:5px 8px;border-radius:999px;border:1px solid #29404f;color:#8fa4b2;background:#0a141d}
 .chart-wrap{height:285px;position:relative}.chart-wrap.tall{height:335px}.chart-wrap.short{height:220px}
+.chart-wrap.pair{height:270px;display:grid;grid-template-columns:1.1fr 1fr;grid-template-rows:minmax(0,1fr);gap:14px;overflow:hidden}.chart-wrap.pair.single{grid-template-columns:minmax(0,1fr)}.chart-wrap .cw{position:relative;min-width:0;min-height:0;overflow:hidden}.chart-wrap .cw canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
 
 .oee-layout{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:center}
 .oee-ring{width:220px;height:220px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) 0deg, var(--green) var(--oeeDeg), #1a2b35 var(--oeeDeg), #1a2b35 360deg);position:relative;margin:auto}
@@ -815,7 +816,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 <section class="grid equal">
           <div class="card panel">
             <div class="panel-head"><div><div class="panel-title">Production vs Nominal Capacity</div><div class="panel-desc">Actual output compared with theoretical capacity during runtime</div></div></div>
-            <div class="chart-wrap short" style="display:grid; grid-template-columns:1.1fr 1fr; gap:14px;"><div style="position:relative; min-height:0;"><canvas id="capacityChart"></canvas></div><div style="position:relative; min-height:0;"><canvas id="capacityRateChart"></canvas></div></div>
+            <div class="chart-wrap pair"><div class="cw"><canvas id="capacityChart"></canvas></div><div class="cw"><canvas id="capacityRateChart"></canvas></div></div>
             <div class="stat-grid" style="margin-top:12px">
               <div class="mini"><div class="v" id="nominalCapacity">—</div><div class="l">Nominal capacity</div></div>
               <div class="mini"><div class="v" id="actualRate">—</div><div class="l">Actual rate</div></div>
@@ -824,7 +825,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           </div>
           <div class="card panel">
             <div class="panel-head"><div><div class="panel-title">OEE Loss Structure</div><div class="panel-desc">Where the shift time went: producing, powered but no output (idle), or switched off</div></div></div>
-            <div class="chart-wrap short"><canvas id="lossChart"></canvas></div>
+            <div class="chart-wrap pair single"><div class="cw"><canvas id="lossChart"></canvas></div></div>
             <div class="losses" style="margin-top:10px">
               <div class="loss"><div class="num" id="plannedTime">—</div><div class="label">Available time</div></div>
               <div class="loss"><div class="num" id="idleTime">—</div><div class="label">Idle: powered, no parts for 1 min or more</div></div>
@@ -2180,6 +2181,7 @@ async function toggleUserStatus(uid, newState) {
 
 
 let auditEventsCache = [];
+let auditLastKey = null, auditCacheGroup = null;
 
 async function openAuditTrail() {
   if (!currentUserRecord || !currentUserRecord.group) {
@@ -2192,13 +2194,17 @@ async function openAuditTrail() {
     '<tr><td colspan="5" class="audit-empty">Loading audit events...</td></tr>';
 
   try {
-    const snap = await rtdb
-      .ref(`audit_trail/${currentUserRecord.group}`)
-      .once("value");
+    // Full history is always shown. When it is already held in this browser, only events newer than the last one are downloaded.
+    const aRef = rtdb.ref(`audit_trail/${currentUserRecord.group}`);
+    const incremental = auditCacheGroup === currentUserRecord.group && auditLastKey;
+    const snap = await (incremental ? aRef.orderByKey().startAt(auditLastKey) : aRef).once("value");
 
-    auditEventsCache = [];
+    if (!incremental) auditEventsCache = [];
+    auditCacheGroup = currentUserRecord.group;
 
     snap.forEach(child => {
+      if (incremental && child.key === auditLastKey) return;
+      auditLastKey = child.key;
       const event = child.val() || {};
 
       auditEventsCache.push({
@@ -3383,6 +3389,7 @@ async function clearLocalCache() {
   telemetryCache = {};
   statusLookbackCache = {};
   machineSettingsCache = {};
+  auditEventsCache = []; auditLastKey = null; auditCacheGroup = null;
   await localCache.wipe();
 }
 
@@ -3623,8 +3630,12 @@ async function discoverHierarchy() {
     try {
       dbTree = await buildHierarchyShallow();
     } catch (shallowErr) {
-      console.warn("Shallow hierarchy read failed, falling back to a full read:", shallowErr);
-      dbTree = await fetchRaw("");
+      console.warn("Shallow hierarchy read failed, retrying once:", shallowErr);
+      try { await new Promise(r => setTimeout(r, 1500)); dbTree = await buildHierarchyShallow(); }
+      catch (retryErr) {
+        console.warn("Shallow hierarchy read failed again, falling back to a full read:", retryErr);
+        dbTree = await fetchRaw("");
+      }
     }
     telemetryCache = {};
 
