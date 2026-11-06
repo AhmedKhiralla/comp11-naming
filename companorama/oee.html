@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Companorama | Multi-Transition OEE Command Center & RBAC Portal</title>
-<link rel="icon" type="image/jpeg" href="Comp11Labs%20Logo.jpg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -42,7 +41,7 @@ button,input,select{font:inherit}
 .auth-card .control{margin-bottom:16px}
 
 /* Management Modals & Panels */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;place-items:center;padding:20px}
+.stop-sel{width:15px;height:15px;cursor:pointer;accent-color:#35d4ff}.stop-reason{font-size:10px;line-height:1.35}.stop-reason .by{color:#718594}.sig-box{margin-top:12px;padding:12px;border:1px solid #2b4a5e;border-radius:10px;background:#071018}.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;place-items:center;padding:20px}
 .modal-card{background:#0d1822;border:1px solid var(--line);border-radius:var(--radius);padding:25px;width:100%;max-width:740px;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
 
 .nav-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:15px}
@@ -414,13 +413,59 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 <!-- LOGIN OVERLAY -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-card">
-    <img src="Comp11Labs%20Logo.jpg" alt="Comp11Labs Logo" style="width: 100%; height: auto; border-radius: 12px; object-fit: contain; margin-bottom: 20px; display: block;">
     <h2 id="authTitle">Companorama Login</h2>
     <p id="authSubtitle">Enter your credentials to access system telemetry.</p>
     <div class="control"><label>Email Address</label><input type="email" id="loginEmail" placeholder="user@company.com"></div>
     <div class="control"><label>Password (Min 8 chars, Letters & Numbers)</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
     <button class="btn primary" id="loginBtn">Authenticate Session</button>
     <div id="authError" style="color:var(--red); font-size:11px; margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- FIRST-ACCESS PASSWORD CHANGE -->
+<div class="auth-overlay" id="pwChangeOverlay" style="display:none; z-index:1100;">
+  <div class="auth-card">
+    <h2>Set your own password</h2>
+    <p>This is your first access. Replace the temporary password you were given with a password only you know. You cannot use the system until this is done.</p>
+    <div class="control"><label>Temporary password (current)</label><input type="password" id="pwOld" autocomplete="current-password"></div>
+    <div class="control"><label>New password (min 8 chars, letters and numbers)</label><input type="password" id="pwNew" autocomplete="new-password"></div>
+    <div class="control"><label>Confirm new password</label><input type="password" id="pwNew2" autocomplete="new-password"></div>
+    <button class="btn primary" id="pwChangeBtn">Save new password</button>
+    <button class="btn" id="pwCancelBtn" style="margin-left:8px;">Sign out</button>
+    <div id="pwChangeError" style="color:var(--red); font-size:11px; margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- STOP REASON + E-SIGNATURE MODAL -->
+<div class="modal-overlay" id="stopReasonModal">
+  <div class="modal-card" style="max-width:640px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 style="margin:0; font-size:17px; color:var(--cyan);">Reason for stoppage</h2>
+      <button class="back-btn" onclick="closeStopReasonModal()">Close</button>
+    </div>
+    <div id="srStops" style="max-height:130px; overflow-y:auto; font-size:11px; border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:12px;"></div>
+    <div style="display:grid; grid-template-columns:1fr; gap:10px;">
+      <div class="control"><label>Reason</label>
+        <select id="srReason">
+          <option value="">Select a reason...</option>
+          <optgroup label="Planned">
+            <option>Changeover / setup</option><option>Planned maintenance</option><option>Break / shift change</option><option>Cleaning / sanitation</option><option>No order / no plan</option>
+          </optgroup>
+          <optgroup label="Unplanned">
+            <option>Mechanical breakdown</option><option>Electrical / control fault</option><option>Power failure</option><option>Material shortage</option><option>Waiting for operator</option><option>Quality check / inspection</option><option>Tool / die problem</option>
+          </optgroup>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="control"><label>Comment (required for "Other")</label><textarea id="srComment" rows="2" style="width:100%; background:#0a151e; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px; font-family:inherit;"></textarea></div>
+    </div>
+    <div class="sig-box">
+      <div style="font-size:12px; font-weight:700; margin-bottom:6px;">Electronic signature</div>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">Signing as <b id="srSigner">—</b>. By signing, I confirm that the reason entered is accurate. Your name, role, date and time are recorded with the reason and written to the audit trail.</div>
+      <div class="control" style="margin:0;"><label>Re-enter your password to sign</label><input type="password" id="srPassword" autocomplete="current-password"></div>
+    </div>
+    <div id="srError" style="color:var(--red); font-size:11px; margin-top:10px;"></div>
+    <div style="margin-top:12px;"><button class="btn primary" id="srSignBtn" onclick="signStopReasons()">Sign &amp; save</button></div>
   </div>
 </div>
 
@@ -521,6 +566,9 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <option value="LOGIN">Login</option>
         <option value="AUTO_LOGOUT">Auto Logout</option>
         <option value="CONFIG_CHANGE">Configuration Change</option>
+        <option value="PASSWORD_CHANGED">Password Changed</option>
+        <option value="STOP_REASON_SIGNED">Stop Reason Signed</option>
+        <option value="E_SIGNATURE_FAILED">E-signature Failed</option>
       </select>
 
       <button class="btn" onclick="openAuditTrail()">
@@ -592,12 +640,17 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <div class="control"><label>Condition Trigger Type</label><select id="alertConditionType"><option value="state_off">Machine OFF for duration (Minutes)</option><option value="state_on">Machine WORKING for duration (Minutes)</option><option value="speed_below">Cycle Rate: Less than threshold (parts/min)</option><option value="speed_above">Cycle Rate: More than threshold (parts/min)</option><option value="quality_below">Quality Percentage: Less than threshold (%)</option></select></div>
         <div class="control"><label>Threshold Limit Value</label><input type="number" id="alertThresholdValue" placeholder="e.g. 15 (mins) or 85 (%)" step="0.1"></div>
       </div>
+      <div id="alertSpeedExtra" style="display:none; grid-template-columns:1fr 1fr; gap:10px;">
+        <div class="control"><label>Nominal speed of the machine (parts/min)</label><input type="number" id="alertNominalSpeed" placeholder="e.g. 40" step="0.1" min="0"></div>
+        <div class="control"><label>Alert only if it lasts at least (minutes)</label><input type="number" id="alertDurationMin" placeholder="e.g. 5" step="1" min="1"></div>
+        <div style="grid-column:1 / -1; font-size:11px; color:var(--muted); margin-top:-4px;" id="alertSpeedHint"></div>
+      </div>
       <div class="control"><label>Recipient Email Addresses (Comma-separated)</label><input type="text" id="alertRecipients" placeholder="engineer@client.com, supervisor@client.com"></div>
       <button class="btn primary" id="saveAlertRuleBtn">Save & Activate Alert Rule</button>
     </div>
 
     <div style="margin-top:20px;">
-      <h3 style="font-size:13px;">Active Group Alert Rules</h3>
+      <h3 style="font-size:13px;">My Alert Rules</h3>
       <div style="max-height:180px; overflow-y:auto;">
         <table class="batch-table">
           <thead><tr><th>Target Scope</th><th>Condition</th><th>Threshold</th><th>Recipients</th><th>Action</th></tr></thead>
@@ -677,9 +730,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 <div class="app">
 <header class="topbar">
   <div class="brand">
-    <div class="brandmark" style="width: auto; padding: 0 4px; background: transparent; border: none; box-shadow: none;">
-      <img src="Comp11Labs%20Logo.jpg" alt="Comp11Labs Logo" style="height: 36px; width: auto; object-fit: contain; display: block;">
-    </div>
+    <div class="brandmark">🏭</div>
     <div><h1>COMPANORAMA</h1><small id="currentUserBadge">USER: NOT LOGGED IN</small></div>
   </div>
   <div class="top-controls">
@@ -869,9 +920,13 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           <div class="card panel stops-card">
             <div class="panel-head"><div><div class="panel-title">Stops &amp; Time Without Output</div><div class="panel-desc">Every gap of 1 minute or more between two parts, grouped by length: bars show minutes lost, the line shows how many stops</div></div><span class="badge" id="stopBadge">—</span></div>
             <div class="chart-wrap" style="height:150px;flex:0 0 auto"><canvas id="stopParetoChart"></canvas></div>
+            <div style="display:flex; align-items:center; gap:10px; margin:8px 0; flex-wrap:wrap;">
+              <button class="btn primary" id="stopReasonBtn" style="width:auto;" disabled onclick="openStopReasonModal()">✍ Add reason to selected stops</button>
+              <span id="stopSelCount" style="font-size:11px; color:var(--muted);">Tick one or more stops, then add the reason and sign.</span>
+            </div>
             <div class="stops-scroll" style="overflow-x:auto;">
               <table class="batch-table">
-                <thead><tr><th>Start</th><th>End</th><th>Duration</th><th>Machine state</th></tr></thead>
+                <thead><tr><th></th><th>Start</th><th>End</th><th>Duration</th><th>Machine state</th><th>Reason &amp; e-signature</th></tr></thead>
                 <tbody id="stopTableBody"></tbody>
               </table>
             </div>
@@ -1801,6 +1856,39 @@ async function logAuditAction(actionType, details) {
   await rtdb.ref(`audit_trail/${group}/${logId}`).set(payload);
 }
 
+// --- FIRST-ACCESS PASSWORD CHANGE ---
+// New accounts are created with mustChangePassword = true. The user cannot reach the dashboard until a new password is set.
+function forcePasswordChange() {
+  return new Promise(resolve => {
+    const ov = $("pwChangeOverlay"), err = $("pwChangeError");
+    ["pwOld", "pwNew", "pwNew2"].forEach(id => { $(id).value = ""; });
+    err.textContent = ""; ov.style.display = "grid";
+    const done = ok => { ov.style.display = "none"; $("pwChangeBtn").onclick = null; $("pwCancelBtn").onclick = null; resolve(ok); };
+    $("pwCancelBtn").onclick = () => { auth.signOut(); done(false); };
+    $("pwChangeBtn").onclick = async () => {
+      const oldP = $("pwOld").value, p1 = $("pwNew").value, p2 = $("pwNew2").value;
+      const complexRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!\%*?&]{8,}$/;
+      if (!oldP) { err.textContent = "Enter the temporary password you were given."; return; }
+      if (!complexRegex.test(p1)) { err.textContent = "The new password must be at least 8 characters with letters and numbers."; return; }
+      if (p1 !== p2) { err.textContent = "The two new passwords do not match."; return; }
+      if (p1 === oldP) { err.textContent = "The new password must be different from the temporary one."; return; }
+      $("pwChangeBtn").disabled = true; err.textContent = "Saving...";
+      try {
+        const u = auth.currentUser;
+        await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, oldP));
+        await u.updatePassword(p1);
+        try { await rtdb.ref(`users/${u.uid}`).update({ mustChangePassword: false, passwordChangedAt: new Date().toISOString() }); }
+        catch (e) { console.warn("Could not clear mustChangePassword flag (check database rules):", e); toast("Password changed, but the first-access flag could not be cleared. Ask your administrator."); }
+        try { await logAuditAction("PASSWORD_CHANGED", "User set a personal password at first access."); } catch (e) {}
+        toast("Password changed.");
+        done(true);
+      } catch (e) {
+        err.textContent = (e && e.code === "auth/wrong-password") || (e && e.code === "auth/invalid-credential") ? "The temporary password is not correct." : (e && e.message) || "Could not change the password.";
+      } finally { $("pwChangeBtn").disabled = false; }
+    };
+  });
+}
+
 // --- AUTHENTICATION & RBAC ENFORCEMENT ---
 auth.onAuthStateChanged(async (user) => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1832,6 +1920,11 @@ auth.onAuthStateChanged(async (user) => {
         alert("Your account has been deactivated by an administrator.");
         auth.signOut();
         return;
+      }
+      if (currentUserRecord.mustChangePassword === true) {
+        const changed = await forcePasswordChange();
+        if (!changed) return;
+        currentUserRecord.mustChangePassword = false;
       }
       $('authOverlay').style.display = 'none';$('currentUserBadge').textContent = `USER: ${currentUserRecord.email} (${currentUserRecord.role.toUpperCase()})`;
       
@@ -1905,7 +1998,7 @@ $("createAdminBtn").onclick = async () => {
     const newUid = cred.user.uid;
     
     await rtdb.ref(`users/${newUid}`).set({
-      email, role: 'admin', group, scope: { level: 'group', target: group }, active: true
+      email, role: 'admin', group, scope: { level: 'group', target: group }, active: true, mustChangePassword: true
     });
     
     await secondaryAuth.signOut();
@@ -2058,7 +2151,7 @@ $("createUserBtn").onclick = async () => {
     const newUid = cred.user.uid;
 
     await rtdb.ref(`users/${newUid}`).set({
-      email, role, group: currentUserRecord.group, scope: { level: scopeLevel, target: scopeTarget }, active: true
+      email, role, group: currentUserRecord.group, scope: { level: scopeLevel, target: scopeTarget }, active: true, mustChangePassword: true
     });
 
     await secondaryAuth.signOut();
@@ -2092,7 +2185,7 @@ async function loadGroupUsers() {
       <td>${u.role}</td>
       <td>${scopeDisplay}</td>
       <td style="color:${u.active ? 'var(--green)' : 'var(--red)'}">${u.active ? 'Active' : 'Inactive'}</td>
-      <td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleUserStatus('${uid}', ${!u.active})">${u.active ? 'Inactivate' : 'Activate'}</button></td>
+      <td>${isManagementBypass() ? `<button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleUserStatus('${uid}', ${!u.active})">${u.active ? 'Inactivate' : 'Activate'}</button>` : '<span style="font-size:10px;color:var(--muted);">Admin only</span>'}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -2107,8 +2200,8 @@ async function toggleUserStatus(uid, newState) {
 
   const actorRole = String(currentUserRecord.role || "").toLowerCase();
 
-  // Only admins and supervisors can change user status.
-  if (!["admin", "supervisor"].includes(actorRole)) {
+  // Only admins (and the Comp11 master account) can change user status. Supervisors and operators cannot.
+  if (!["admin", "comp11_master"].includes(actorRole)) {
     toast("Access denied: Insufficient permissions.");
     return;
   }
@@ -2294,7 +2387,10 @@ function getAuditBadge(action) {
     USER_INACTIVATED: ["User Inactivated", "danger"],
     LOGIN: ["Login", "info"],
     AUTO_LOGOUT: ["Auto Logout", "warning"],
-    CONFIG_CHANGE: ["Configuration Change", "warning"]
+    CONFIG_CHANGE: ["Configuration Change", "warning"],
+    PASSWORD_CHANGED: ["Password Changed", "info"],
+    STOP_REASON_SIGNED: ["Stop Reason Signed", "success"],
+    E_SIGNATURE_FAILED: ["E-signature Failed", "danger"]
   };
 
   return map[action] || [
@@ -2404,6 +2500,7 @@ function updateShiftWindowPermissions() {
 function openAlertManagement() {
   if (!currentUserRecord || denyManagementAccess()) return;
   $('alertManagementModal').style.display = 'grid';
+  updateAlertSpeedFields();
   updateAlertTargetOptions();
   loadAlertRules();
 }
@@ -2703,6 +2800,16 @@ async function loadMachineShiftWindow() {
 }
 
 
+function updateAlertSpeedFields() {
+  const c = $("alertConditionType").value, isSpeed = c === "speed_below" || c === "speed_above";
+  $("alertSpeedExtra").style.display = isSpeed ? "grid" : "none";
+  $("alertSpeedHint").textContent = isSpeed
+    ? (c === "speed_below" ? "Alert when the cycle rate stays BELOW the threshold (parts/min) for the minutes set here. Nominal speed is the reference shown in the rule and the email."
+                          : "Alert when the cycle rate stays ABOVE the threshold (parts/min) for the minutes set here. Nominal speed is the reference shown in the rule and the email.")
+    : "";
+}
+$("alertConditionType").addEventListener("change", updateAlertSpeedFields);
+
 $("saveAlertRuleBtn").onclick = async () => {
   const scopeLevel = $("alertScopeLevel").value;
   const targetValue = $("alertTargetValue").value.trim() || currentUserRecord.group;
@@ -2724,15 +2831,37 @@ $("saveAlertRuleBtn").onclick = async () => {
     createdBy: currentUserRecord.email,
     timestamp: new Date().toISOString()
   };
+  if (conditionType === "speed_below" || conditionType === "speed_above") {
+    const nominalSpeed = Number($("alertNominalSpeed").value), durationMin = Number($("alertDurationMin").value);
+    if (!(nominalSpeed > 0) || !(durationMin >= 1)) {
+      alert("For a speed alert, enter the nominal speed (parts/min) and how many minutes the condition must last.");
+      return;
+    }
+    rulePayload.nominalSpeed = nominalSpeed;
+    rulePayload.durationMin = durationMin;
+  }
 
   const group = currentUserRecord.group;
   await rtdb.ref(`alert_rules/${group}`).push().set(rulePayload);
-  logAuditAction("CREATE_ALERT_RULE", `Created threshold rule for ${targetValue} (${conditionType})`);
+  logAuditAction("CREATE_ALERT_RULE", `Created threshold rule for ${targetValue} (${conditionType})` + (rulePayload.durationMin ? `, limit ${thresholdVal} parts/min for ${rulePayload.durationMin} min, nominal speed ${rulePayload.nominalSpeed} parts/min` : ""));
   toast("Alert rule successfully saved & activated!");
   $("alertThresholdValue").value = "";
   $("alertRecipients").value = "";
+  $("alertNominalSpeed").value = ""; $("alertDurationMin").value = "";
   loadAlertRules();
 };
+
+// A user sees only his own alerts: rules he created, or rules that send to his own email address.
+function alertRuleIsMine(r) {
+  const me = String(currentUserRecord?.email || "").toLowerCase();
+  if (!me || !r) return false;
+  if (String(r.createdBy || "").toLowerCase() === me) return true;
+  return String(r.recipients || "").toLowerCase().split(/[,;\s]+/).includes(me);
+}
+function alertRuleIsCreatedByMe(r) {
+  const me = String(currentUserRecord?.email || "").toLowerCase();
+  return !!me && !!r && String(r.createdBy || "").toLowerCase() === me;
+}
 
 async function loadAlertRules() {
   if (!currentUserRecord) return;
@@ -2741,28 +2870,33 @@ async function loadAlertRules() {
   const tbody = $('alertRulesTableBody');
   tbody.innerHTML = "";
   
-  if (!snap.exists()) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:15px;">No alert rules configured for this group.</td></tr>`;
-    return;
-  }
-
-  snap.forEach(child => {
+  let shown = 0;
+  if (snap.exists()) snap.forEach(child => {
     const ruleId = child.key;
     const r = child.val();
+    if (!alertRuleIsMine(r)) return;                       // other users' alerts are not shown
+    shown++;
+    const isSpeed = r.conditionType === "speed_below" || r.conditionType === "speed_above";
+    const thr = isSpeed
+      ? `${r.thresholdVal} /min` + (r.durationMin ? ` for ${r.durationMin} min` : "") + (r.nominalSpeed ? `<div style="font-size:10px;color:var(--muted);">nominal ${r.nominalSpeed} /min</div>` : "")
+      : r.thresholdVal;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><b>[${r.scopeLevel.toUpperCase()}]</b> ${r.targetValue}</td>
-      <td>${r.conditionType}</td>
-      <td class="accent-cyan">${r.thresholdVal}</td>
-      <td style="font-size:10px; color:var(--muted);">${r.recipients}</td>
-      <td><button class="btn" style="padding:4px 8px; font-size:10px; border-color:var(--red); color:var(--red);" onclick="deleteAlertRule('${ruleId}')">Delete</button></td>
+      <td><b>[${String(r.scopeLevel || "").toUpperCase()}]</b> ${escapeHtml(String(r.targetValue || ""))}</td>
+      <td>${escapeHtml(String(r.conditionType || ""))}</td>
+      <td class="accent-cyan">${thr}</td>
+      <td style="font-size:10px; color:var(--muted);">${escapeHtml(String(r.recipients || ""))}</td>
+      <td>${alertRuleIsCreatedByMe(r) ? `<button class="btn" style="padding:4px 8px; font-size:10px; border-color:var(--red); color:var(--red);" onclick="deleteAlertRule('${ruleId}')">Delete</button>` : `<span style="font-size:10px;color:var(--muted);">Set by ${escapeHtml(String(r.createdBy || "another user"))}</span>`}</td>
     `;
     tbody.appendChild(tr);
   });
+  if (!shown) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:15px;">You have no alert rules yet.</td></tr>`;
 }
 
 async function deleteAlertRule(ruleId) {
   const group = currentUserRecord.group;
+  const own = await rtdb.ref(`alert_rules/${group}/${ruleId}`).once("value");
+  if (!own.exists() || !alertRuleIsCreatedByMe(own.val())) { toast("You can delete only alert rules that you created."); return; }
   await rtdb.ref(`alert_rules/${group}/${ruleId}`).remove();
   logAuditAction("DELETE_ALERT_RULE", `Removed rule ID ${ruleId}`);
   toast("Alert rule deleted.");
@@ -4919,12 +5053,116 @@ function renderStops(ev, start, effEnd, intervals, nowMs) {
 
   const body = $("stopTableBody");
   const top = stops.slice().sort((a, b) => b.dur - a.dur).slice(0, 30);
-  body.innerHTML = top.length ? "" : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;">No gaps of 1 minute or more between parts.</td></tr>`;
+  body.innerHTML = top.length ? "" : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:16px;">No gaps of 1 minute or more between parts.</td></tr>`;
+  const base = stopBase();
+  if (stopSelBase !== base) { stopSel.clear(); stopSelBase = base; }
   top.forEach(x => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${hhmm(x.start)}</td><td>${x.ongoing ? "now" : hhmm(x.end)}</td><td><b>${fmtDurMs(x.dur)}</b>${x.ongoing ? " (ongoing)" : ""}</td><td>${stateLabel(x.state)}</td>`;
+    const key = Math.round(x.start), tr = document.createElement("tr");
+    tr.dataset.start = key;
+    tr.innerHTML = `<td><input type="checkbox" class="stop-sel" ${stopSel.has(key) ? "checked" : ""}></td><td>${hhmm(x.start)}</td><td>${x.ongoing ? "now" : hhmm(x.end)}</td><td><b>${fmtDurMs(x.dur)}</b>${x.ongoing ? " (ongoing)" : ""}</td><td>${stateLabel(x.state)}</td><td class="stop-reason"></td>`;
+    tr.querySelector(".stop-sel").onchange = e => {
+      if (e.target.checked) stopSel.set(key, { start: key, end: x.ongoing ? null : Math.round(x.end), dur: x.dur, state: x.state, ongoing: !!x.ongoing });
+      else stopSel.delete(key);
+      updateStopSelUI();
+    };
+    if (stopSel.has(key)) stopSel.set(key, { start: key, end: x.ongoing ? null : Math.round(x.end), dur: x.dur, state: x.state, ongoing: !!x.ongoing });
     body.appendChild(tr);
   });
+  updateStopSelUI();
+  // saved reasons: read only the day folders that this view covers (small records)
+  const days = stopDayKeys(+start, +effEnd);
+  Promise.all(days.map(d => loadStopReasonDay(base, d))).then(paintStopReasons).catch(() => {});
+}
+
+// ---- Stop reasons with electronic signature ----
+// Stored at <group>/<factory>/<area>/<machine>/stop_reasons/<UTC day>/<stop start ms>. Every signature is also written to the audit trail.
+const stopSel = new Map(); let stopSelBase = null;
+const stopReasonCache = {};                    // "base|day" -> { map, at }
+function stopBase() { const n = navState; return n && n.machine ? `${n.group}/${n.factory}/${n.area}/${n.machine}` : null; }
+function stopDayOf(ms) { return new Date(ms).toISOString().slice(0, 10); }
+function stopDayKeys(a, b) {
+  const out = []; let d = Date.UTC(new Date(a).getUTCFullYear(), new Date(a).getUTCMonth(), new Date(a).getUTCDate());
+  while (d <= b && out.length < 40) { out.push(new Date(d).toISOString().slice(0, 10)); d += 86400000; }
+  return out;
+}
+async function loadStopReasonDay(base, day, force) {
+  if (!base) return {};
+  const k = `${base}|${day}`, c = stopReasonCache[k], now = Date.now();
+  const today = day === new Date(now).toISOString().slice(0, 10);
+  if (c && !force && (!today || now - c.at < 60000)) return c.map;
+  let map = {};
+  try { const sn = await rtdb.ref(`${base}/stop_reasons/${day}`).once("value"); map = sn.val() || {}; }
+  catch (e) { console.warn("Stop reasons not readable:", e); map = c ? c.map : {}; }
+  stopReasonCache[k] = { map, at: now };
+  return map;
+}
+function paintStopReasons() {
+  const base = stopBase(); if (!base) return;
+  document.querySelectorAll("#stopTableBody tr[data-start]").forEach(tr => {
+    const key = tr.dataset.start, rec = (stopReasonCache[`${base}|${stopDayOf(+key)}`] || { map: {} }).map[key];
+    const cell = tr.querySelector(".stop-reason"); if (!cell) return;
+    cell.innerHTML = rec
+      ? `<b>${escapeHtml(rec.reason || "")}</b>${rec.comment ? ` – ${escapeHtml(rec.comment)}` : ""}<div class="by">✍ ${escapeHtml(rec.signedBy || "")} (${escapeHtml(rec.role || "")}) • ${escapeHtml(new Date(rec.signedAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" }))}</div>`
+      : `<span style="color:var(--muted);">—</span>`;
+  });
+}
+function updateStopSelUI() {
+  const n = stopSel.size;
+  $("stopReasonBtn").disabled = n === 0;
+  $("stopSelCount").textContent = n ? `${n} stop${n === 1 ? "" : "s"} selected` : "Tick one or more stops, then add the reason and sign.";
+}
+function openStopReasonModal() {
+  if (!currentUserRecord || !auth.currentUser) { toast("Please sign in again."); return; }
+  if (!stopSel.size) return;
+  const list = [...stopSel.values()].sort((a, b) => a.start - b.start);
+  $("srStops").innerHTML = list.map(x => `<div>${new Date(x.start).toLocaleDateString()} ${hhmm(x.start)} → ${x.ongoing ? "now (ongoing)" : hhmm(x.end)} &nbsp;•&nbsp; <b>${fmtDurMs(x.dur)}</b> &nbsp;•&nbsp; ${stateLabel(x.state)}</div>`).join("");
+  $("srSigner").textContent = `${currentUserRecord.email} (${currentUserRecord.role})`;
+  $("srReason").value = ""; $("srComment").value = ""; $("srPassword").value = ""; $("srError").textContent = "";
+  $("stopReasonModal").style.display = "grid";
+}
+function closeStopReasonModal() { $("stopReasonModal").style.display = "none"; $("srPassword").value = ""; }
+async function signStopReasons() {
+  const err = $("srError"); err.textContent = "";
+  const reason = $("srReason").value, comment = $("srComment").value.trim(), pw = $("srPassword").value, base = stopBase();
+  if (!base) { err.textContent = "Open a machine first."; return; }
+  if (!reason) { err.textContent = "Select a reason."; return; }
+  if (reason === "Other" && !comment) { err.textContent = "Add a comment when the reason is Other."; return; }
+  if (!pw) { err.textContent = "Enter your password to sign."; return; }
+  const u = auth.currentUser; if (!u) { err.textContent = "Please sign in again."; return; }
+  $("srSignBtn").disabled = true;
+  try {
+    try { await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, pw)); }
+    catch (e) {
+      try { await logAuditAction("E_SIGNATURE_FAILED", `Signature on stop reason failed for ${base}.`); } catch (_) {}
+      err.textContent = "Signature failed: the password is not correct."; return;
+    }
+    const list = [...stopSel.values()].sort((a, b) => a.start - b.start), signedAt = new Date().toISOString();
+    const updates = {}, previous = {};
+    for (const x of list) {
+      const day = stopDayOf(x.start);
+      const map = await loadStopReasonDay(base, day, true);
+      previous[x.start] = map[x.start] || null;
+      updates[`${base}/stop_reasons/${day}/${x.start}`] = {
+        startMs: x.start, endMs: x.end, durationSec: Math.round(x.dur / 1000), ongoing: !!x.ongoing, machineState: stateLabel(x.state),
+        reason, comment, signedBy: u.email, role: currentUserRecord.role, signedAt,
+        meaning: "I confirm that the reason entered is accurate."
+      };
+    }
+    await rtdb.ref().update(updates);
+    for (const x of list) {
+      const day = stopDayOf(x.start), p = previous[x.start];
+      stopReasonCache[`${base}|${day}`] = { map: { ...((stopReasonCache[`${base}|${day}`] || { map: {} }).map), [x.start]: updates[`${base}/stop_reasons/${day}/${x.start}`] }, at: Date.now() };
+      await logAuditAction("STOP_REASON_SIGNED",
+        `Machine ${base}. Stop ${new Date(x.start).toISOString()} to ${x.ongoing ? "ongoing" : new Date(x.end).toISOString()} (${fmtDurMs(x.dur)}, ${stateLabel(x.state)}). ` +
+        `Reason: ${reason}${comment ? " – " + comment : ""}. E-signed by ${u.email} (${currentUserRecord.role}) at ${signedAt}.` +
+        (p ? ` Replaces earlier entry: ${p.reason}${p.comment ? " – " + p.comment : ""} signed by ${p.signedBy} at ${p.signedAt}.` : ""));
+    }
+    stopSel.clear(); document.querySelectorAll("#stopTableBody .stop-sel").forEach(c => { c.checked = false; });
+    updateStopSelUI(); paintStopReasons(); closeStopReasonModal();
+    toast(`Reason signed for ${list.length} stop${list.length === 1 ? "" : "s"}.`);
+  } catch (e) {
+    console.error(e); err.textContent = (e && e.message) || "Could not save the reason.";
+  } finally { $("srSignBtn").disabled = false; }
 }
 
 function renderCumulative(cyc, start, end, speed, nowMs) {
