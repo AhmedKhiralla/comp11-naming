@@ -638,10 +638,9 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="control"><label>Condition Trigger Type</label><select id="alertConditionType"><option value="state_off">Machine OFF for duration (Minutes)</option><option value="state_on">Machine WORKING for duration (Minutes)</option><option value="speed_below">Cycle Rate: Less than threshold (parts/min)</option><option value="speed_above">Cycle Rate: More than threshold (parts/min)</option><option value="quality_below">Quality Percentage: Less than threshold (%)</option></select></div>
-        <div class="control"><label>Threshold Limit Value</label><input type="number" id="alertThresholdValue" placeholder="e.g. 15 (mins) or 85 (%)" step="0.1"></div>
+        <div class="control"><label id="alertThresholdLabel">Threshold Limit Value</label><input type="number" id="alertThresholdValue" placeholder="e.g. 15 (mins) or 85 (%)" step="0.1"></div>
       </div>
       <div id="alertSpeedExtra" style="display:none; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="control"><label>Nominal speed of the machine (parts/min)</label><input type="number" id="alertNominalSpeed" placeholder="e.g. 40" step="0.1" min="0"></div>
         <div class="control"><label>Alert only if it lasts at least (minutes)</label><input type="number" id="alertDurationMin" placeholder="e.g. 5" step="1" min="1"></div>
         <div style="grid-column:1 / -1; font-size:11px; color:var(--muted); margin-top:-4px;" id="alertSpeedHint"></div>
       </div>
@@ -894,13 +893,13 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         </section>
 
         <section class="card panel" style="margin-bottom:14px">
-          <div class="panel-head"><div><div class="panel-title">Minute Heatmap</div><div class="panel-desc">One cell per minute of the shift, coloured by output relative to nominal speed. Stops, slow spells and speed changes show up as dark or dim bands.</div></div><span class="badge">HOVER FOR DETAIL</span></div>
+          <div class="panel-head"><div><div class="panel-title">Minute Heatmap</div><div class="panel-desc">One cell per minute of the shift, coloured by output relative to nominal speed: red = stopped, yellow = about half speed, green = at or above nominal. Stops and slow spells stand out as red and yellow bands.</div></div><span class="badge">HOVER FOR DETAIL</span></div>
           <div id="heatWrap" style="position:relative;">
             <canvas id="heatCanvas" style="width:100%; display:block;"></canvas>
             <div id="heatTip" style="position:absolute; display:none; pointer-events:none; background:#0b151e; border:1px solid var(--line); border-radius:8px; padding:6px 9px; font-size:11px; color:var(--text); white-space:nowrap; z-index:5;"></div>
           </div>
           <div class="legend" style="align-items:center">
-            <span style="display:inline-flex;align-items:center;gap:6px">0 <i id="heatScale" style="display:inline-block;width:150px;height:8px;border-radius:4px"></i> nominal+</span>
+            <span style="display:inline-flex;align-items:center;gap:6px">0 parts/min (stopped) <i id="heatScale" style="display:inline-block;width:180px;height:10px;border-radius:5px"></i> nominal speed or faster</span><span style="color:#718594;font-size:10px;margin-left:12px">Yellow = about half of nominal speed. Grey = not reached yet.</span>
           </div>
         </section>
 
@@ -2507,6 +2506,7 @@ function openAlertManagement() {
 
 $("alertScopeLevel").onchange = () => {
   updateAlertTargetOptions();
+  updateAlertSpeedFields();
 };
 
 function updateAlertTargetOptions() {
@@ -2800,24 +2800,38 @@ async function loadMachineShiftWindow() {
 }
 
 
+let alertSpeedSeq = 0;
 function updateAlertSpeedFields() {
   const c = $("alertConditionType").value, isSpeed = c === "speed_below" || c === "speed_above";
+  const thr = $("alertThresholdValue");
   $("alertSpeedExtra").style.display = isSpeed ? "grid" : "none";
-  $("alertSpeedHint").textContent = isSpeed
-    ? (c === "speed_below" ? "Alert when the cycle rate stays BELOW the threshold (parts/min) for the minutes set here. Nominal speed is the reference shown in the rule and the email."
-                          : "Alert when the cycle rate stays ABOVE the threshold (parts/min) for the minutes set here. Nominal speed is the reference shown in the rule and the email.")
-    : "";
+  $("alertThresholdLabel").textContent = isSpeed ? "Speed to monitor (parts/min)" : "Threshold Limit Value";
+  if (!isSpeed) { thr.placeholder = "e.g. 15 (mins) or 85 (%)"; $("alertSpeedHint").textContent = ""; return; }
+  const dir = c === "speed_below" ? "BELOW" : "ABOVE";
+  thr.placeholder = "blank = Shift Window speed of each machine";
+  $("alertSpeedHint").textContent = `You get the alert when the machine speed stays ${dir} this speed for the minutes set here. The speed starts as the nominal speed from the machine's Shift Window; change it if you want. For a group, factory or area rule, leave it blank to use each machine's own Shift Window speed.`;
+  // default = nominal speed saved in the Shift Window of the selected machine
+  const seq = ++alertSpeedSeq; thr.value = "";
+  if ($("alertScopeLevel").value !== "machine") return;
+  const found = findMachinePath(currentUserRecord && currentUserRecord.group, $("alertTargetValue").value);
+  if (!found) return;
+  getMachineShiftSettings(found.group, found.factory, found.area, found.machine)
+    .then(st => { if (seq === alertSpeedSeq && st && st.speed > 0) thr.value = st.speed; }).catch(() => {});
 }
 $("alertConditionType").addEventListener("change", updateAlertSpeedFields);
+$("alertTargetValue").addEventListener("change", updateAlertSpeedFields);
 
 $("saveAlertRuleBtn").onclick = async () => {
   const scopeLevel = $("alertScopeLevel").value;
   const targetValue = $("alertTargetValue").value.trim() || currentUserRecord.group;
   const conditionType = $("alertConditionType").value;
-  const thresholdVal = Number($("alertThresholdValue").value);
+  const isSpeedRule = conditionType === "speed_below" || conditionType === "speed_above";
+  const rawThr = $("alertThresholdValue").value.trim();
+  const useShiftSpeed = isSpeedRule && rawThr === "";      // blank = follow each machine's Shift Window speed
+  const thresholdVal = useShiftSpeed ? null : (rawThr === "" ? NaN : Number(rawThr));
   const recipients = $("alertRecipients").value.trim();
 
-  if (!recipients || isNaN(thresholdVal)) {
+  if (!recipients || (!useShiftSpeed && (isNaN(thresholdVal) || (isSpeedRule && !(thresholdVal > 0))))) {
     alert("Please provide valid threshold values and recipient email addresses.");
     return;
   }
@@ -2831,23 +2845,23 @@ $("saveAlertRuleBtn").onclick = async () => {
     createdBy: currentUserRecord.email,
     timestamp: new Date().toISOString()
   };
-  if (conditionType === "speed_below" || conditionType === "speed_above") {
-    const nominalSpeed = Number($("alertNominalSpeed").value), durationMin = Number($("alertDurationMin").value);
-    if (!(nominalSpeed > 0) || !(durationMin >= 1)) {
-      alert("For a speed alert, enter the nominal speed (parts/min) and how many minutes the condition must last.");
+  if (isSpeedRule) {
+    const durationMin = Number($("alertDurationMin").value);
+    if (!(durationMin >= 1)) {
+      alert("For a speed alert, enter how many minutes the speed must last before you are alerted.");
       return;
     }
-    rulePayload.nominalSpeed = nominalSpeed;
     rulePayload.durationMin = durationMin;
+    if (useShiftSpeed) rulePayload.useShiftSpeed = true;
   }
 
   const group = currentUserRecord.group;
   await rtdb.ref(`alert_rules/${group}`).push().set(rulePayload);
-  logAuditAction("CREATE_ALERT_RULE", `Created threshold rule for ${targetValue} (${conditionType})` + (rulePayload.durationMin ? `, limit ${thresholdVal} parts/min for ${rulePayload.durationMin} min, nominal speed ${rulePayload.nominalSpeed} parts/min` : ""));
+  logAuditAction("CREATE_ALERT_RULE", `Created threshold rule for ${targetValue} (${conditionType})` + (rulePayload.durationMin ? `, speed ${useShiftSpeed ? "= Shift Window speed of each machine" : thresholdVal + " parts/min"} for ${rulePayload.durationMin} min` : ""));
   toast("Alert rule successfully saved & activated!");
   $("alertThresholdValue").value = "";
   $("alertRecipients").value = "";
-  $("alertNominalSpeed").value = ""; $("alertDurationMin").value = "";
+  $("alertDurationMin").value = ""; updateAlertSpeedFields();
   loadAlertRules();
 };
 
@@ -2878,7 +2892,7 @@ async function loadAlertRules() {
     shown++;
     const isSpeed = r.conditionType === "speed_below" || r.conditionType === "speed_above";
     const thr = isSpeed
-      ? `${r.thresholdVal} /min` + (r.durationMin ? ` for ${r.durationMin} min` : "") + (r.nominalSpeed ? `<div style="font-size:10px;color:var(--muted);">nominal ${r.nominalSpeed} /min</div>` : "")
+      ? (r.useShiftSpeed ? "Shift Window speed" : `${r.thresholdVal} /min`) + (r.durationMin ? ` for ${r.durationMin} min` : "") + (r.nominalSpeed ? `<div style="font-size:10px;color:var(--muted);">nominal ${r.nominalSpeed} /min</div>` : "")
       : r.thresholdVal;
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -5238,15 +5252,16 @@ function renderRejectControl(cyc, rej, start) {
 
 // minute heatmap drawn directly on a canvas (hours down, minutes across)
 function heatColor(r) {
-  const stops = [[0, [12, 24, 34]], [0.35, [18, 70, 94]], [0.7, [53, 212, 255]], [1, [56, 224, 143]], [1.25, [155, 124, 255]]];
-  const x = Math.max(0, Math.min(1.25, r));
+  // red (stopped) -> yellow (half of nominal) -> green (nominal or faster)
+  const stops = [[0, [229, 72, 77]], [0.5, [245, 197, 24]], [1, [47, 191, 113]]];
+  const x = Math.max(0, Math.min(1, r));
   for (let i = 1; i < stops.length; i++) {
     if (x <= stops[i][0]) {
       const [a, ca] = stops[i - 1], [b, cb] = stops[i], f = (x - a) / (b - a);
       return `rgb(${ca.map((c, j) => Math.round(c + (cb[j] - c) * f)).join(",")})`;
     }
   }
-  return "rgb(155,124,255)";
+  return "rgb(47,191,113)";
 }
 
 function renderHeatmap(cyc, start, end, speed) {
@@ -5276,7 +5291,7 @@ function renderHeatmap(cyc, start, end, speed) {
     }
   }
   const sc = $("heatScale");
-  if (sc) sc.style.background = `linear-gradient(90deg, ${[0, 0.35, 0.7, 1, 1.25].map(v => heatColor(v)).join(",")})`;
+  if (sc) sc.style.background = `linear-gradient(90deg, ${[0, 0.5, 1].map(v => heatColor(v)).join(",")})`;
   cv.onmousemove = ev => {
     const rc = cv.getBoundingClientRect();
     const x = ev.clientX - rc.left, y = ev.clientY - rc.top;
