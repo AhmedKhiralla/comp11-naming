@@ -436,6 +436,27 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
+<!-- LOGIN TIMEOUT MODAL -->
+<div class="modal-overlay" id="timeoutModal">
+  <div class="modal-card" style="max-width:420px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 style="margin:0; font-size:17px; color:var(--cyan);">Login timeout</h2>
+      <button class="back-btn" onclick="closeTimeoutModal()">Close</button>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:0 0 12px;">You are signed out automatically after this many minutes without using the page. Allowed: 5 to 120 minutes.</p>
+    <div class="control"><label>Timeout (minutes)</label><input type="number" id="timeoutMinInput" min="5" max="120" step="1"></div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin:8px 0;">
+      <button class="btn" style="width:auto; padding:4px 10px;" onclick="document.getElementById('timeoutMinInput').value=10">10</button>
+      <button class="btn" style="width:auto; padding:4px 10px;" onclick="document.getElementById('timeoutMinInput').value=15">15</button>
+      <button class="btn" style="width:auto; padding:4px 10px;" onclick="document.getElementById('timeoutMinInput').value=30">30</button>
+      <button class="btn" style="width:auto; padding:4px 10px;" onclick="document.getElementById('timeoutMinInput').value=60">60</button>
+    </div>
+    <div style="font-size:10px; color:var(--muted);">Saved for your account on this browser. Default is 10 minutes.</div>
+    <div id="timeoutError" style="color:var(--red); font-size:11px; margin-top:8px;"></div>
+    <div style="margin-top:12px;"><button class="btn primary" onclick="saveTimeoutSetting()">Save</button></div>
+  </div>
+</div>
+
 <!-- STOP REASON + E-SIGNATURE MODAL -->
 <div class="modal-overlay" id="stopReasonModal">
   <div class="modal-card" style="max-width:640px;">
@@ -567,6 +588,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <option value="AUTO_LOGOUT">Auto Logout</option>
         <option value="CONFIG_CHANGE">Configuration Change</option>
         <option value="PASSWORD_CHANGED">Password Changed</option>
+        <option value="SESSION_TIMEOUT_CHANGED">Login Timeout Changed</option>
         <option value="STOP_REASON_SIGNED">Stop Reason Signed</option>
         <option value="E_SIGNATURE_FAILED">E-signature Failed</option>
       </select>
@@ -737,6 +759,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     <button class="btn" id="openAuditBtn" style="display:none; width:auto;" onclick="openAuditTrail()">📜 Audit Log</button>
     <button class="btn" id="openAlertsBtn" style="display:none; width:auto;" onclick="openAlertManagement()">🔔 Alerts</button>
     <button class="btn" id="openBatchMgmtBtn" style="display:none; width:auto;" onclick="openBatchManagement()">📦 Batches</button>
+    <button class="btn" id="timeoutBtn" style="width:auto;" onclick="openTimeoutModal()" title="Change how long the page can stay idle before you are signed out">⏱ Timeout</button>
     <button class="btn" id="logoutBtn" style="width:auto; border-color:var(--red); color:var(--red);">Logout</button>
     <div class="transition-group">
       <span style="font-size:11px; color:var(--muted);">Transition Style:</span>
@@ -1705,7 +1728,31 @@ $("analysisDate").value = new Date().toLocaleDateString("en-CA");
 // --- INACTIVITY & AUDIT LOGGING ---
 // The idle time is measured from timestamps (not from one long timer), so it stays correct when the computer sleeps,
 // the tab is in the background, or several tabs are open. Activity in any tab counts for all of them.
-const INACTIVITY_MS = 10 * 60 * 1000;
+const DEFAULT_TIMEOUT_MIN = 10, MIN_TIMEOUT_MIN = 5, MAX_TIMEOUT_MIN = 120;
+// Each user can choose his own timeout; it is kept per account on this browser.
+function timeoutKey() { return `companorama_timeout_min:${String((currentUserRecord && currentUserRecord.email) || "").toLowerCase()}`; }
+function getTimeoutMin() {
+  try {
+    const v = Number(localStorage.getItem(timeoutKey()));
+    if (v >= MIN_TIMEOUT_MIN && v <= MAX_TIMEOUT_MIN) return Math.round(v);
+  } catch (e) { /* storage blocked: use the default */ }
+  return DEFAULT_TIMEOUT_MIN;
+}
+function openTimeoutModal() {
+  $("timeoutMinInput").value = getTimeoutMin(); $("timeoutError").textContent = "";
+  $("timeoutModal").style.display = "grid";
+}
+function closeTimeoutModal() { $("timeoutModal").style.display = "none"; }
+async function saveTimeoutSetting() {
+  const v = Math.round(Number($("timeoutMinInput").value));
+  if (!(v >= MIN_TIMEOUT_MIN && v <= MAX_TIMEOUT_MIN)) { $("timeoutError").textContent = `Enter a number from ${MIN_TIMEOUT_MIN} to ${MAX_TIMEOUT_MIN}.`; return; }
+  const old = getTimeoutMin();
+  try { localStorage.setItem(timeoutKey(), String(v)); } catch (e) { $("timeoutError").textContent = "This browser blocks saving settings."; return; }
+  lastActivityAt = 0; resetInactivityTimer();               // the new timeout starts counting from now
+  closeTimeoutModal();
+  toast(`Login timeout set to ${v} minutes.`);
+  try { await logAuditAction("SESSION_TIMEOUT_CHANGED", `Login timeout changed from ${old} to ${v} minutes.`); } catch (e) { /* ignore */ }
+}
 const ACTIVITY_KEY = "companorama_last_activity";
 let lastActivityAt = Date.now(), inactivityArmedFor = null, inactivityLoggingOut = false;
 function resetInactivityTimer() {
@@ -1721,16 +1768,17 @@ function getLastActivity() {
 }
 async function checkInactivity() {
   if (!currentUserRecord) { inactivityArmedFor = null; inactivityLoggingOut = false; return; }
-  if (inactivityArmedFor !== currentUserRecord.email) {  // a new sign-in starts a fresh 10 minutes
+  if (inactivityArmedFor !== currentUserRecord.email) {  // a new sign-in starts a fresh timeout
     inactivityArmedFor = currentUserRecord.email;
     lastActivityAt = 0; resetInactivityTimer();
     return;
   }
-  if (inactivityLoggingOut || Date.now() - getLastActivity() < INACTIVITY_MS) return;
+  const timeoutMin = getTimeoutMin();
+  if (inactivityLoggingOut || Date.now() - getLastActivity() < timeoutMin * 60 * 1000) return;
   inactivityLoggingOut = true;
   try {   // write the audit entry first (while still signed in), but never wait more than 4 seconds for it
     await Promise.race([
-      logAuditAction("AUTO_LOGOUT", "User automatically logged out due to 10 minutes of inactivity."),
+      logAuditAction("AUTO_LOGOUT", `User automatically logged out due to ${timeoutMin} minutes of inactivity.`),
       new Promise(r => setTimeout(r, 4000))
     ]);
   } catch (e) { /* the sign-out must happen even if the log could not be written */ }
@@ -2388,6 +2436,7 @@ function getAuditBadge(action) {
     AUTO_LOGOUT: ["Auto Logout", "warning"],
     CONFIG_CHANGE: ["Configuration Change", "warning"],
     PASSWORD_CHANGED: ["Password Changed", "info"],
+    SESSION_TIMEOUT_CHANGED: ["Login Timeout Changed", "info"],
     STOP_REASON_SIGNED: ["Stop Reason Signed", "success"],
     E_SIGNATURE_FAILED: ["E-signature Failed", "danger"]
   };
@@ -3171,8 +3220,15 @@ function confirmSplitBatch() {
   const [hr, mn] = timeVal.split(':').map(Number);
   const b = managedBatchesState[activeSplittingBatchIndex];
   
-  const splitTimestamp = new Date(b.startTime.getTime());
+  // The time box holds only HH:MM, so find the date it belongs to: a batch that runs past midnight
+  // contains e.g. 00:03 on the day AFTER it started. Use the first day on which the time falls inside the batch.
+  let splitTimestamp = new Date(b.startTime.getTime());
   splitTimestamp.setHours(hr, mn, 0, 0);
+  for (let d = 0; d < 4 && splitTimestamp <= b.startTime; d++) {
+    splitTimestamp = new Date(b.startTime.getTime());
+    splitTimestamp.setDate(splitTimestamp.getDate() + d);
+    splitTimestamp.setHours(hr, mn, 0, 0);
+  }
 
   if (splitTimestamp <= b.startTime || splitTimestamp >= b.endTime) {
     alert("Split timestamp must be strictly between the batch start and end times.");
