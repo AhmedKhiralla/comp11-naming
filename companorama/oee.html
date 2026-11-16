@@ -455,7 +455,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     <div id="pcError" style="color:var(--red); font-size:11px; margin:8px 0;"></div>
     <div style="max-height:360px; overflow:auto; border:1px solid var(--line); border-radius:8px;">
       <table class="batch-table">
-        <thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Products per stroke<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Nominal speed (strokes/min)<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Actions</th></tr></thead>
+        <thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Runs on this machine</th><th>Machines</th><th>Products per stroke<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Nominal speed (strokes/min)<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Actions</th></tr></thead>
         <tbody id="pcBody"></tbody>
       </table>
     </div>
@@ -619,6 +619,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <option value="PRODUCT_UPDATED">Product Updated</option>
         <option value="PRODUCT_STATUS_CHANGED">Product Status Changed</option>
         <option value="PRODUCT_PRESET_SAVED">Product Preset Saved</option>
+        <option value="PRODUCT_MACHINE_ASSIGNED">Product Machine Assignment</option>
         <option value="BATCH_PRODUCT_ASSIGNED">Batch Product Assigned</option>
         <option value="BATCH_NUMBER_SET">Batch Number Set</option>
         <option value="STOP_REASON_SIGNED">Stop Reason Signed</option>
@@ -2483,6 +2484,7 @@ function getAuditBadge(action) {
     PRODUCT_UPDATED: ["Product Updated", "info"],
     PRODUCT_STATUS_CHANGED: ["Product Status Changed", "warning"],
     PRODUCT_PRESET_SAVED: ["Product Preset Saved", "info"],
+    PRODUCT_MACHINE_ASSIGNED: ["Product Machine Assignment", "info"],
     BATCH_PRODUCT_ASSIGNED: ["Batch Product Assigned", "info"],
     BATCH_NUMBER_SET: ["Batch Number Set", "info"],
     STOP_REASON_SIGNED: ["Stop Reason Signed", "success"],
@@ -3023,7 +3025,7 @@ let currentBatchRawCycles = [];
 // product_catalog/<group>/products/<id>                              { name, code, active, by, at }
 // product_catalog/<group>/presets/<factory>/<area>/<machine>/<id>    { pps, speed, by, at }     per machine, not general
 // product_catalog/<group>/batches/<factory>/<area>/<machine>/<startMs> { from, to, pid, pname, pcode, batchNo, pps, speed, by, at }
-let catProducts = {}, catLoadedFor = null, catPresets = {}, catPresetKey = null, batchMetaEntries = [];
+let catProducts = {}, catLoadedFor = null, catAll = {}, catLoadedAt = 0, catPresets = {}, batchMetaEntries = [];
 function catGroup() { const g = navState.group || (currentUserRecord && currentUserRecord.group); return g && g !== "all" ? g : null; }
 function catBase(g) { return `product_catalog/${settingsKey(g)}`; }
 function catMachineSub() { const { factory, area, machine } = navState; return factory && area && machine ? `${settingsKey(factory)}/${settingsKey(area)}/${settingsKey(machine)}` : null; }
@@ -3036,20 +3038,28 @@ async function auditSafe(action, details) {
   toast("Saved, but the audit entry could not be written. Check your connection or database rules.");
   return false;
 }
+function catMachineNode() {   // this machine's preset/assignment records, a live reference into catAll
+  const { factory, area, machine } = navState; if (!factory || !area || !machine) return {};
+  const f = settingsKey(factory), ar = settingsKey(area), m = settingsKey(machine);
+  catAll[f] = catAll[f] || {}; catAll[f][ar] = catAll[f][ar] || {}; catAll[f][ar][m] = catAll[f][ar][m] || {};
+  return catAll[f][ar][m];
+}
+function isAssigned(id) { const r = catPresets[id]; return !!r && r.on !== false; }   // records saved before this feature (no "on" flag) count as assigned
+function assignedMachines(id) {
+  const out = [];
+  for (const [f, areas] of Object.entries(catAll || {})) for (const [a, ms] of Object.entries(areas || {})) for (const [m, prods] of Object.entries(ms || {}))
+    if (prods && prods[id] && prods[id].on !== false) out.push(`${f} / ${a} / ${m}`);
+  return out;
+}
 async function loadCatalog(force) {
   const g = catGroup();
-  if (!g) { catProducts = {}; catLoadedFor = null; catPresets = {}; catPresetKey = null; return; }
+  if (!g) { catProducts = {}; catLoadedFor = null; catAll = {}; catPresets = {}; return; }
   try {
-    if (force || catLoadedFor !== g) {
-      const sn = await rtdb.ref(`${catBase(g)}/products`).once("value");
-      catProducts = sn.val() || {}; catLoadedFor = g;
+    if (force || catLoadedFor !== g || Date.now() - catLoadedAt > 60000) {
+      const [p, a] = await Promise.all([rtdb.ref(`${catBase(g)}/products`).once("value"), rtdb.ref(`${catBase(g)}/presets`).once("value")]);
+      catProducts = p.val() || {}; catAll = a.val() || {}; catLoadedFor = g; catLoadedAt = Date.now();
     }
-    const sub = catMachineSub(), key = sub ? `${g}|${sub}` : null;
-    if (!sub) { catPresets = {}; catPresetKey = null; }
-    else if (force || catPresetKey !== key) {
-      const sn = await rtdb.ref(`${catBase(g)}/presets/${sub}`).once("value");
-      catPresets = sn.val() || {}; catPresetKey = key;
-    }
+    catPresets = catMachineNode();
   } catch (e) { console.warn("Product catalog not readable:", e); toast("The product list could not be loaded."); }
 }
 async function loadBatchMeta(fromMs, toMs) {
@@ -3072,7 +3082,7 @@ function applyBatchMeta(b) {
   return b;
 }
 function productOptionsHtml(b) {
-  const act = Object.entries(catProducts).filter(([, p]) => p && p.active !== false).sort((x, y) => String(x[1].code).localeCompare(String(y[1].code)));
+  const act = Object.entries(catProducts).filter(([id, p]) => p && p.active !== false && (isAssigned(id) || id === b.productId || assignedMachines(id).length === 0)).sort((x, y) => String(x[1].code).localeCompare(String(y[1].code)));
   let html = `<option value="">— none —</option>`, found = false;
   act.forEach(([id, p]) => { if (id === b.productId) found = true; html += `<option value="${escapeHtml(id)}"${id === b.productId ? " selected" : ""}>${escapeHtml(p.code)} — ${escapeHtml(p.name)}</option>`; });
   if (b.productId && !found) html += `<option value="${escapeHtml(b.productId)}" selected>${escapeHtml(b.productCode || "?")} — ${escapeHtml(b.productName || "removed product")} (inactive)</option>`;
@@ -3133,11 +3143,14 @@ function renderProductCatalog() {
       <td><input class="pm-in" id="pcCode_${id}" value="${escapeHtml(p.code)}" maxlength="30" style="width:120px;"></td>
       <td><input class="pm-in" id="pcName_${id}" value="${escapeHtml(p.name)}" maxlength="60" style="width:220px;"></td>
       <td style="color:${p.active !== false ? "var(--green)" : "var(--red)"}">${p.active !== false ? "Active" : "Inactive"}</td>
+      <td style="text-align:center;"><input type="checkbox" id="pcOn_${id}" ${isAssigned(id) ? "checked" : ""} ${dis}></td>
+      <td style="font-size:10px; max-width:190px; color:var(--muted);">${(() => { const m = assignedMachines(id); return m.length ? escapeHtml(m.join("; ")) : "Not assigned (offered on every machine)"; })()}</td>
       <td><input class="pm-in" type="number" min="1" max="100" step="1" id="pcPps_${id}" value="${pr.pps || ""}" ${dis} style="width:80px;"></td>
       <td><input class="pm-in" type="number" min="1" step="1" id="pcSpd_${id}" value="${pr.speed || ""}" ${dis} style="width:90px;"></td>
       <td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="saveProductRow('${id}')">Save</button>
+          <button class="btn" style="padding:4px 8px; font-size:10px;" ${dis} title="Assign to every machine of the open area" onclick="assignProductToArea('${id}')">All in area</button>
           <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleProductActive('${id}')">${p.active !== false ? "Inactivate" : "Activate"}</button></td></tr>`;
-  }).join("") : `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:16px;">No products yet. Add the first one above.</td></tr>`;
+  }).join("") : `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:16px;">No products yet. Add the first one above.</td></tr>`;
 }
 const PC_CODE_RE = /^[A-Za-z0-9._\-/]{1,30}$/;
 function pcCodeTaken(code, exceptId) { return Object.entries(catProducts).some(([id, p]) => id !== exceptId && String(p.code).toLowerCase() === code.toLowerCase()); }
@@ -3181,12 +3194,17 @@ async function saveProductRow(id) {
       changes.push(["PRODUCT_UPDATED", { group: g, previous: before, now: { code, name } }]);
     }
     if (sub) {
-      const old = catPresets[id] || {}, oldPps = old.pps || null, oldSpd = old.speed || null;
-      if (ppsV !== oldPps || spdV !== oldSpd) {
+      const old = catPresets[id] || {}, oldPps = old.pps || null, oldSpd = old.speed || null, oldOn = isAssigned(id);
+      const onV = $("pcOn_" + id).checked;
+      if (ppsV !== oldPps || spdV !== oldSpd || onV !== oldOn) {
         const path = `${catBase(g)}/presets/${sub}/${id}`;
-        if (ppsV === null && spdV === null) { await rtdb.ref(path).set(null); delete catPresets[id]; }
-        else { const rec = { ...(ppsV ? { pps: ppsV } : {}), ...(spdV ? { speed: spdV } : {}), by: currentUserRecord.email, at: Date.now() }; await rtdb.ref(path).set(rec); catPresets[id] = rec; }
-        changes.push(["PRODUCT_PRESET_SAVED", { machineHierarchy: catHierarchy(), productCode: code, productName: name,
+        if (!onV && ppsV === null && spdV === null && !catPresets[id]) { /* nothing to store */ }
+        else {
+          const rec = { on: onV, ...(ppsV ? { pps: ppsV } : {}), ...(spdV ? { speed: spdV } : {}), by: currentUserRecord.email, at: Date.now() };
+          await rtdb.ref(path).set(rec); catPresets[id] = rec;   // unassigning keeps the saved values (on:false), nothing is erased
+        }
+        if (onV !== oldOn) changes.push(["PRODUCT_MACHINE_ASSIGNED", { machineHierarchy: catHierarchy(), productCode: code, productName: name, previous: oldOn ? "assigned" : "not assigned", now: onV ? "assigned" : "not assigned" }]);
+        if (ppsV !== oldPps || spdV !== oldSpd) changes.push(["PRODUCT_PRESET_SAVED", { machineHierarchy: catHierarchy(), productCode: code, productName: name,
           previous: { productsPerStroke: oldPps, nominalSpeed: oldSpd }, now: { productsPerStroke: ppsV, nominalSpeed: spdV } }]);
       }
     }
@@ -3195,6 +3213,25 @@ async function saveProductRow(id) {
   if (!changes.length) { toast("No changes to save."); return; }
   for (const [a, d] of changes) await auditSafe(a, d);
   toast(`Product ${code} saved.`);
+}
+async function assignProductToArea(id) {
+  if (!isManagementBypass()) return;
+  const p = catProducts[id], g = catGroup(); if (!p || !g) return;
+  const { factory, area } = navState; const machines = Object.keys((dbTree[g] || {})[factory]?.[area] || {});
+  if (!factory || !area || !machines.length) { toast("Open a machine first, so the area is known."); return; }
+  const fk = settingsKey(factory), ak = settingsKey(area), upd = {}, added = [], now = Date.now();
+  for (const m of machines) {
+    const mk = settingsKey(m), cur = (((catAll[fk] || {})[ak] || {})[mk] || {})[id];
+    if (cur && cur.on !== false) continue;
+    upd[`${fk}/${ak}/${mk}/${id}/on`] = true; upd[`${fk}/${ak}/${mk}/${id}/by`] = currentUserRecord.email; upd[`${fk}/${ak}/${mk}/${id}/at`] = now;
+    added.push(m);
+  }
+  if (!added.length) { toast("Already assigned to every machine in this area."); return; }
+  try { await rtdb.ref(`${catBase(g)}/presets`).update(upd); }
+  catch (e) { $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
+  catLoadedAt = 0; await loadCatalog(true); renderProductCatalog();
+  await auditSafe("PRODUCT_MACHINE_ASSIGNED", { group: g, factory, area, productCode: p.code, productName: p.name, previous: "not assigned", now: "assigned", machines: added });
+  toast(`Product ${p.code} assigned to ${added.length} machine(s) in ${area}.`);
 }
 async function toggleProductActive(id) {
   if (!isManagementBypass()) return;
