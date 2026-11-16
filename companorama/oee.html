@@ -1751,7 +1751,13 @@ async function saveTimeoutSetting() {
   lastActivityAt = 0; resetInactivityTimer();               // the new timeout starts counting from now
   closeTimeoutModal();
   toast(`Login timeout set to ${v} minutes.`);
-  try { await logAuditAction("SESSION_TIMEOUT_CHANGED", `Login timeout changed from ${old} to ${v} minutes.`); } catch (e) { /* ignore */ }
+  if (v === old) return;                                    // nothing changed, nothing to log
+  const text = `Login timeout changed from ${old} to ${v} minutes.`;
+  for (let attempt = 1; attempt <= 2; attempt++) {          // one retry; never fail silently
+    try { await logAuditAction("SESSION_TIMEOUT_CHANGED", text); return; }
+    catch (e) { console.warn("Timeout audit entry failed (attempt " + attempt + "):", e); }
+  }
+  toast("Timeout saved, but the audit entry could not be written. Check your connection or database rules.");
 }
 const ACTIVITY_KEY = "companorama_last_activity";
 let lastActivityAt = Date.now(), inactivityArmedFor = null, inactivityLoggingOut = false;
