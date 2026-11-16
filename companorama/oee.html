@@ -107,6 +107,8 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 
 .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:14px}.grid.equal{grid-template-columns:repeat(2,minmax(0,1fr))}.grid>.card{min-width:0}
 .stops-scroll thead th{position:sticky;top:0;background:#0d1822;z-index:1}
+.grid.stack{grid-template-columns:1fr}.grid.stack .stops-card{contain:none;display:block;overflow:visible}.grid.stack .stops-card .stops-scroll{max-height:460px;overflow-y:auto;margin-top:8px}
+.pm-in{background:#0b151e;border:1px solid var(--line);color:var(--text);padding:4px 8px;border-radius:6px;font-family:inherit}
 .stops-scroll{scrollbar-width:thin;scrollbar-color:#2c4152 transparent;color-scheme:dark}
 .stops-scroll::-webkit-scrollbar{width:8px}.stops-scroll::-webkit-scrollbar-track{background:transparent}.stops-scroll::-webkit-scrollbar-thumb{background:#2c4152;border-radius:4px}.stops-scroll::-webkit-scrollbar-thumb:hover{background:#3d586d}
 @media(min-width:1201px){.stops-card{contain:size;display:flex;flex-direction:column;overflow:hidden}.stops-card .stops-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;margin-top:8px}}
@@ -436,6 +438,30 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
   </div>
 </div>
 
+<!-- PRODUCT CATALOG MODAL (admin only) -->
+<div class="modal-overlay" id="productCatalogModal">
+  <div class="modal-card" style="max-width:1000px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 style="margin:0; font-size:18px; color:var(--cyan);">📋 Product Catalog</h2>
+      <button class="back-btn" onclick="$('productCatalogModal').style.display='none'">Close X</button>
+    </div>
+    <p style="color:var(--muted); font-size:12px; margin:0 0 10px;">Administrators keep one product list (name and code) for the whole group. <b>Products per stroke</b> and <b>nominal speed</b> are set per machine. In the Batch Manager, choosing a product on a batch fills these two values from the machine's preset. Every change is written to the audit trail.</p>
+    <div id="pcMachineLabel" style="font-size:12px; margin-bottom:10px;"></div>
+    <div style="display:grid; grid-template-columns:1fr 2fr auto; gap:10px; align-items:end; background:#071018; border:1px solid var(--line); border-radius:12px; padding:12px;">
+      <div class="control" style="margin:0;"><label>Product code</label><input id="pcNewCode" maxlength="30" placeholder="e.g. PRD-1001"></div>
+      <div class="control" style="margin:0;"><label>Product name</label><input id="pcNewName" maxlength="60" placeholder="e.g. Paracetamol 500 mg tablets"></div>
+      <button class="btn primary" style="height:42px;" onclick="addProduct()">Add product</button>
+    </div>
+    <div id="pcError" style="color:var(--red); font-size:11px; margin:8px 0;"></div>
+    <div style="max-height:360px; overflow:auto; border:1px solid var(--line); border-radius:8px;">
+      <table class="batch-table">
+        <thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Products per stroke<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Nominal speed (strokes/min)<br><span style="font-weight:400;color:var(--muted);">this machine</span></th><th>Actions</th></tr></thead>
+        <tbody id="pcBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN TIMEOUT MODAL -->
 <div class="modal-overlay" id="timeoutModal">
   <div class="modal-card" style="max-width:420px;">
@@ -589,6 +615,12 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         <option value="CONFIG_CHANGE">Configuration Change</option>
         <option value="PASSWORD_CHANGED">Password Changed</option>
         <option value="SESSION_TIMEOUT_CHANGED">Login Timeout Changed</option>
+        <option value="PRODUCT_ADDED">Product Added</option>
+        <option value="PRODUCT_UPDATED">Product Updated</option>
+        <option value="PRODUCT_STATUS_CHANGED">Product Status Changed</option>
+        <option value="PRODUCT_PRESET_SAVED">Product Preset Saved</option>
+        <option value="BATCH_PRODUCT_ASSIGNED">Batch Product Assigned</option>
+        <option value="BATCH_NUMBER_SET">Batch Number Set</option>
         <option value="STOP_REASON_SIGNED">Stop Reason Signed</option>
         <option value="E_SIGNATURE_FAILED">E-signature Failed</option>
       </select>
@@ -684,7 +716,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 
 <!-- BATCH MANAGEMENT & SPEED CALIBRATION MODAL -->
 <div class="modal-overlay" id="batchManagementModal">
-  <div class="modal-card" style="max-width: 1050px;">
+  <div class="modal-card" style="max-width: 1280px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
       <h2 style="margin:0; font-size:18px; color:var(--cyan);">📦 Production Batch Manager & Velocity Splitter</h2>
       <button class="back-btn" onclick="$('batchManagementModal').style.display='none'">Close X</button>
@@ -710,12 +742,14 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           <button class="btn primary" style="padding:6px 12px; font-size:11px;" onclick="exportBatchReportCSV()">📥 Export Batch CSV</button>
         </div>
       </div>
-      <div style="max-height:280px; overflow-y:auto; border:1px solid var(--line); border-radius:8px;">
+      <div style="max-height:280px; overflow:auto; border:1px solid var(--line); border-radius:8px;">
         <table class="batch-table">
           <thead>
             <tr>
               <th style="width:30px;"><input type="checkbox" id="selectAllBatches" onclick="toggleSelectAllBatches(this)"></th>
               <th>Batch ID</th>
+              <th title="Products come from the list kept by the administrator (📋 Products)">Product</th>
+              <th>Batch No.</th>
               <th>Time Window</th>
               <th>Duration</th>
               <th>Strokes</th>
@@ -759,6 +793,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
     <button class="btn" id="openAuditBtn" style="display:none; width:auto;" onclick="openAuditTrail()">📜 Audit Log</button>
     <button class="btn" id="openAlertsBtn" style="display:none; width:auto;" onclick="openAlertManagement()">🔔 Alerts</button>
     <button class="btn" id="openBatchMgmtBtn" style="display:none; width:auto;" onclick="openBatchManagement()">📦 Batches</button>
+    <button class="btn" id="openProductsBtn" style="display:none; width:auto;" onclick="openProductCatalog()">📋 Products</button>
     <button class="btn" id="timeoutBtn" style="width:auto;" onclick="openTimeoutModal()" title="Change how long the page can stay idle before you are signed out">⏱ Timeout</button>
     <button class="btn" id="logoutBtn" style="width:auto; border-color:var(--red); color:var(--red);">Logout</button>
     <div class="transition-group">
@@ -929,7 +964,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
         
         </div></div>
         <div class="sec" id="sec-stops"><div class="sec-bar" onclick="toggleSec('sec-stops')" role="button" tabindex="0"><span class="sec-title">Stops &amp; Time</span><span class="sec-sum" id="sec-stops-sum"></span><span class="sec-chev">▾</span></div><div class="sec-body">
-<section class="grid equal">
+<section class="grid equal stack">
           <div class="card panel">
             <div class="panel-head"><div><div class="panel-title">Output vs Plan</div><div class="panel-desc">Cumulative parts against nominal pace, with the end-of-shift projection at the current average</div></div><span class="badge" id="paceBadge">—</span></div>
             <div class="chart-wrap" style="height:260px"><canvas id="cumChart"></canvas></div>
@@ -941,7 +976,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
           </div>
           <div class="card panel stops-card">
             <div class="panel-head"><div><div class="panel-title">Stops &amp; Time Without Output</div><div class="panel-desc">Every gap of 1 minute or more between two parts, grouped by length: bars show minutes lost, the line shows how many stops</div></div><span class="badge" id="stopBadge">—</span></div>
-            <div class="chart-wrap" style="height:150px;flex:0 0 auto"><canvas id="stopParetoChart"></canvas></div>
+            <div class="chart-wrap" style="height:210px;flex:0 0 auto"><canvas id="stopParetoChart"></canvas></div>
             <div style="display:flex; align-items:center; gap:10px; margin:8px 0; flex-wrap:wrap;">
               <button class="btn primary" id="stopReasonBtn" style="width:auto;" disabled onclick="openStopReasonModal()">✍ Add reason to selected stops</button>
               <span id="stopSelCount" style="font-size:11px; color:var(--muted);">Tick one or more stops, then add the reason and sign.</span>
@@ -1987,6 +2022,7 @@ auth.onAuthStateChanged(async (user) => {
       $('openAuditBtn').style.display = canManage ? 'inline-flex' : 'none';
       $('openAlertsBtn').style.display = canManage ? 'inline-flex' : 'none';
       $('openBatchMgmtBtn').style.display = canManage ? 'inline-flex' : 'none';
+      $('openProductsBtn').style.display = isManagementBypass() ? 'inline-flex' : 'none';   // product list: admin only
       if (!canManage) disableSidebarControls();
 
       logAuditAction("LOGIN", "User successfully authenticated.");
@@ -2443,6 +2479,12 @@ function getAuditBadge(action) {
     CONFIG_CHANGE: ["Configuration Change", "warning"],
     PASSWORD_CHANGED: ["Password Changed", "info"],
     SESSION_TIMEOUT_CHANGED: ["Login Timeout Changed", "info"],
+    PRODUCT_ADDED: ["Product Added", "success"],
+    PRODUCT_UPDATED: ["Product Updated", "info"],
+    PRODUCT_STATUS_CHANGED: ["Product Status Changed", "warning"],
+    PRODUCT_PRESET_SAVED: ["Product Preset Saved", "info"],
+    BATCH_PRODUCT_ASSIGNED: ["Batch Product Assigned", "info"],
+    BATCH_NUMBER_SET: ["Batch Number Set", "info"],
     STOP_REASON_SIGNED: ["Stop Reason Signed", "success"],
     E_SIGNATURE_FAILED: ["E-signature Failed", "danger"]
   };
@@ -2977,6 +3019,197 @@ let activeSplittingBatchIndex = null;
 let batchSplitChartInstance = null;
 let currentBatchRawCycles = [];
 
+// ================= PRODUCT CATALOG (admin) + PRODUCT / BATCH NUMBER ON BATCHES =================
+// product_catalog/<group>/products/<id>                              { name, code, active, by, at }
+// product_catalog/<group>/presets/<factory>/<area>/<machine>/<id>    { pps, speed, by, at }     per machine, not general
+// product_catalog/<group>/batches/<factory>/<area>/<machine>/<startMs> { from, to, pid, pname, pcode, batchNo, pps, speed, by, at }
+let catProducts = {}, catLoadedFor = null, catPresets = {}, catPresetKey = null, batchMetaEntries = [];
+function catGroup() { const g = navState.group || (currentUserRecord && currentUserRecord.group); return g && g !== "all" ? g : null; }
+function catBase(g) { return `product_catalog/${settingsKey(g)}`; }
+function catMachineSub() { const { factory, area, machine } = navState; return factory && area && machine ? `${settingsKey(factory)}/${settingsKey(area)}/${settingsKey(machine)}` : null; }
+function catHierarchy() { return { group: navState.group, factory: navState.factory, area: navState.area, machine: navState.machine }; }
+async function auditSafe(action, details) {
+  for (let i = 0; i < 2; i++) {
+    try { await logAuditAction(action, typeof details === "string" ? details : JSON.parse(JSON.stringify(details))); return true; }
+    catch (e) { console.warn("Audit entry failed (attempt " + (i + 1) + "):", e); }
+  }
+  toast("Saved, but the audit entry could not be written. Check your connection or database rules.");
+  return false;
+}
+async function loadCatalog(force) {
+  const g = catGroup();
+  if (!g) { catProducts = {}; catLoadedFor = null; catPresets = {}; catPresetKey = null; return; }
+  try {
+    if (force || catLoadedFor !== g) {
+      const sn = await rtdb.ref(`${catBase(g)}/products`).once("value");
+      catProducts = sn.val() || {}; catLoadedFor = g;
+    }
+    const sub = catMachineSub(), key = sub ? `${g}|${sub}` : null;
+    if (!sub) { catPresets = {}; catPresetKey = null; }
+    else if (force || catPresetKey !== key) {
+      const sn = await rtdb.ref(`${catBase(g)}/presets/${sub}`).once("value");
+      catPresets = sn.val() || {}; catPresetKey = key;
+    }
+  } catch (e) { console.warn("Product catalog not readable:", e); toast("The product list could not be loaded."); }
+}
+async function loadBatchMeta(fromMs, toMs) {
+  batchMetaEntries = [];
+  const g = catGroup(), sub = catMachineSub(); if (!g || !sub) return;
+  try {   // batch records are keyed by start time (13 digits), so a key range reads only this window
+    const sn = await rtdb.ref(`${catBase(g)}/batches/${sub}`).orderByKey().startAt(String(Math.round(fromMs))).endAt(String(Math.round(toMs))).once("value");
+    const v = sn.val() || {}; batchMetaEntries = Object.values(v).filter(e => e && e.from <= e.to);
+  } catch (e) { console.warn("Batch product/number records not readable:", e); }
+}
+function metaFor(startMs) {
+  let best = null;
+  for (const e of batchMetaEntries) { if (startMs >= e.from && startMs <= e.to && (!best || e.at >= best.at)) best = e; }
+  return best;
+}
+function applyBatchMeta(b) {
+  const e = metaFor(+b.startTime);
+  b.productId = (e && e.pid) || ""; b.productName = (e && e.pname) || ""; b.productCode = (e && e.pcode) || ""; b.batchNo = (e && e.batchNo) || "";
+  if (e && e.speed > 0) b.nominalSpeed = e.speed;     // the speed that was in force when the product was chosen (history does not change later)
+  return b;
+}
+function productOptionsHtml(b) {
+  const act = Object.entries(catProducts).filter(([, p]) => p && p.active !== false).sort((x, y) => String(x[1].code).localeCompare(String(y[1].code)));
+  let html = `<option value="">— none —</option>`, found = false;
+  act.forEach(([id, p]) => { if (id === b.productId) found = true; html += `<option value="${escapeHtml(id)}"${id === b.productId ? " selected" : ""}>${escapeHtml(p.code)} — ${escapeHtml(p.name)}</option>`; });
+  if (b.productId && !found) html += `<option value="${escapeHtml(b.productId)}" selected>${escapeHtml(b.productCode || "?")} — ${escapeHtml(b.productName || "removed product")} (inactive)</option>`;
+  return html;
+}
+async function saveBatchMeta(b) {
+  const g = catGroup(), sub = catMachineSub(); if (!g || !sub) throw new Error("Select a machine first.");
+  const has = b.productId || b.batchNo;
+  const e = has ? { from: +b.startTime, to: +b.endTime, pid: b.productId || "", pname: b.productName || "", pcode: b.productCode || "", batchNo: b.batchNo || "", ...(b.productId ? { pps: b.pps, speed: b.nominalSpeed } : {}), at: Date.now(), by: currentUserRecord ? currentUserRecord.email : "" } : null;
+  await rtdb.ref(`${catBase(g)}/batches/${sub}/${+b.startTime}`).set(e);
+  batchMetaEntries = batchMetaEntries.filter(x => x.from !== +b.startTime); if (e) batchMetaEntries.push(e);
+}
+function batchAuditBase(b) {
+  return { machineHierarchy: catHierarchy(), batchId: b.id, timeFrom: b.startTime.toLocaleString(), timeTo: b.endTime.toLocaleString(), strokes: b.strokes };
+}
+async function assignBatchProduct(idx, pid) {
+  const b = managedBatchesState[idx]; if (!b || denyManagementAccess()) return;
+  if ((pid || "") === (b.productId || "")) return;
+  const prev = { productCode: b.productCode || "", productName: b.productName || "", productsPerStroke: b.pps, nominalSpeed: b.nominalSpeed };
+  const p = pid ? catProducts[pid] : null;
+  b.productId = pid || ""; b.productName = p ? p.name : ""; b.productCode = p ? p.code : "";
+  const pr = pid ? catPresets[pid] : null;
+  if (pr) { if (pr.pps >= 1 && pr.pps !== b.pps) { b.pps = pr.pps; applyPps(b); } if (pr.speed > 0) b.nominalSpeed = pr.speed; }
+  try { if (b.pps !== prev.productsPerStroke) await savePpsEntry(b); await saveBatchMeta(b); }
+  catch (e) { toast("The product could not be saved on this batch: " + ((e && e.message) || e)); }
+  renderManagedBatchesTable();
+  await auditSafe("BATCH_PRODUCT_ASSIGNED", { ...batchAuditBase(b), batchNo: b.batchNo || "", previous: prev,
+    product: { code: b.productCode, name: b.productName }, appliedPreset: pr ? { productsPerStroke: pr.pps || null, nominalSpeed: pr.speed || null } : "none set for this machine",
+    productsPerStroke: b.pps, nominalSpeed: b.nominalSpeed });
+  toast(pid ? `${b.id}: ${b.productCode} assigned${pr ? " (machine preset applied)" : " (no preset for this machine)"}.` : `${b.id}: product removed.`);
+}
+async function setBatchNo(idx, val) {
+  const b = managedBatchesState[idx]; if (!b || denyManagementAccess()) return;
+  const v = String(val || "").trim(), old = b.batchNo || "";
+  if (v === old) { renderManagedBatchesTable(); return; }
+  if (!/^[A-Za-z0-9 _\-./]{0,40}$/.test(v)) { toast("Batch No. may use letters, numbers, space and - _ . / (max 40)."); renderManagedBatchesTable(); return; }
+  b.batchNo = v;
+  try { await saveBatchMeta(b); } catch (e) { toast("The batch number could not be saved: " + ((e && e.message) || e)); }
+  renderManagedBatchesTable();
+  await auditSafe("BATCH_NUMBER_SET", { ...batchAuditBase(b), previousBatchNo: old, batchNo: v, product: { code: b.productCode || "", name: b.productName || "" } });
+  toast(`${b.id}: batch number ${v ? "saved" : "cleared"}.`);
+}
+
+// ---- Admin: the product list ----
+async function openProductCatalog() {
+  if (!currentUserRecord || !isManagementBypass()) { toast("Access denied: only administrators can manage the product list."); return; }
+  if (!catGroup()) { alert("Open any machine of the group first, so the product list knows which group to use."); return; }
+  $("pcError").textContent = ""; $("productCatalogModal").style.display = "grid";
+  await loadCatalog(true); renderProductCatalog();
+}
+function renderProductCatalog() {
+  const sub = catMachineSub();
+  $("pcMachineLabel").innerHTML = sub ? `Presets below apply to machine <b style="color:var(--cyan);">${escapeHtml(navState.machine)}</b>.` : `<span style="color:var(--muted);">Open a machine to set its products per stroke and nominal speed. Name and code can be edited now.</span>`;
+  const rows = Object.entries(catProducts).sort((a, b) => String(a[1].code).localeCompare(String(b[1].code)));
+  $("pcBody").innerHTML = rows.length ? rows.map(([id, p]) => {
+    const pr = catPresets[id] || {}, dis = sub ? "" : "disabled";
+    return `<tr>
+      <td><input class="pm-in" id="pcCode_${id}" value="${escapeHtml(p.code)}" maxlength="30" style="width:120px;"></td>
+      <td><input class="pm-in" id="pcName_${id}" value="${escapeHtml(p.name)}" maxlength="60" style="width:220px;"></td>
+      <td style="color:${p.active !== false ? "var(--green)" : "var(--red)"}">${p.active !== false ? "Active" : "Inactive"}</td>
+      <td><input class="pm-in" type="number" min="1" max="100" step="1" id="pcPps_${id}" value="${pr.pps || ""}" ${dis} style="width:80px;"></td>
+      <td><input class="pm-in" type="number" min="1" step="1" id="pcSpd_${id}" value="${pr.speed || ""}" ${dis} style="width:90px;"></td>
+      <td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="saveProductRow('${id}')">Save</button>
+          <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleProductActive('${id}')">${p.active !== false ? "Inactivate" : "Activate"}</button></td></tr>`;
+  }).join("") : `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:16px;">No products yet. Add the first one above.</td></tr>`;
+}
+const PC_CODE_RE = /^[A-Za-z0-9._\-/]{1,30}$/;
+function pcCodeTaken(code, exceptId) { return Object.entries(catProducts).some(([id, p]) => id !== exceptId && String(p.code).toLowerCase() === code.toLowerCase()); }
+async function addProduct() {
+  if (!isManagementBypass()) return;
+  const err = $("pcError"); err.textContent = "";
+  const code = $("pcNewCode").value.trim(), name = $("pcNewName").value.trim(), g = catGroup();
+  if (!PC_CODE_RE.test(code)) { err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
+  if (!name || name.length > 60) { err.textContent = "Enter a product name (up to 60 characters)."; return; }
+  if (pcCodeTaken(code)) { err.textContent = "This product code already exists."; return; }
+  try {
+    const id = rtdb.ref(`${catBase(g)}/products`).push().key;
+    const rec = { name, code, active: true, by: currentUserRecord.email, at: Date.now() };
+    await rtdb.ref(`${catBase(g)}/products/${id}`).set(rec);
+    catProducts[id] = rec;
+  } catch (e) { err.textContent = "Could not save: " + ((e && e.message) || e); return; }
+  $("pcNewCode").value = ""; $("pcNewName").value = ""; renderProductCatalog();
+  await auditSafe("PRODUCT_ADDED", { group: g, productCode: code, productName: name });
+  toast(`Product ${code} added.`);
+}
+async function saveProductRow(id) {
+  if (!isManagementBypass()) return;
+  const p = catProducts[id]; if (!p) return;
+  const err = $("pcError"); err.textContent = "";
+  const code = $("pcCode_" + id).value.trim(), name = $("pcName_" + id).value.trim(), g = catGroup(), sub = catMachineSub();
+  if (!PC_CODE_RE.test(code)) { err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
+  if (!name || name.length > 60) { err.textContent = "Enter a product name (up to 60 characters)."; return; }
+  if (pcCodeTaken(code, id)) { err.textContent = "Another product already has this code."; return; }
+  let ppsV = null, spdV = null;
+  if (sub) {
+    const a = $("pcPps_" + id).value.trim(), b = $("pcSpd_" + id).value.trim();
+    if (a !== "") { ppsV = Number(a); if (!(Number.isInteger(ppsV) && ppsV >= 1 && ppsV <= 100)) { err.textContent = "Products per stroke must be a whole number from 1 to 100."; return; } }
+    if (b !== "") { spdV = Number(b); if (!(spdV > 0)) { err.textContent = "Nominal speed must be greater than 0."; return; } }
+  }
+  const changes = [];
+  try {
+    if (code !== p.code || name !== p.name) {
+      const before = { code: p.code, name: p.name };
+      const rec = { ...p, code, name, by: currentUserRecord.email, at: Date.now() };
+      await rtdb.ref(`${catBase(g)}/products/${id}`).set(rec); catProducts[id] = rec;
+      changes.push(["PRODUCT_UPDATED", { group: g, previous: before, now: { code, name } }]);
+    }
+    if (sub) {
+      const old = catPresets[id] || {}, oldPps = old.pps || null, oldSpd = old.speed || null;
+      if (ppsV !== oldPps || spdV !== oldSpd) {
+        const path = `${catBase(g)}/presets/${sub}/${id}`;
+        if (ppsV === null && spdV === null) { await rtdb.ref(path).set(null); delete catPresets[id]; }
+        else { const rec = { ...(ppsV ? { pps: ppsV } : {}), ...(spdV ? { speed: spdV } : {}), by: currentUserRecord.email, at: Date.now() }; await rtdb.ref(path).set(rec); catPresets[id] = rec; }
+        changes.push(["PRODUCT_PRESET_SAVED", { machineHierarchy: catHierarchy(), productCode: code, productName: name,
+          previous: { productsPerStroke: oldPps, nominalSpeed: oldSpd }, now: { productsPerStroke: ppsV, nominalSpeed: spdV } }]);
+      }
+    }
+  } catch (e) { err.textContent = "Could not save: " + ((e && e.message) || e); renderProductCatalog(); return; }
+  renderProductCatalog();
+  if (!changes.length) { toast("No changes to save."); return; }
+  for (const [a, d] of changes) await auditSafe(a, d);
+  toast(`Product ${code} saved.`);
+}
+async function toggleProductActive(id) {
+  if (!isManagementBypass()) return;
+  const p = catProducts[id]; if (!p) return;
+  const nowActive = p.active === false;   // flipping
+  const g = catGroup();
+  try {
+    const rec = { ...p, active: nowActive, by: currentUserRecord.email, at: Date.now() };
+    await rtdb.ref(`${catBase(g)}/products/${id}`).set(rec); catProducts[id] = rec;
+  } catch (e) { $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
+  renderProductCatalog();
+  await auditSafe("PRODUCT_STATUS_CHANGED", { group: g, productCode: p.code, productName: p.name, previous: nowActive ? "inactive" : "active", now: nowActive ? "active" : "inactive" });
+  toast(`Product ${p.code} ${nowActive ? "activated" : "inactivated"}.`);
+}
+
 function openBatchManagement() {
   if (!currentUserRecord || denyManagementAccess()) return;
   if (!navState.machine) {
@@ -3032,6 +3265,8 @@ async function loadManagedBatches() {
   
   const timeoutMin = Number($("batchTimeoutMin").value) || 60;
   await loadPpsEntries();
+  await loadCatalog();
+  await loadBatchMeta(+startDateObj, +endDateObj);
   managedBatchesState = computeBatchesEditable(cycleEvents, rejectEvents, timeoutMin);
   renderManagedBatchesTable();
   $('batchSplitPanel').style.display = 'none';
@@ -3065,7 +3300,7 @@ function renderManagedBatchesTable() {
   tbody.innerHTML = "";
   
   if (managedBatchesState.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:var(--muted); padding:20px;">No batches found for the selected shift window / date range.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; color:var(--muted); padding:20px;">No batches found for the selected shift window / date range.</td></tr>`;
     return;
   }
 
@@ -3083,6 +3318,8 @@ function renderManagedBatchesTable() {
     tr.innerHTML = `
       <td><input type="checkbox" class="batch-select-box" data-index="${idx}"></td>
       <td style="font-weight:700; color:var(--cyan);">${b.id}</td>
+      <td><select class="pm-in" style="max-width:190px;" onchange="assignBatchProduct(${idx}, this.value)">${productOptionsHtml(b)}</select></td>
+      <td><input class="pm-in" type="text" maxlength="40" value="${escapeHtml(b.batchNo || "")}" placeholder="lot / batch no." style="width:120px;" onchange="setBatchNo(${idx}, this.value)"></td>
       <td>${b.startTime.toLocaleDateString()} ${fmtTime(b.startTime)} – ${fmtTime(b.endTime)}</td>
       <td>${Math.round(b.durationSec / 60)} mins</td>
       <td>${fmt(b.strokes)}</td>
@@ -3269,7 +3506,7 @@ function createEditableBatchObject(cycles, rejects, batchNum) {
   const pps = ppsFor(+startTime);
   const defaultSpeed = Number($("nominalSpeed").value) || 120;
 
-  return {
+  return applyBatchMeta({
     uid: 'batch_' + Math.random().toString(36).substring(2, 9),
     id: `BATCH #${String(batchNum).padStart(3, '0')}`,
     startTime,
@@ -3284,7 +3521,7 @@ function createEditableBatchObject(cycles, rejects, batchNum) {
     nominalSpeed: defaultSpeed,
     cycles,
     rejectsList: rejects
-  };
+  });
 }
 
 function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList, pps = 1) {
@@ -3296,7 +3533,7 @@ function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList, pps = 1)
   const batchRejects = rejectsList ? rejectsList.filter(r => r.timestamp >= startTime && r.timestamp <= endTime).length : 0;
   const good = Math.max(0, total - batchRejects) * pps;
 
-  return {
+  return applyBatchMeta({
     uid: 'batch_' + Math.random().toString(36).substring(2, 9),
     id: '',
     startTime,
@@ -3311,7 +3548,7 @@ function createBatchObjectFromCycles(cycles, nominalSpeed, rejectsList, pps = 1)
     nominalSpeed,
     cycles,
     rejectsList
-  };
+  });
 }
 
 async function exportBatchReportCSV() {
@@ -3337,7 +3574,7 @@ async function exportBatchReportCSV() {
     "BatchFilterMode", "StartDate", "EndDate", "ShiftStartHour", 
     "BatchID", "TimeWindowFrom", "TimeWindowTo", "DurationMins", 
     "TotalStrokes", "ProductsPerStroke", "GoodProducts", "TotalProducts", "RejectedProducts", "NominalSpeedStrokesPerMin", 
-    "BatchOEE", "ExportedByUser", "ExportTimestamp"
+    "BatchOEE", "ExportedByUser", "ExportTimestamp", "ProductCode", "ProductName", "BatchNo"
   ];
 
   const rows = [];
@@ -3359,7 +3596,8 @@ async function exportBatchReportCSV() {
       filterMode, startDt, endDt, shiftStartHour,
       b.id, `"${timeFrom}"`, `"${timeTo}"`, durationMins,
       b.strokes, b.pps, b.good, b.total, b.rejects, b.nominalSpeed,
-      `${oeeVal.toFixed(1)}%`, `"${currentUser}"`, `"${exportTimestamp}"`
+      `${oeeVal.toFixed(1)}%`, `"${currentUser}"`, `"${exportTimestamp}"`,
+      `"${String(b.productCode || "").replace(/"/g, '""')}"`, `"${String(b.productName || "").replace(/"/g, '""')}"`, `"${String(b.batchNo || "").replace(/"/g, '""')}"`
     ]);
 
     auditBatchSnapshots.push({
@@ -3374,6 +3612,9 @@ async function exportBatchReportCSV() {
       rejects: b.rejects,
       nominalSpeed: b.nominalSpeed,
       nominalSpeedStrokesPerMin: b.nominalSpeed,
+      productCode: b.productCode || "",
+      productName: b.productName || "",
+      batchNo: b.batchNo || "",
       oee: `${oeeVal.toFixed(1)}%`
     });
   });
@@ -3541,7 +3782,7 @@ const CACHE_VERSION = 1;               // raise this number to discard every loc
 const FINAL_GRACE_HOURS = 6;           // a UTC day folder is final this long after that day has ended
 const RESYNC_MS = 5 * 60 * 1000;       // full re-read of a running day at most this often
 const FOLDER_MEM_LIMIT = 120;          // day folders kept in memory at once
-const HIERARCHY_SKIP_ROOTS = ["users", "machine_settings", "audit_trail", "alert_rules", "alert_state", "alert_queue", "event_summaries", "summary_state"];
+const HIERARCHY_SKIP_ROOTS = ["users", "machine_settings", "audit_trail", "alert_rules", "alert_state", "alert_queue", "event_summaries", "summary_state", "product_catalog"];
 
 const folderMem = new Map();           // "g/f/a/m|YYYY-MM-DD" -> { c:[ms], r:[ms], s:[[ms,val]], eKey, sKey, fullAt }
 const folderInflight = {};
