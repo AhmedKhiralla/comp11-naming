@@ -3148,7 +3148,6 @@ function renderProductCatalog() {
       <td><input class="pm-in" type="number" min="1" max="100" step="1" id="pcPps_${id}" value="${pr.pps || ""}" ${dis} style="width:80px;"></td>
       <td><input class="pm-in" type="number" min="1" step="1" id="pcSpd_${id}" value="${pr.speed || ""}" ${dis} style="width:90px;"></td>
       <td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="saveProductRow('${id}')">Save</button>
-          <button class="btn" style="padding:4px 8px; font-size:10px;" ${dis} title="Assign to every machine of the open area" onclick="assignProductToArea('${id}')">All in area</button>
           <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleProductActive('${id}')">${p.active !== false ? "Inactivate" : "Activate"}</button></td></tr>`;
   }).join("") : `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:16px;">No products yet. Add the first one above.</td></tr>`;
 }
@@ -3214,25 +3213,6 @@ async function saveProductRow(id) {
   if (!changes.length) { pcNote("No changes to save."); return; }
   for (const [a, d] of changes) await auditSafe(a, d);
   pcNote(`Product ${code} saved.`);
-}
-async function assignProductToArea(id) {
-  if (!isManagementBypass()) return;
-  const p = catProducts[id], g = catGroup(); if (!p || !g) return;
-  const { factory, area } = navState; const machines = Object.keys((dbTree[g] || {})[factory]?.[area] || {});
-  if (!factory || !area || !machines.length) { toast("Open a machine first, so the area is known."); return; }
-  const fk = settingsKey(factory), ak = settingsKey(area), upd = {}, added = [], now = Date.now();
-  for (const m of machines) {
-    const mk = settingsKey(m), cur = (((catAll[fk] || {})[ak] || {})[mk] || {})[id];
-    if (cur && cur.on !== false) continue;
-    upd[`${fk}/${ak}/${mk}/${id}/on`] = true; upd[`${fk}/${ak}/${mk}/${id}/by`] = currentUserRecord.email; upd[`${fk}/${ak}/${mk}/${id}/at`] = now;
-    added.push(m);
-  }
-  if (!added.length) { pcNote("Already assigned to every machine in this area."); return; }
-  try { await rtdb.ref(`${catBase(g)}/presets`).update(upd); }
-  catch (e) { $("pcError").style.color = "var(--red)"; $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
-  catLoadedAt = 0; await loadCatalog(true); renderProductCatalog();
-  await auditSafe("PRODUCT_MACHINE_ASSIGNED", { group: g, factory, area, productCode: p.code, productName: p.name, previous: "not assigned", now: "assigned", machines: added });
-  pcNote(`Product ${p.code} assigned to ${added.length} machine(s) in ${area}.`);
 }
 async function toggleProductActive(id) {
   if (!isManagementBypass()) return;
