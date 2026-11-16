@@ -143,7 +143,7 @@ main{padding:26px;max-width:1700px;width:100%;margin:auto}
 .legend{display:flex;gap:14px;margin-top:10px;font-size:9px;color:#78909e}.legend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}.legend .working:before{background:var(--green)}.legend .idle:before{background:var(--amber)}.legend .off:before{background:var(--red)}
 
 .footer{padding:18px 0 4px;color:#536a79;font-size:9px;display:flex;justify-content:space-between}
-.toast{position:fixed;right:22px;bottom:22px;background:#10212c;border:1px solid #2b5368;color:#d9edf5;padding:12px 15px;border-radius:11px;box-shadow:var(--shadow);display:none;font-size:11px;z-index:50}
+.toast{position:fixed;right:22px;bottom:22px;background:#10212c;border:1px solid #2b5368;color:#d9edf5;padding:12px 15px;border-radius:11px;box-shadow:var(--shadow);display:none;font-size:11px;z-index:100000}
 .loading-indicator{font-size:12px;color:var(--cyan);margin-left:10px;display:none}
 
 @media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.grid,.grid.equal{grid-template-columns:1fr}.oee-layout{grid-template-columns:220px 1fr}}
@@ -1951,17 +1951,17 @@ function forcePasswordChange() {
   return new Promise(resolve => {
     const ov = $("pwChangeOverlay"), err = $("pwChangeError");
     ["pwOld", "pwNew", "pwNew2"].forEach(id => { $(id).value = ""; });
-    err.textContent = ""; ov.style.display = "grid";
+    err.style.color = "var(--red)"; err.textContent = ""; ov.style.display = "grid";
     const done = ok => { ov.style.display = "none"; $("pwChangeBtn").onclick = null; $("pwCancelBtn").onclick = null; resolve(ok); };
     $("pwCancelBtn").onclick = () => { auth.signOut(); done(false); };
     $("pwChangeBtn").onclick = async () => {
       const oldP = $("pwOld").value, p1 = $("pwNew").value, p2 = $("pwNew2").value;
       const complexRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!\%*?&]{8,}$/;
-      if (!oldP) { err.textContent = "Enter the temporary password you were given."; return; }
-      if (!complexRegex.test(p1)) { err.textContent = "The new password must be at least 8 characters with letters and numbers."; return; }
-      if (p1 !== p2) { err.textContent = "The two new passwords do not match."; return; }
-      if (p1 === oldP) { err.textContent = "The new password must be different from the temporary one."; return; }
-      $("pwChangeBtn").disabled = true; err.textContent = "Saving...";
+      if (!oldP) { err.style.color = "var(--red)"; err.textContent = "Enter the temporary password you were given."; return; }
+      if (!complexRegex.test(p1)) { err.style.color = "var(--red)"; err.textContent = "The new password must be at least 8 characters with letters and numbers."; return; }
+      if (p1 !== p2) { err.style.color = "var(--red)"; err.textContent = "The two new passwords do not match."; return; }
+      if (p1 === oldP) { err.style.color = "var(--red)"; err.textContent = "The new password must be different from the temporary one."; return; }
+      $("pwChangeBtn").disabled = true; err.style.color = "var(--red)"; err.textContent = "Saving...";
       try {
         const u = auth.currentUser;
         await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, oldP));
@@ -3130,7 +3130,7 @@ async function setBatchNo(idx, val) {
 async function openProductCatalog() {
   if (!currentUserRecord || !isManagementBypass()) { toast("Access denied: only administrators can manage the product list."); return; }
   if (!catGroup()) { alert("Open any machine of the group first, so the product list knows which group to use."); return; }
-  $("pcError").textContent = ""; $("productCatalogModal").style.display = "grid";
+  $("pcError").style.color = "var(--red)"; $("pcError").textContent = ""; $("productCatalogModal").style.display = "grid";
   await loadCatalog(true); renderProductCatalog();
 }
 function renderProductCatalog() {
@@ -3152,38 +3152,39 @@ function renderProductCatalog() {
           <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="toggleProductActive('${id}')">${p.active !== false ? "Inactivate" : "Activate"}</button></td></tr>`;
   }).join("") : `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:16px;">No products yet. Add the first one above.</td></tr>`;
 }
+function pcNote(msg) { const e = $("pcError"); if (e) { e.style.color = "var(--green)"; e.textContent = "✔ " + msg; clearTimeout(pcNote.t); pcNote.t = setTimeout(() => { if (e.textContent.startsWith("✔")) e.textContent = ""; }, 5000); } toast(msg); }
 const PC_CODE_RE = /^[A-Za-z0-9._\-/]{1,30}$/;
 function pcCodeTaken(code, exceptId) { return Object.entries(catProducts).some(([id, p]) => id !== exceptId && String(p.code).toLowerCase() === code.toLowerCase()); }
 async function addProduct() {
   if (!isManagementBypass()) return;
-  const err = $("pcError"); err.textContent = "";
+  const err = $("pcError"); err.style.color = "var(--red)"; err.textContent = "";
   const code = $("pcNewCode").value.trim(), name = $("pcNewName").value.trim(), g = catGroup();
-  if (!PC_CODE_RE.test(code)) { err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
-  if (!name || name.length > 60) { err.textContent = "Enter a product name (up to 60 characters)."; return; }
-  if (pcCodeTaken(code)) { err.textContent = "This product code already exists."; return; }
+  if (!PC_CODE_RE.test(code)) { err.style.color = "var(--red)"; err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
+  if (!name || name.length > 60) { err.style.color = "var(--red)"; err.textContent = "Enter a product name (up to 60 characters)."; return; }
+  if (pcCodeTaken(code)) { err.style.color = "var(--red)"; err.textContent = "This product code already exists."; return; }
   try {
     const id = rtdb.ref(`${catBase(g)}/products`).push().key;
     const rec = { name, code, active: true, by: currentUserRecord.email, at: Date.now() };
     await rtdb.ref(`${catBase(g)}/products/${id}`).set(rec);
     catProducts[id] = rec;
-  } catch (e) { err.textContent = "Could not save: " + ((e && e.message) || e); return; }
+  } catch (e) { err.style.color = "var(--red)"; err.textContent = "Could not save: " + ((e && e.message) || e); return; }
   $("pcNewCode").value = ""; $("pcNewName").value = ""; renderProductCatalog();
   await auditSafe("PRODUCT_ADDED", { group: g, productCode: code, productName: name });
-  toast(`Product ${code} added.`);
+  pcNote(`Product ${code} added.`);
 }
 async function saveProductRow(id) {
   if (!isManagementBypass()) return;
   const p = catProducts[id]; if (!p) return;
-  const err = $("pcError"); err.textContent = "";
+  const err = $("pcError"); err.style.color = "var(--red)"; err.textContent = "";
   const code = $("pcCode_" + id).value.trim(), name = $("pcName_" + id).value.trim(), g = catGroup(), sub = catMachineSub();
-  if (!PC_CODE_RE.test(code)) { err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
-  if (!name || name.length > 60) { err.textContent = "Enter a product name (up to 60 characters)."; return; }
-  if (pcCodeTaken(code, id)) { err.textContent = "Another product already has this code."; return; }
+  if (!PC_CODE_RE.test(code)) { err.style.color = "var(--red)"; err.textContent = "Code: 1-30 characters, letters, numbers and . _ - / only."; return; }
+  if (!name || name.length > 60) { err.style.color = "var(--red)"; err.textContent = "Enter a product name (up to 60 characters)."; return; }
+  if (pcCodeTaken(code, id)) { err.style.color = "var(--red)"; err.textContent = "Another product already has this code."; return; }
   let ppsV = null, spdV = null;
   if (sub) {
     const a = $("pcPps_" + id).value.trim(), b = $("pcSpd_" + id).value.trim();
-    if (a !== "") { ppsV = Number(a); if (!(Number.isInteger(ppsV) && ppsV >= 1 && ppsV <= 100)) { err.textContent = "Products per stroke must be a whole number from 1 to 100."; return; } }
-    if (b !== "") { spdV = Number(b); if (!(spdV > 0)) { err.textContent = "Nominal speed must be greater than 0."; return; } }
+    if (a !== "") { ppsV = Number(a); if (!(Number.isInteger(ppsV) && ppsV >= 1 && ppsV <= 100)) { err.style.color = "var(--red)"; err.textContent = "Products per stroke must be a whole number from 1 to 100."; return; } }
+    if (b !== "") { spdV = Number(b); if (!(spdV > 0)) { err.style.color = "var(--red)"; err.textContent = "Nominal speed must be greater than 0."; return; } }
   }
   const changes = [];
   try {
@@ -3208,11 +3209,11 @@ async function saveProductRow(id) {
           previous: { productsPerStroke: oldPps, nominalSpeed: oldSpd }, now: { productsPerStroke: ppsV, nominalSpeed: spdV } }]);
       }
     }
-  } catch (e) { err.textContent = "Could not save: " + ((e && e.message) || e); renderProductCatalog(); return; }
+  } catch (e) { err.style.color = "var(--red)"; err.textContent = "Could not save: " + ((e && e.message) || e); renderProductCatalog(); return; }
   renderProductCatalog();
-  if (!changes.length) { toast("No changes to save."); return; }
+  if (!changes.length) { pcNote("No changes to save."); return; }
   for (const [a, d] of changes) await auditSafe(a, d);
-  toast(`Product ${code} saved.`);
+  pcNote(`Product ${code} saved.`);
 }
 async function assignProductToArea(id) {
   if (!isManagementBypass()) return;
@@ -3226,12 +3227,12 @@ async function assignProductToArea(id) {
     upd[`${fk}/${ak}/${mk}/${id}/on`] = true; upd[`${fk}/${ak}/${mk}/${id}/by`] = currentUserRecord.email; upd[`${fk}/${ak}/${mk}/${id}/at`] = now;
     added.push(m);
   }
-  if (!added.length) { toast("Already assigned to every machine in this area."); return; }
+  if (!added.length) { pcNote("Already assigned to every machine in this area."); return; }
   try { await rtdb.ref(`${catBase(g)}/presets`).update(upd); }
-  catch (e) { $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
+  catch (e) { $("pcError").style.color = "var(--red)"; $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
   catLoadedAt = 0; await loadCatalog(true); renderProductCatalog();
   await auditSafe("PRODUCT_MACHINE_ASSIGNED", { group: g, factory, area, productCode: p.code, productName: p.name, previous: "not assigned", now: "assigned", machines: added });
-  toast(`Product ${p.code} assigned to ${added.length} machine(s) in ${area}.`);
+  pcNote(`Product ${p.code} assigned to ${added.length} machine(s) in ${area}.`);
 }
 async function toggleProductActive(id) {
   if (!isManagementBypass()) return;
@@ -3241,10 +3242,10 @@ async function toggleProductActive(id) {
   try {
     const rec = { ...p, active: nowActive, by: currentUserRecord.email, at: Date.now() };
     await rtdb.ref(`${catBase(g)}/products/${id}`).set(rec); catProducts[id] = rec;
-  } catch (e) { $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
+  } catch (e) { $("pcError").style.color = "var(--red)"; $("pcError").textContent = "Could not save: " + ((e && e.message) || e); return; }
   renderProductCatalog();
   await auditSafe("PRODUCT_STATUS_CHANGED", { group: g, productCode: p.code, productName: p.name, previous: nowActive ? "inactive" : "active", now: nowActive ? "active" : "inactive" });
-  toast(`Product ${p.code} ${nowActive ? "activated" : "inactivated"}.`);
+  pcNote(`Product ${p.code} ${nowActive ? "activated" : "inactivated"}.`);
 }
 
 function openBatchManagement() {
@@ -5476,19 +5477,19 @@ function openStopReasonModal() {
 }
 function closeStopReasonModal() { $("stopReasonModal").style.display = "none"; $("srPassword").value = ""; }
 async function signStopReasons() {
-  const err = $("srError"); err.textContent = "";
+  const err = $("srError"); err.style.color = "var(--red)"; err.textContent = "";
   const reason = $("srReason").value, comment = $("srComment").value.trim(), pw = $("srPassword").value, base = stopBase();
-  if (!base) { err.textContent = "Open a machine first."; return; }
-  if (!reason) { err.textContent = "Select a reason."; return; }
-  if (reason === "Other" && !comment) { err.textContent = "Add a comment when the reason is Other."; return; }
-  if (!pw) { err.textContent = "Enter your password to sign."; return; }
-  const u = auth.currentUser; if (!u) { err.textContent = "Please sign in again."; return; }
+  if (!base) { err.style.color = "var(--red)"; err.textContent = "Open a machine first."; return; }
+  if (!reason) { err.style.color = "var(--red)"; err.textContent = "Select a reason."; return; }
+  if (reason === "Other" && !comment) { err.style.color = "var(--red)"; err.textContent = "Add a comment when the reason is Other."; return; }
+  if (!pw) { err.style.color = "var(--red)"; err.textContent = "Enter your password to sign."; return; }
+  const u = auth.currentUser; if (!u) { err.style.color = "var(--red)"; err.textContent = "Please sign in again."; return; }
   $("srSignBtn").disabled = true;
   try {
     try { await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, pw)); }
     catch (e) {
       try { await logAuditAction("E_SIGNATURE_FAILED", `Signature on stop reason failed for ${base}.`); } catch (_) {}
-      err.textContent = "Signature failed: the password is not correct."; return;
+      err.style.color = "var(--red)"; err.textContent = "Signature failed: the password is not correct."; return;
     }
     const list = [...stopSel.values()].sort((a, b) => a.start - b.start), signedAt = new Date().toISOString();
     const updates = {}, previous = {};
